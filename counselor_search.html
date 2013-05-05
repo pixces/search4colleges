@@ -1,0 +1,248 @@
+<?php
+	require_once('includes/header.php');
+	
+	$txtname		= optional_param('txtname','',PARAM_RAW);
+	$txtkeyword		= optional_param('txtkeyword','',PARAM_RAW);
+	$search_major	= optional_param('search_major','',PARAM_RAW);
+	$get_state		= optional_param('state','', PARAM_RAW);
+
+	if(!empty($get_state))
+	{
+		if(preg_match('/\d$/', $get_state))
+		{  
+			$get_state = get_field('state','id','id',$get_state,'status','active'); 
+		} 
+		else
+		{  
+			$get_state = get_data_frontend('state','id',$get_state,'name'); 
+		} 
+	}
+
+	$msg		= '';
+	//$user_id    = (isset($_SESSION['s4c_user_id']))?$_SESSION['s4c_user_id']:0;
+	$extra_select = '';
+	$search_major_sel = '';
+	if($search_major != ''){
+		$count = count($search_major);
+		$i = 1;
+		
+		foreach($search_major as $key=>$value){
+			$search_major_sel .= ($count==$i)?$value:$value.',';
+			$i++;
+		}
+	}
+
+	if(!empty($txtname)){
+		$extra_select .= " AND (`first_name` LIKE '%$txtname%' OR `last_name` LIKE '%$txtname%' )   ";
+	}
+
+	if(!empty($search_major_sel)){
+		$extra_select .= " AND user_id IN(SELECT distinct school_id FROM `school_major` WHERE `major_id` in($search_major_sel)) ";
+	}
+
+	if(!empty($get_state)){
+		$extra_select .= " AND state = ".$get_state; 
+	}
+
+	//echo $extra_select;	
+	if(!empty($get_state) || !empty($extra_select)) {
+		/*$sql = "
+				SELECT * FROM {$CFG->prefix}counselors WHERE status='active' AND user_id !=".$user_id." AND
+					
+					(`first_name` LIKE '%$txtkeyword%' OR 
+					`last_name` LIKE '%$txtkeyword%' OR 
+					`proffession` LIKE '%$txtkeyword%' OR 
+					`address` LIKE '%$txtkeyword%' OR 
+					`state` LIKE '%$txtkeyword%' OR 
+					`city` LIKE '%$txtkeyword%' OR 
+					`zip_code` LIKE '%$txtkeyword%' OR 
+					concat( `first_name` , `last_name` ) LIKE '%".str_replace(' ','',$txtkeyword)."%' OR 
+					concat( `first_name` , `last_name` ,`proffession`) LIKE '%".str_replace(' ','',$txtkeyword)."%' OR 
+					concat( `first_name` , `last_name` ,`proffession`,`address`) LIKE '%".str_replace(' ','',$txtkeyword)."%')
+					$extra_select
+			   "*/
+
+
+		$sql = "SELECT * FROM {$CFG->prefix}counselors WHERE status='active'".$extra_select;
+		
+		$get_name =get_records_sql($sql);
+		if(empty($get_name)) {
+			$msg = 'No Result Found';
+		}
+
+	}else{
+		$get_name	= '';
+		$msg		='';
+	}
+
+	
+?>
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><span>Search for Counselors</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+
+        <div class="clear"></div>
+        <h1><span>Counselors</span></h1>       
+        <div class="clear"></div>
+      </div>
+	  <?php
+			$ask_query_response = optional_param('query','',PARAM_TEXT);
+			if($ask_query_response){
+				switch($ask_query_response){
+					case 'fail':
+						echo"<div style='width:100%;border:0px solid red;text-align:center;font-size:20px; font-weight:bold; color:red'>Unable to post your question ! Please Try Again</div>";break;
+					case 'success':
+						echo"<div style='width:100%;border:0px solid red;text-align:center;font-size:20px; font-weight:bold; color:red'>Question posted to counselor</div>";break;
+				}
+			}
+	  ?>
+	  
+      <div class="clear"></div>
+  
+      <div id="upload_form">
+        <div class="rgs_heading">
+        <h2>Search Counselors by following criteria's</h2>
+        <form action="counselor_search.html" method="post" name="counselor_form" id="counselor_form">
+         <!-- <div class="text_name2">Select a Major</div>
+          <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+          <div class="text_name2">Name</div>
+          <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div> -->
+		  
+          <div class="text_name2">Name</div>
+          <div class="text_input">
+            <input name="txtname" id="txtname" type="text" class="input-text " value="<?php echo $txtname; ?>"/>
+          </div>
+			<div class="text_name2">Major</div>
+			<div class="text_input">
+				<select multiple name="search_major[]" size='10'>
+					<option value="0">Select</option>
+					<?php 
+						$main_majors = get_records('majors','parent_id','0'); 
+						if($main_majors)
+						{
+							foreach($main_majors as $main)
+							{					
+					?>			<option disabled value="0"><?php echo $main->name; ?></option>
+								<?php
+									$major_data = get_records('majors','parent_id',$main->id);
+									if($major_data)
+									{
+										foreach($major_data as $major)
+										{
+											if((is_array($major) && in_array($major->id,$major)) || (is_array($search_major) && in_array($major->id,$search_major)) )
+											{
+								?>				<option selected="selected" value="<?php echo $major->id; ?>">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $major->name; ?></option>
+								<?php		}
+											else
+											{
+								?>				<option value="<?php echo $major->id; ?>">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $major->name; ?></option>
+								<?php		}
+										}
+									}					
+							}
+						}							
+					?>				
+				</select>				
+			</div>
+          <div class="text_name2">State</div>
+
+          <div class="text_input">
+			  <select name="state" class="small_select1 validate['required']">
+					<option value="">Select</option>
+					<?php
+						$state_data = get_records('state','status','active');
+
+						print_object($state_data);
+						if($state_data)
+						{						
+							foreach($state_data as $sdata)
+							{
+								if($sdata->id==$state || $sdata->id==$get_state)
+								{
+					?>				<option selected="selected" value="<?php echo $sdata->id; ?>"><?php echo $sdata->name; ?></option>
+					<?php 		}
+								else
+								{
+					?>				<option value="<?php echo $sdata->id; ?>"><?php echo $sdata->name; ?></option>
+					<?php		}
+						}
+					}
+				?>
+				</select>
+            <input name="txtkeyword" id="txtkeyword" type="hidden" class="input-text" value="<?php echo $txtkeyword; ?>"/>
+          </div>          
+        <div class="clear"> </div>
+      </div>	  
+        <div class="wraper6">     
+            <input type="image" src="images/search_btn.jpg" style="width:84px; height:23px;" />
+            <input type="image" src="images/cancel_bottom.jpg" style="width:84px; height:24px;" />         
+          </form>		 
+        </div>		
+      </div>	 
+	  <div id="upload_form_btm"> </div>
+	   <?php
+		if($get_name)
+		{
+			echo  "<table width='100%' border='0' class='table_font'>";
+			echo	"<tr bgcolor='#7E7D7D' style='color:#FFFFFF'>";
+			echo	"<td >FirstName </td>";
+			echo	"<td >LastName</td>";
+			echo	"<td>Proffession</td>";
+			echo	"<td>Address</td>";
+			echo	"<td>Ask Questions</td>";
+			echo	"</tr>";			
+			foreach($get_name as $search_name)
+			{
+				echo	"<tr>";											
+				echo	"<td><a href='counselors.html?cid=$search_name->id'>$search_name->first_name </a></td>";
+				echo	"<td>$search_name->last_name</td>";
+				echo	"<td>$search_name->proffession</td>";
+				echo	"<td>$search_name->address</td>";
+				if(isset($_SESSION['s4c_user_id']) && !empty($_SESSION['s4c_user_id'])) {
+					echo	'<td><a href="ask_question.html?flag=sentbox&id='.$search_name->user_id.'" rel ="lightbox[sent_'.$search_name->user_id.' 500 300] ">Ask</a></td>';
+				}else{
+					echo	'<td><a href="index.html">Please Login To Ask Question</a></td>';
+				}
+
+				echo	"</tr>";
+			}
+			echo "</table>";
+		}
+		echo "<br /><b>$msg</b>";
+	?>
+    </div>	
+	     
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+	
+  </div>
+ 
+  <!-- << content section -->
+  <!-- footer section >> -->
+
+<?php 
+	require_once('includes/footer.php'); 
+?>

@@ -1,0 +1,35 @@
+.zipcode {
+	font-size:11px !important;
+	color:#ACACAC !important;
+	float:left;
+	margin-left:10px !important;
+	padding:0;
+
+}
+.go-button2{
+	margin-left:0px !important;
+	padding:0;
+	float:left;
+}
+#photo_gallery{
+	margin:0 auto;
+	margin-top:-20px;
+}
+.upload_clip{
+	padding:0;
+	float:left;
+	margin-bottom:-10px;
+	margin-right:56px;
+}
+.upload_img{
+	padding:0;
+	float:left;
+	margin-bottom:-10px;
+	margin-right:56px;
+}
+.courve{
+	font-size:11px;
+	padding:8px 0 0 10px;
+	margin:0;
+	float:left;
+}

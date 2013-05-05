@@ -1,0 +1,90 @@
+<?php 
+	require_once('includes/header.php');
+	$id				= required_param('id',PARAM_INT);
+	$friend_id		= required_param('friend_id',PARAM_INT);
+	$message		= optional_param('message',PARAM_INT);
+	$msg_id			= required_param('msg_id',PARAM_INT);
+	
+
+	$get_frnd_mapp_info = get_record('friends','id',$id);
+
+	//print_object($get_frnd_mapp_info);
+
+	$sender_info		= get_user_info($_SESSION['s4c_user_id']);
+	$receiver_info		= get_user_info($friend_id);
+
+	//print_object($sender_info);
+	//print_object($sender_info);
+
+	$sender_name	= ($sender_info->user_type == 'school')?$sender_info->school_name:$sender_info->first_name;
+	$receiver_name	= ($receiver_info->user_type == 'school')?$receiver_info->school_name:$receiver_info->first_name;
+
+	if(isset($_POST['add_mode']) && !empty($_POST['add_mode'])){
+
+	//print_r($_POST);
+		$add_friend					= new object();
+		$add_friend->sender_id		= $sender_info->id;
+		$add_friend->receiver_id	= $receiver_info->id;
+		$add_friend->message		= $message;
+		$add_friend->added_date		= time();
+		
+		require_once("cmiadmin/lib/phpmailer/class.phpmailer.php");
+		global $CFG; 
+		$to					= $receiver_info->email;
+		$sub				= "Search 4 Colleges ";
+		$msg = "<br /><a href='".$CFG->siteroot."'><img src='".$CFG->siteroot."/cmiadmin/theme/cmi/images/cmi_logo.png' alt='Logo' border='0' /></a><br /><br />"; 
+		$msg			  .= trim($message);
+		$msg .= <<<OP
+				<div style="background-color:#FFFFFF;">
+					  <br /><b>Thanks,</b><br />
+						<b>S4c </b>
+				</div>
+OP;
+		$mail				= new PHPMailer();
+		$mail->IsHTML(true);
+		$mail->From			= $sender_info->email;
+		$mail->FromName		= $sender_name;
+		$mail->Subject		= $sub;
+		$mail->Body			= $msg;
+		$mail->AddAddress($to);
+
+
+		if($mail->Send()){
+		
+			insert_record('messages', $add_friend);
+			?>	<script  type="text/javascript">
+					parent.window.location = 'message.html?flag=inbox&id=<?php echo $msg_id;?>&sent_flag=1';
+					parent.Mediabox.close();			
+				</script>
+			<?php
+		}
+	}
+		
+?>
+<script type="text/javascript" >
+	window.addEvent('domready', function(){
+		new FormCheck('new_message_form',{display:{showErrors:1}});
+	});	
+	
+</script>
+<div id="wrapper">
+
+<form  name="new_message_form" id="new_message_form" method="POST" action="new_messagesp.html" >
+<div class="pop_content">
+	<table width="100%">
+		<tr><td><br /><h2 class="dialog_title"><span>Send Message To : <strong><?php echo $receiver_name; ?> </strong> </span></h2></td></tr>
+		<tr><td>Message:</td></tr>
+		<tr><td><textarea  name="message" id="message" class="validate['required']" rows="3" cols="30"></textarea></td></tr>
+		<tr><td colspan="2" style="background: none repeat scroll 0 0 #F2F2F2;"><input type="submit" value="Send" /> &nbsp;&nbsp;<input type="reset" value="Reset" />&nbsp;&nbsp;</td></tr>
+	</table>
+	<input type="hidden" name="add_mode" id="add_mode" value="add_mode" />
+	<input type="hidden" name="id" id="id" value="<?php echo $id; ?>" />
+	<input type="hidden" name="friend_id" id="friend_id" value="<?php echo $friend_id; ?>" />
+	<input type="hidden" name="msg_id" id="msg_id" value="<?php echo $msg_id; ?>" />
+	
+</div>
+
+</form>
+</div>
+
+</body>

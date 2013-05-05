@@ -1,0 +1,305 @@
+<?php 
+	
+require_once('includes/checkExpire.php');
+
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 
+	$school_id	= optional_param('view','', PARAM_RAW);
+	$preview	= optional_param('preview','', PARAM_RAW);
+	$staff_permission = '';
+
+	$seo_keyword	= optional_param('seo_keyword', '', PARAM_RAW);
+	if($seo_keyword != '')
+	{
+		$sqldata  = get_record('schools','seo_keyword',$seo_keyword,'status','active');
+		if(isset($sqldata->user_id))
+				$school_id = $sqldata->user_id;
+	}
+?>
+	<script  type="text/javascript">
+
+	function delete_gallery(id){			
+		var req = new Request({
+			 method: 'post',
+			 url: 'ajax_handler.php',
+			 data: {'id' : id,						
+					'flag' : 'delete_school_gallery'	
+				 },
+			 onRequest: function() {},
+			 onComplete: function(response) { 
+				window.location.reload();
+			}
+		}).send();	
+	}
+</script>
+<?php
+	if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'staff')
+		{
+			$allowed = get_field('school_staff_user','allowed_sections','fe_staff_id',$_SESSION['s4c_user_id']);
+			if(!empty($allowed))
+			{
+				$alloweds = explode(",",$allowed);
+				if(in_array($page_name,$alloweds))
+				{
+					$staff_permission = 'yes';
+				}
+				else
+				{
+					$staff_permission = 'no';
+				}
+			}
+
+		}
+
+
+	if(isset($_SESSION['s4c_user_id']) && !isset($_GET['preview']) && ($staff_permission == 'yes' || $school_id == $_SESSION['s4c_user_id'])) {
+
+			if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'staff'){
+				
+				$school_staff = get_field('school_staff_user','fe_school_id','fe_staff_id',$_SESSION['s4c_user_id']);
+
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$school_staff.' and status = "active"');
+			    $gallery_data_photos = get_records_sql('Select * from '.$CFG->prefix.'school_image_video where status = "active" and school_id = '.$school_staff.' and type="image" and publish="1" order by added_date ');
+				
+				$gallery_data_videos = get_records_sql('Select * from '.$CFG->prefix.'school_image_video where status = "active" and school_id = '.$school_staff.' and  (type="video" || type="link") and publish="1" order by added_date ');
+				
+			}
+			elseif(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'school'){
+				
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+
+				$gallery_data_photos = get_records_sql('Select * from '.$CFG->prefix.'school_image_video where status = "active" and school_id = '.$_SESSION['s4c_user_id'].' and type="image" and publish="1" order by added_date ');
+				
+				$gallery_data_videos = get_records_sql('Select * from '.$CFG->prefix.'school_image_video where status = "active" and school_id = '.$_SESSION['s4c_user_id'].' and  (type="video" || type="link") and publish="1" order by added_date ');
+                
+			}
+			$user_info = check_login();
+		?>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); 
+
+  ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+       <div class="inner_link">
+				  <ul>
+					<li><a href="index.html"><strong>Home</strong></a></li>        
+					<li class="in_aroow"><a><strong>Colleges</strong></a></li>      	          
+					<li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+				  </ul>
+				</div>
+				 <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="<?php echo $CFG->siteroot;?>/my_account.html">My Account</a></div>
+		<?php }} ?>
+				<div class="clear"></div>
+				<h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+				
+				<div class="clear"></div>
+			  </div>
+      <div class="banner"> <img src="<?php echo $CFG->siteroot;?>/file.php/schools/<?php if(!empty($student_data->logo)){ echo 'f6_'.$student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner"   />
+				<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)){ echo get_field('city','name','status','active','id',$student_data->city).', '; }?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+			<?php 
+
+				$city	= cmi_genrate_url(get_data_frontend('city','name',$student_data->city));
+				$state	= cmi_genrate_url(get_data_frontend('state','name',$student_data->state));
+
+				$url  = get_s4c_seo($student_data->seo_keyword,$city,$state,$student_data->user_id);
+
+				get_menu_college($student_data->user_id,"colleges_gallery",$url);
+
+			 ?>
+     <br />
+	<div style="clear:both;float:right; width:100%;"><a target="_blank" href="colleges_gallery.html?view=<?php if(isset($student_data->user_id)) echo $student_data->user_id; ?>&preview"><b>Preview</b></a></div>
+	
+    <div class="in_left_text">
+	    <h3>Photos</h3>
+	  </div>
+    
+    <div class="upload_photo"><a href="upload_images.html"><strong>Click to Upload</strong></a></div>
+    
+    <div id="photo_gallery">
+    
+	 <?php
+   
+		if(!empty($gallery_data_photos)){
+			echo "<div>";
+			foreach($gallery_data_photos as $data){ ?>
+				<div class="upload_img" style='min-width:124px;min-height: 91px;'>
+				<a title="<?php if(isset($data->caption)) echo $data->caption; ?>" href="<?php echo $CFG->siteroot;?>/file.php/school_gallery/<?php if(isset($data->filename)) echo $data->filename; ?>" rel="lightbox"><img src="<?php echo $CFG->siteroot;?>/file.php/school_gallery/f3_<?php if(isset($data->filename)) echo $data->filename; ?>"  alt="Gallery" /></a>
+				<strong><br /><?php echo $data->caption;?></strong>&nbsp;&nbsp;<a style="float:right" href='javascript:void(0);' onclick='delete_gallery(<?php echo $data->id;?>);'><img src="<?php echo $CFG->siteroot;?>/images/delete_icon.png" alt="Delete" title="Delete" style="border:none;"></a>
+				</div>
+				
+			<?php }
+			echo "</div>";
+		}
+	?></div><div class="clear"></div>
+     <br />
+     
+    
+    <div class="in_left_text">
+	    <h3>Videos</h3>
+	  </div>
+    <div class="upload_video"><a href="upload_videos.html"><strong>Click to Upload</strong></a></div>
+    
+    <div id="photo_gallery">
+	<?php 
+		if(!empty($gallery_data_videos)){
+			echo "<div>";
+			foreach($gallery_data_videos as $data){ ?>
+				<div class="upload_img"><a href="">
+					<div class='upload_clip'>
+						<a href='file.php/school_gallery/<?php echo $data->filename;?>' rel ='lightbox' title='<?php echo $data->filename;?>' >
+							<img src='<?php echo $CFG->siteroot;?>/images/video_img.jpg' width='121' height='86' alt='<?php echo $data->filename;?>'/>
+						</a>
+						<strong><br /><?php echo $data->caption;?></strong>&nbsp;&nbsp;<a style="float:right" href='javascript:void(0);' onclick='delete_gallery(<?php echo $data->id;?>);'><img src="images/delete_icon.png" alt="Delete" title="Delete" style="border:none;"></a>
+					</div></div>
+			<?php }
+			echo "</div>";
+		}
+    ?>
+	</div>
+	</div>
+    
+
+	
+	<div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+		
+	}
+	else{
+
+		if($school_id != ''){
+			$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$school_id.' and status = "active"');
+
+			$gallery_data_photos = get_records_sql('Select * from '.$CFG->prefix.'school_image_video where status = "active" and school_id = '.$school_id.' and type="image" and publish="1" order by added_date ');
+			
+			$gallery_data_videos = get_records_sql('Select * from '.$CFG->prefix.'school_image_video where status = "active" and school_id = '.$school_id.' and  (type="video" || type="link") and publish="1" order by added_date ');
+		}?>
+		 <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+       <div class="inner_link">
+				  <ul>
+					<li><a href="index.html"><strong>Home</strong></a></li>       
+					<?PHP
+					if(isset($_GET['preview']))
+					{
+					?>			
+						<li class="in_aroow"><a><strong>Colleges</strong></a></li>      				
+					<?php
+					}
+					else
+					{
+					?>
+						<li class="in_aroow"><a href="<?php echo $CFG->siteroot;?>/colleges.html"><strong>Colleges</strong></a></li>     
+					<?php
+					}
+					?>    	           
+					<li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+				  </ul>
+				</div>
+				 <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){?>
+					<div class="in_Right_link"><a href="#"></a><a href="<?php echo $CFG->siteroot;?>/my_account.html">My Account</a></div>
+				<?php } ?>
+				<div class="clear"></div>
+				<h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+				
+				<div class="clear"></div>
+			  </div>
+      <div class="banner"> <img src="<?php echo $CFG->siteroot;?>/file.php/schools/<?php if(!empty($student_data->logo)){ echo 'f6_'.$student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner"   />
+				<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)) echo get_field('city','name','status','active','id',$student_data->city).', '; ?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+       <?php 
+
+				$city	= cmi_genrate_url(get_data_frontend('city','name',$student_data->city));
+				$state	= cmi_genrate_url(get_data_frontend('state','name',$student_data->state));
+
+				$url  = get_s4c_seo($student_data->seo_keyword,$city,$state,$student_data->user_id);
+
+				get_menu_college($student_data->user_id,"colleges_gallery",$url);
+	 ?>
+     <br />
+		
+		<?php 
+			if(empty($gallery_data_photos) && empty($gallery_data_videos)){ 
+				echo "<h4>No Photos and videos Found</h4>";
+			}
+		?>
+	
+	 <?php
+		if(!empty($gallery_data_photos)){
+			echo "<h3>Photos</h3><div>";
+			foreach($gallery_data_photos as $data){ ?>
+				<div class="upload_img">
+				<a title="<?php if(isset($data->caption)) echo $data->caption; ?>" href="<?php echo $CFG->siteroot;?>/file.php/school_gallery/<?php if(isset($data->filename)) echo $data->filename; ?>" rel="lightbox"><img src="<?php echo $CFG->siteroot;?>/file.php/school_gallery/f3_<?php if(isset($data->filename)) echo $data->filename; ?>" alt="Gallery" /></a>
+				<strong><br /><?php echo $data->caption;?></strong>&nbsp;&nbsp;
+				</div>
+				
+			<?php }
+			echo "</div>";
+		}
+	?><div class="clear"></div>
+     <br />
+   
+	<?php 
+		if(!empty($gallery_data_videos)){
+			echo " <h4>Videos</h4><div>";
+			foreach($gallery_data_videos as $data){ ?>
+				<div class="college_gallery"><a href="">
+					<div class='upload_clip'>
+						<a href='<?php echo $CFG->siteroot;?>/file.php/school_gallery/<?php echo $data->filename;?>' rel ='lightbox' title='<?php echo $data->filename;?>' >
+							<img src='<?php echo $CFG->siteroot;?>/images/video_img.jpg' width='128' height='86' alt='<?php echo $data->filename;?>'/>
+						</a>
+						<strong><br /><?php echo $data->caption;?></strong>&nbsp;&nbsp;
+					</div></div>
+			<?php }
+			echo "</div>";
+		}
+    ?>
+	
+	</div>
+    
+
+	
+	<div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php
+
+	}
+
+
+	require_once('includes/footer.php'); 
+?>

@@ -1,0 +1,191 @@
+<?php 
+	require_once('includes/header.php');
+	$perpage			= '3';
+	$page				= optional_param('page', '0', PARAM_TEXT); 
+	$baseurl			= 'articles.html?page';
+	//$baseurl			= 'products.html?category='.$seo_keyword.'&';
+	$start				= ($page) * $perpage;	
+	$txtname			= optional_param('txtname','',PARAM_TEXT);
+
+	$current_time = time();
+
+	$main_arr =array();
+    $sql ="SELECT c.id,c.parent_id,c.name from articles a , article_category c where a.category_id = c.id and c.status='active' and
+    a.article_date <= $current_time AND (a.name LIKE '%$txtname%' OR c.name LIKE '%$txtname%') AND a.approved=1 group by c.id order by c.name asc";
+    $cat_info = get_records_sql($sql);
+	
+	$cat_arr=array();
+	foreach($cat_info as $catv)
+	{
+			if($catv->parent_id!=0)
+			{
+				$sql ="SELECT * from article_category where id = $catv->parent_id and status='active'";
+				$pr_info = get_record_sql($sql);
+				$cat_arr[$pr_info->id]['id'] = $pr_info->id;
+				$cat_arr[$pr_info->id]['parent_id'] = $pr_info->parent_id;
+				$cat_arr[$pr_info->id]['name'] = $pr_info->name;
+			}else{
+				$cat_arr[$catv->id]['id'] = $catv->id;
+				$cat_arr[$catv->id]['parent_id'] = $catv->parent_id;
+				$cat_arr[$catv->id]['name'] = $catv->name;
+				
+			}
+	}
+	//print_object($cat_info);
+	//print_object($cat_arr);
+?>
+<script type="text/javascript" >
+	window.addEvent('domready', function(){
+		new FormCheck('add_blog_frm',{display:{showErrors:1}},{submitByAjax:true});	
+		new FormCheck('article_search',{display:{showErrors:1}},{submitByAjax:true});	
+	});
+	
+</script>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><span>Articles</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+
+        <div class="clear"></div>
+        <h1><span>Articles</span></h1>        
+        <div class="clear"></div>
+      </div>
+
+		<div class="clear"></div>
+		<div id="upload_form">
+			<form method="post" action="articles.html" name="article_search" id="article_search">
+			<div class="rgs_heading">
+				<h2>Search Articles  by </h2>
+				<div class="text_name2">Keywords</div>
+				<div class="text_input">
+					<input name="txtname" id="txtname" type="text" class="validate['required'] input-text"  value="<?php echo $txtname; ?>" />
+				</div>
+				<div class="clear"> </div>
+			</div>
+			<div class="wraper6">
+				<input type="image" src="images/search_btn.jpg" style="width:84px; height:23px;" />
+                <img src="images/clear-search.png" alt="" onclick="window.location='articles.html'" style="cursor:pointer;"/>
+			</div>
+			</form>
+		</div>
+		<div id="upload_form_btm"></div>
+		<div class="clear"></div>
+
+
+<?php //echo print_paging($get_sent_msg_count,$page, $perpage, $baseurl,'','','','',$start,''); ?>
+
+<div class="clear"></div>
+<?php
+echo "<table border='0' id='blog_forum' >";
+if($cat_arr)
+{
+	foreach($cat_arr as $par=>$cat_data)
+    {
+            echo "<tr> <td class='td_color'>".$cat_data['name']."</td></tr>";
+           
+                		        echo "<tr> <td style='padding:1px 1px 1px 30px ;'>";
+                                $sql ="SELECT * from articles where category_id =".$cat_data['id']." and status='active' AND approved=1 order by name";
+    							$article_info = get_records_sql($sql);
+                                if($article_info){
+                                            echo "<table border='0' width='100%'  >";
+                                            $count = count($article_info);
+                                            $i = 1;
+                                            foreach($article_info as $article_data){
+                                                
+                                                    $style = ($count == $i)?'':" style='border-bottom:1px dotted black;' ";
+                                                    echo"<tr>";
+                                                        echo"<td class='blog_col_1' $style><img  src='images/forum.gif' /></td>";
+                                                        echo"<td class='blog_col_2' $style>"."<a href='articles_details.html?id=$article_data->id' class='anchor_dec'> ".ucfirst($article_data->name)."</a>"."</td>";
+                                                        echo"<td class='blog_col_3' $style>".date("d:m:Y  g:h:i a",$article_data->added_date)."</td>";						
+                                                    echo"</tr>";
+                                                    $i++;
+                                                
+                                            }
+                                            echo"</table>";
+                                        }
+										$sql ="SELECT * from article_category where parent_id = ".$cat_data['id']." and status='active' order by name";
+										$child_cat = get_records_sql($sql);
+					if($child_cat)
+					{
+								echo "</td></tr>";
+								echo "<tr> <td>&nbsp;</td></tr>";
+								echo "<tr> <td style='padding:1px 1px 1px 30px ;'>";
+								echo "<table border='0' width='100%'  >";
+						foreach($child_cat as $child_data)
+						{
+								$sql ="SELECT * from articles where category_id = $child_data->id and status='active' AND approved=1 order by name";
+    							$article_info = get_records_sql($sql);
+                                if($article_info){
+                                echo "<tr> <td class='td_color'>$child_data->name</td></tr>";
+                                echo "<tr> <td style='padding:1px 1px 1px 30px ;'>";
+                                
+                                            echo "<table border='0' width='100%'  >";
+                                            $count = count($article_info);
+                                            $i = 1;
+                                            foreach($article_info as $article_data){
+                                                
+                                                    $style = ($count == $i)?'':" style='border-bottom:1px dotted black;' ";
+                                                    echo"<tr>";
+                                                        echo"<td class='blog_col_1' $style><img  src='images/forum.gif' /></td>";
+                                                        echo"<td class='blog_col_2' $style>"."<a href='articles_details.html?id=$article_data->id' class='anchor_dec'> ".ucfirst($article_data->name)."</a>"."</td>";
+                                                        echo"<td class='blog_col_3' $style>".date("d:m:Y  g:h:i a",$article_data->added_date)."</td>";						
+                                                    echo"</tr>";
+                                                    $i++;
+                                                
+                                            }
+                                            echo"</table>";
+                                        
+                                        echo "</td></tr>";
+										echo "<tr> <td>&nbsp;</td></tr>";
+										}
+                        }
+                        echo"</table>";
+                        echo "</td></tr>";
+										
+					}
+									
+                                         echo "</td></tr>";
+                						
+                
+                 echo "</td></tr>";
+				 echo "<tr> <td>&nbsp;</td></tr>";
+     }
+
+}
+echo"</table>";
+?>
+ <div class="clear"></div>
+	
+	<?php //echo print_paging($get_sent_msg_count,$page, $perpage, $baseurl,'','','','',$start,''); ?>
+
+    </div>
+  <div class="clear"></div>  
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+
+
+<?php 
+	require_once('includes/footer.php'); 
+	
+?>

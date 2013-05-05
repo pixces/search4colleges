@@ -1,0 +1,143 @@
+<?php 
+	require_once('includes/header.php'); 
+	require_once('includes/checkExpire.php');
+	$user_info = check_login();
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+
+?>
+  <!-- << header section -->
+  <!-- content section >> -->
+  <div id="content_sec">
+    <!-- << left content -->
+ <?php require_once("includes/left_content.php"); 
+ 
+ ?>
+    <!-- left content >> -->
+    <!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><a href="my_account.html">My Account</a></li>
+            <li class="in_aroow"><span>Profile</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+        <div class="clear"></div>
+        <h1>Search4colleges <span>Profile</span></h1>
+        <p>Lorem ipsum dolor sit amet consectetuer adipiscing elit.Cum sociis natoque penatibus et magnis dis parturient montes...</p>
+        <div class="clear"></div>
+      </div>
+      <div class="clear"></div>
+      <div id="upload_form">
+        <div class="rgs_heading">
+          <div class="req"><span>*</span>fields are compulsory</div>
+          <h3>Edit Profile</h3>
+          <div class="clear"></div>
+        </div>
+		 <div class="rgs_heading">
+        <h4>Login details</h4>
+        <form>
+          <div class="text_name2"><span>*</span>Email Address (Username)</div>
+          <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+          <div class="text_name2"><span>*</span>Confirm Email Address</div>
+          <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+          <div class="text_name2"><span>*</span>Password</div>
+          <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+          <div class="text_name2"><span>*</span>Confirm Password</div>
+          <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+        </form>
+        <div class="clear"> </div>
+      </div>
+	  
+      <div class="rgs_heading">
+        
+        <h4>Personal Details</h4>
+        <form>
+          <div class="text_name2"><span>*</span>First Name</div>
+          <div class="text_input">
+            <input type="text" class="input-text"  />
+          </div>
+          <div class="text_name2"><span>*</span>Last Name</div>
+          <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+          <div class="text_name2"><span>*</span>Gender</div>
+          <div class="text_input">
+            <label>
+            <select name="select">
+              <option>----Select----</option>
+            </select>
+            </label>
+          </div>
+          <div class="text_name2"><span>*</span>Date of Birth</div>
+          <div class="text_input">
+            <input name="" type="text" class="input-text2"  />
+            <img src="images/cal_map.jpg" width="18" height="15" /> <span>(MM / DD / YY)</span></div>
+			  <div class="text_name2"><span>*</span>Address</div>
+              <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+		    <div class="text_name2"><span>*</span>Street</div>
+          <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+		    <div class="text_name2"><span>*</span>State</div>
+            <div class="text_input">
+            <div class="text_input">
+            <select name="select" class="input-text">
+              <option>----Select----</option>
+            </select>
+          </div>
+          </div>
+		    <div class="text_name2"><span>*</span>City</div>
+            <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+		    <div class="text_name2"><span>*</span>Zip Code</div>
+            <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+          <div class="text_name2"><span>*</span>Primary Educational Interest</div>
+          <div class="text_input">
+            <select name="select" class="input-text">
+              <option>----Select----</option>
+            </select>
+          </div>
+        </form>
+        <div class="clear"> </div>
+      </div>
+		
+		
+        
+        <div class="wraper6">
+          <input type="image" src="images/save_change.jpg" style="width:124px; height:24px;" />
+          <input type="image" src="images/cancel_bottom.jpg" style="width:84px; height:24px;" />
+        </div>
+		
+      </div>
+      <div id="upload_form_btm"></div>
+    </div>
+    <div class="clear"></div>
+    <!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+	require_once('includes/footer.php'); 
+?>

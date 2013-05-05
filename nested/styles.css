@@ -1,0 +1,108 @@
+
+/* @end */
+
+/* @group Accordion */
+
+dl.accordion
+{
+	width: 680px;
+}
+
+/* @group Ebene 1 */
+
+dl.accordion dt
+{
+	position: relative;
+	height: 25px;
+	padding: 0px 0px 5px 25px;
+	
+	font-weight: bold;
+	
+	color: #585858;
+	background: #e9e9e9 url(icon_accordion_closed.png) no-repeat;
+	
+	cursor: pointer;
+	border: 1px solid #dcdcdc;
+	font-size: 11px;
+}
+
+* html dl.accordion dt
+{
+	cursor: hand;
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='icon_accordion_closed.png', sizingMethod='crop');
+	background-image: none;
+}
+
+dl.accordion dt.open
+{
+	background-image: url(icon_accordion_open.png);
+}
+
+* html dl.accordion dt.open
+{
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='icon_accordion_open.png', sizingMethod='crop');
+	background-image: none;
+}
+
+dl.accordion dd.accordion_content
+{
+	padding: 0 10px 0 25px;
+}
+
+dl.accordion dd.accordion_content p
+{
+	padding: 5px 0 7px 0;
+}
+
+/* @end */
+
+/* @end */
+
+/* @group Ebene 2 */
+
+dl.accordion dd dl dt
+{
+	padding-left: 45px;
+	background-color: #217492;
+	background-position: 20px 0;
+}
+
+dl.accordion dd dl dd.accordion_content
+{
+	padding-left: 45px;
+}
+
+/* @end */
+
+/* @group Ebene 3 */
+dl.accordion dd dl dd dl dt
+{
+	padding-left: 65px;
+	background-color: #509bba;
+	background-position: 40px 0;
+}
+
+dl.accordion dd dl dd dl dd.accordion_content
+{
+	padding-left: 65px;
+}
+
+/* @end */
+
+/* @group Ebene 4 */
+
+dl.accordion dd dl dd dl dd dl dt
+{
+	padding-left: 85px;
+	background-color: #7bc3e4;
+	background-position: 60px 0;
+}
+
+dl.accordion dd dl dd dl dd dl dd.accordion_content
+{
+	padding-left: 85px;
+}
+
+/* @end */
+
+/* @end */

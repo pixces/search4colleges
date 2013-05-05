@@ -1,0 +1,63 @@
+<?php
+	require_once('includes/header.php'); 
+	$sql="select * from  `{$CFG->prefix}page_contents` where status='active'";
+	$page_content = get_records_sql($sql);
+
+	//print_r($page_content);
+	
+?>	
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+   <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <!--<li class="in_aroow"><a href="my_account.html">My Account</a></li>-->
+            <li class="in_aroow"><span>About Search4Colleges</span></li>
+          </ul>
+        </div>
+		<?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+        <div class="clear"></div>
+        <h1><span>About Search4Colleges</span></h1>        
+        <div class="clear"></div>
+      </div>
+	  <?php
+		if($page_content !='')
+		{
+			foreach($page_content as $value)
+			{
+				
+		  ?>
+		<p>
+		<?php 
+			echo $value->page_contents;	
+			}
+		}
+		?>
+		</p>
+		
+	  <p>&nbsp;</p>
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+  
+
+<?php 
+	require_once('includes/footer.php'); 
+?>

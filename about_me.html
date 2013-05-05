@@ -1,0 +1,176 @@
+
+<?php
+			
+	require_once('includes/checkExpire.php');
+	
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php');
+	$user_info = check_login();
+	
+?>
+
+<script  type="text/javascript">
+
+	function editAbout(){
+			
+		var req = new Request({
+			 method: 'post',
+			 url: 'ajax_handler.php',
+			 data: {'flag' : 'editAbout'
+				 },
+			 onRequest: function() {},
+			 onComplete: function(response) {
+                             console.log("1");
+                               
+				$('populate_about_id').innerHTML = response;					 
+				init_ckfinder('long_description');
+				init_ckfinder('goals');
+				init_ckfinder('expectation');
+				
+                                window.addEvent('domready', function(){
+					new FormCheck('about_form',{display:{showErrors:1}});
+				});	
+			}
+		}).send();	
+	}
+	function editAboutOther(){
+			
+		var req = new Request({
+			 method: 'post',
+			 url: 'ajax_handler.php',
+			 data: {'flag' : 'editAboutOther'
+				 },
+			 onRequest: function() {},
+			 onComplete: function(response) {						 
+				console.log("2");
+                                $('populate_about_id').innerHTML = response;
+				init_ckfinder('about_me');				
+				window.addEvent('domready', function(){
+					new FormCheck('aboutother_form',{display:{showErrors:1}});
+				});					 
+			}
+		}).send();	
+	}
+
+	function updateAbout(){
+	    
+		var long_description = (CKEDITOR.instances.long_description.getData()=='')?' ':CKEDITOR.instances.long_description.getData();
+		var goals = (CKEDITOR.instances.goals.getData()=='')?' ':CKEDITOR.instances.goals.getData();
+		var expectation = (CKEDITOR.instances.expectation.getData()=='')?' ':CKEDITOR.instances.expectation.getData();
+        //alert(expectation);
+	/*	if($('short_description').value == '' )
+			return false;
+		else
+		{*/  //"short_description":$('short_description').value,
+			var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {
+						"long_description":long_description,
+						"goals":goals,
+						"expectation":expectation,
+						'flag' : 'updateAbout'
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response){ 
+					//CKEDITOR.instances.long_description.destroy();
+					//CKEDITOR.instances.goals.destroy();
+					//CKEDITOR.instances.expectation.destroy();					
+					//populateAbout();
+					window.location.reload();
+					return false;
+					
+				}
+			}).send();	
+		//}
+	
+	}
+	
+	function updateAboutOther(){
+		var about_me = (CKEDITOR.instances.about_me.getData()=='')?'':CKEDITOR.instances.about_me.getData();
+		if(about_me=='')
+			window.location="about_me.html?about=fail";
+		else
+		{
+		var req = new Request({
+			 method: 'post',
+			 url: 'ajax_handler.php',
+			 data: {"about_me":about_me,
+					'flag' : 'updateAboutOther'
+				 },
+			 onRequest: function() {},
+			 onComplete: function(response) { 
+				//CKEDITOR.instances.about_me.destroy();
+				//populateAbout();			
+				//window.location.reload();
+				window.location="about_me.html?about=sucess";
+			}
+		}).send();	
+		}
+	}
+
+	function populateAbout(){
+		
+		var req = new Request({
+			 method: 'post',
+			 url: 'ajax_handler.php',
+			 data: {'flag' : 'populateAbout'						
+				 },
+			 onRequest: function() {},
+			 onComplete: function(response) { 
+                             //console.log("yes");
+			         $('populate_about_id').innerHTML = response;
+                                 // JCC Test
+                                 //$('populate_about_id').innerHTML = alert("this is a test");
+			}
+		}).send();	
+	}
+	populateAbout();
+
+</script>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+ <?php require_once("includes/left_content.php");  
+ ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>            
+            <li class="in_aroow"><span>About Me</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+        <div class="clear"></div>
+        <h1>
+        <span>About Me</span>
+        </h1>          
+        <div class="clear"></div>
+      </div>
+	 
+	  <div id='populate_about_id'>	
+	  </div>
+	 
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+
+<?php 
+	require_once('includes/footer.php'); 
+?>

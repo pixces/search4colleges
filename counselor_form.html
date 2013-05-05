@@ -1,0 +1,129 @@
+<?php 
+	require_once('includes/header.php'); 
+?>
+  <!-- << header section -->
+  <!-- content section >> -->
+  <div id="content_sec">
+    <div class="inner_link reg">
+      <ul>
+        <li><strong><a href="index.html">Home</a> </strong></li>
+        <li class="in_aroow"><span>Registration</span></li>
+      </ul>
+    </div>
+    <div class="clear"></div>
+    <div id="registration_form">
+	<form action="register_complete.html" method="post" id="s4c_reg" name="s4c_reg">
+      <div class="rgs_heading">
+        <div class="req"><span>* </span>fields are compulsory</div>
+        <h1>Register as <span>Counselor</span></h1>
+        <div class="clear"></div>
+      </div>
+      <div class="rgs_heading">
+        <h4>Login details</h4>
+       
+          <div class="text_name"><span>* </span>Email Address (Username)</div>
+          <div class="text_input">
+            <input name="email" id="email" type="text" class="input-text validate['required','email','%customEmail']" />
+          </div>
+          <div class="text_name"><span>*</span> Confirm Email Address</div>
+          <div class="text_input">
+            <input name="confirm_email" id="confirm_email" type="text" class="input-text validate['required','%customEmailconfirm']"  />
+          </div>
+          <div class="text_name"><span>* </span>Password</div>
+          <div class="text_input">
+            <input name="password" id="password" type="password" class="input-text validate['required']"  />
+          </div>
+          <div class="text_name"><span>* </span>Confirm Password</div>
+          <div class="text_input">
+            <input name="confirm_password" id ="confirm_password" type="password" class="input-text validate['required','confirm[password]']" />
+          </div>
+       
+        <div class="clear"> </div>
+      </div>
+      <div class="rgs_heading">
+        <h4>Personal Details</h4>
+       
+          <div class="text_name"><span>* </span>First Name</div>
+          <div class="text_input">
+            <input name="first_name" id="first_name" type="text" class="input-text validate['required','nodigit']"  />
+          </div>
+		   <div class="text_name"><span>* </span>Last Name</div>
+          <div class="text_input">
+            <input name="last_name" id="last_name" type="text" class="input-text validate['required','nodigit']"  />
+          </div>
+          <div class="text_name"><span>*</span> Gender</div>
+          <div class="text_input">
+            <label>
+            <select name="gender" id="gender" class="validate['required']">
+              <option>----Select----</option>
+			  <option>Male</option>
+			  <option>Female</option>
+            </select>
+            </label>
+          </div>
+          <div class="text_name"><span>* </span>Date of Birth</div>
+          <div class="text_input">
+            <select name="date_month" id="date_month" class="validate['required']" style="width:130px;">
+			<?php 
+				$month_array = array('Select Month','January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
+				foreach($month_array as $key=>$value){
+					echo "<option value='$key'>$value</option>";
+				}
+			?>
+		 </select>&nbsp;&nbsp;
+		 <select name="date_day" id="date_day" class="validate['required']" style="width:130px;">
+			<option>Select Day</option>
+			<?php 
+				for($i =1; $i<=31; $i++){
+					echo "<option value='$i'>$i</option>";
+				}
+			?>
+		 </select>&nbsp;&nbsp;
+		 <select name="date_year" id="date_year" class="validate['required']" style="width:130px;">
+			<option>Select Year</option>
+			<?php 
+				$year_start = 1910;
+				$year_end	= date('Y') - 5;
+				for($i = $year_start; $i<$year_end; $i++){
+					echo "<option value='$i'>$i</option>";
+				}
+			?>
+		 </select>
+             <span>(Month/Day/Year)</span></div>
+            <div class="text_name"><span>* </span>Profession</div>
+          <div class="text_input">
+            <input name="proffession" type="text" class="input-text validate['required']"  />
+          </div>
+          <div class="text_name"><span>* </span>Years of Experience</div>
+          <div class="text_input">
+            <input name="experience" type="text" class="input-text validate['required']"  />
+          </div>          
+       
+        <div class="clear"> </div>
+      </div>
+      <div class="rgs_heading">
+        <div class="wraper2">Type the characters you see in the picture below. </div>
+        <div class="wraper2"><img src="securimage/securimage_show.php?sid=<?php echo md5(uniqid(time())); ?>" id="image" align="absmiddle" /></div>
+        <div class="wraper2">
+          <input type="text" name = "captcha" id = "captcha" />
+          <br />
+          Letters are not case-sensitive </div>
+        <div class="clear"></div>
+      </div>
+      <div class="wraper3">
+        <input type="image" src="images/submit_botton.jpg" style="width:84px; height:24px;" />
+		<img src="images/cancel_bottom.jpg" style="width:84px; height:24px;cursor:pointer" onclick="$('s4c_reg').reset();"/>
+        <!-- <input type="image" src="images/cancel_bottom.jpg" style="width:84px; height:24px;" /> -->
+      </div>
+	  <input type="hidden" name="reg_type" value='counselor' />
+      <!-- << inner content -->
+      <div class="clear"></div>
+      <!-- << inner content>> -->
+    </form>
+	</div>
+    <div id="registration_bottom"></div>
+    <!-- << content section -->
+    <!-- footer section >> -->
+  <?php 
+	require_once('includes/footer.php'); 
+?>

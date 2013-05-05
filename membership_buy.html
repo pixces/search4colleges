@@ -1,0 +1,128 @@
+<?php
+	require_once('includes/header.php');
+	
+	$cid = optional_param('cid','',PARAM_TEXT);
+
+	$view =  optional_param('view','',PARAM_RAW);
+   	if(!empty($cid)){
+		$data = get_record_sql("SELECT c.*,u.image FROM ".$CFG->prefix."counselors c ,fe_users u WHERE c.status = 'active' and c.id=$cid and c.user_id=u.id");
+	}
+	$target_path = $CFG->siteroot."/file.php/personal/";
+?>
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  <script  type="text/javascript">
+
+	function get_membership(id){			
+		var req = new Request({
+			 method: 'post',
+			 url: 'ajax_handler.php',
+			 data: {'id' : id,						
+					'flag' : 'membership'	
+				 },
+			 evalScripts:true,
+			 onRequest: function() {},
+			 onComplete: function(response) { 
+				$('membership_data').innerHTML = response;
+				form_checker.initialize('form_school_colleges');
+			}
+		}).send();	
+	}
+	function insert_value(val,amount,validity,id,discount){
+		if(discount != ''){
+			$('amount').value = amount - discount;
+		}else{
+			$('amount').value = amount;
+		}
+		$('item_name').value = val;
+	
+	}
+	function f_check123()
+	{
+		console.log('called');
+	    //alert('hi');
+		return true;
+	}
+	
+	
+</script>
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>            
+          </ul>
+        </div>        
+        <div class="clear"></div>
+        <h1><span><?php 
+                   if(isset($data->first_name) && !empty($data->first_name))
+                   {
+                      echo $data->first_name;
+                   }
+                   ?>
+                   </span></h1>       
+        <div class="clear"></div>
+      </div>
+	 
+		<!-- LOad membership data-->
+				
+		<div>
+				<span style="cursor:pointer" onclick="get_membership()">Click to Buy Membership</span>
+		</div>
+	     <!--https://www.sandbox.paypal.com/cgi-bin/webscr              faisal.ali@cmitech.in -->
+		 <!--https://www.paypal.com/cgi-bin/webscr                      charles.pascal@search4colleges.com -->
+		<form id="form_school_colleges" name="form_school_colleges" action="https://www.paypal.com/cgi-bin/webscr" method="post">
+			<input type="hidden" name="cmd" value="_xclick">
+			<input type="hidden" name="business" value="charles.pascal@search4colleges.com"> 
+			<input type="hidden" id="item_name" name="item_name"   value="">
+			<input type="hidden" name="amount" id="amount" value="">
+			<input type="hidden" id="quantity" name="quantity" value="1">
+			<input type="hidden" id="quantity" name="quantity" value="1">
+			<input type="hidden" name="rm" value="2">
+			<input type="hidden" name="cbt" value="Return to Search4Colleges.com">
+			<input type="hidden" name="currency_code" value="USD">
+			<input type="hidden" name="return" value="<?php echo $CFG->siteroot."/college_membership.html?view=".$_SESSION['s4c_user_id'];?>">
+			<input type="hidden" name="address_override" value="1">
+			<input type="hidden" name="country" value="US"> 
+			<input type="hidden" name="no_shipping" value="1">
+			 
+	   <div id="membership_data"></div>
+	  </form>
+
+
+		<!-- LOad membership data-->
+      
+	  <div class="clear"></div>
+   	
+        <div id="wraper">
+	  
+<div class="clear"></div>
+</div>
+        
+		
+  </div>	
+	     
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+	
+  </div>
+ 
+  <!-- << content section -->
+  <!-- footer section >> -->
+
+  <script type="text/javascript">
+		window.addEvent('domready', function(){
+			form_checker.initialize('form_school_colleges');
+		});	
+  </script>
+<?php 
+
+	
+	require_once('includes/footer.php'); 
+?>

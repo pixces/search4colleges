@@ -1,0 +1,144 @@
+<?php 
+	
+	require_once('includes/checkExpire.php');
+	
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 
+	$user_info = check_login();
+	$perpage			= '3';
+	$page				= optional_param('page', '0', PARAM_TEXT); 
+	$baseurl			= 'counselor_query.html?page';
+	//$baseurl			= 'products.html?category='.$seo_keyword.'&';
+	$start				= ($page) * $perpage;	
+	
+?>
+<script type="text/javascript">
+	function delete_msg(id)
+	{
+		var movealert = new SexyAlertBox();
+		call_alert_delete_msg("Are you sure you want to Delete?",id);			
+	}
+	function check_delete_msg(id){
+		var req = new Request({
+		 method: 'post',
+		 url: 'ajax_handler.php',
+		 data: { 'id' : id,
+				 'msg' : 'sent',
+				 'flag' : 'check_delete_msg'						
+			 },
+		 onRequest: function() {},
+		 onComplete: function(response) {
+			window.location.reload(true);
+		 }
+		
+		}).send();	
+	}
+</script>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+ <?php require_once("includes/left_content.php"); 
+
+ ?>
+ <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>            
+            <li class="in_aroow"><span>Reply Queries</span></li>
+          </ul>
+        </div>
+		<?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+        <div class="clear"></div>
+        <h1><span>Reply Queries</span></h1>        
+        <div class="clear"></div>
+      </div>
+      
+	  <div class="clear"></div>
+	  <?php
+		$get_sent_msg = '';
+		if($_SESSION['user_type']=='counselor'){
+			$user_id = $_SESSION['s4c_user_id'] ;		
+			//$sql = "select * from {$CFG->prefix}messages where receiver_id = $user_id and isdelete_receiver='no' and is_query='yes' order by messages.added_date DESC LIMIT $start, $perpage ";
+			$sql = "SELECT * FROM {$CFG->prefix}messages messages WHERE (messages.receiver_id = $user_id) AND (messages.is_query = 'yes')  order by messages.added_date DESC LIMIT $start, $perpage ";
+			//echo "$sql";
+			$get_sent_msg = get_records_sql($sql);
+
+			$sql = "select count(id) from {$CFG->prefix}messages messages WHERE (messages.receiver_id = $user_id) AND (messages.is_query = 'yes')  ";
+			//$get_sent_msg_count_object = count_records_sql($sql);
+			$get_sent_msg_count = count_records_sql($sql);
+			$ask_query_response = optional_param('query','',PARAM_TEXT);
+			if($ask_query_response){
+				switch($ask_query_response){
+					case 'fail':
+						echo"<div style='width:100%;border:0px solid red;text-align:center;font-size:20px; font-weight:bold; color:red'>Unable to post your reply ! Please Try Again</div>";break;
+					case 'success':
+						echo"<div style='width:100%;border:0px solid red;text-align:center;font-size:20px; font-weight:bold; color:red'>Reply Posted</div>";break;
+				}
+			}
+			if($get_sent_msg_count)
+				echo '<div class="msg_lst">Your have <span>'.$get_sent_msg_count.'</span> Queries</div><br /><br />';
+			else
+				echo '<div class="msg_lst">Your have <span>No</span> Queries</div><br /><br />';
+		}
+	  ?>
+	  <div class="clear"></div>
+	  <?php echo print_paging($get_sent_msg_count,$page, $perpage, $baseurl,'','','','',$start,''); ?>
+		<div class="clear"></div>
+	<?php
+	if($get_sent_msg){
+		$i=0;
+		echo  "<table width='100%' border='0' class='table_font'>";
+				echo	"<tr bgcolor='#7E7D7D' style='color:#FFFFFF'>";
+					echo	"<td >Name </td>";
+					echo	"<td >Topic</td>";
+					echo	"<td>Question</td>";
+					echo	"<td>Reply</td>";
+					echo	"<td>&nbsp;</td>";
+				echo	"</tr>";
+				foreach($get_sent_msg as $record){
+					$reply = ($record->parent_id == 0)?'':get_field('messages','message','id',$record->parent_id);
+					$sender_info = get_user_info($record->sender_id);
+					echo	"<tr>";
+						echo"<td >$sender_info->name</td>";
+						echo"<td >".substr($record->subject,0,20)."</td>";
+						echo"<td>".substr($record->message,0,20)."</td>";
+						if($reply == '')
+						{
+							echo"<td>$reply<a href='counselor_query_reply.html?id=$record->id' rel=\"lightbox['reply_$record->id' 400 300]\">Reply </a></td>";
+						}
+						else
+						{
+							echo"<td>".substr($reply,0,20)."</td>";
+						}
+						echo"<td>&nbsp;&nbsp;&nbsp; <a href='counselor_query_detail.html?id=$record->id' rel=\"lightbox['detail_$record->id' 400 300]\">View detail</a></td>";
+					echo "</tr>";
+		
+		}
+		echo "</table>";
+	}
+	?>
+	
+	<div class="clear"></div>
+	<?php echo print_paging($get_sent_msg_count,$page, $perpage, $baseurl,'','','','',$start,''); ?>
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+	require_once('includes/footer.php'); 
+?>

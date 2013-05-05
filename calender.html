@@ -1,0 +1,92 @@
+<?php 
+	
+	require_once('includes/checkExpire.php');
+	
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 
+	$user_info = check_login();
+?>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+ <?php require_once("includes/left_content.php"); 
+ 
+ ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>			
+            <li class="in_aroow"><span>Calender</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+
+        <div class="clear"></div>
+        <h1><span>Calender</span></h1>        
+        <div class="clear"></div>
+      </div>
+	  
+	  
+      <div class="clear"></div>
+  
+      <div id="upload_form">
+        <div class="rgs_heading">
+        <p>&nbsp;</p>
+        <h2> Add exam, seminar, conference Details here</h2>
+        <form>
+          <div class="text_name2">Type of event</div>
+          <div class="text_input">
+           <input name="" type="text" class="input-text"  />
+          </div>
+          <div class="text_name2">Title</div>
+          <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+          <div class="text_name2">Time from</div>
+          <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+		   <div class="text_name2">Time Up to</div>
+           <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+		   <div class="text_name2">Remark</div>
+           <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+          </form>
+        <div class="clear"> </div>
+      </div>
+	  
+        <div class="wraper6">
+     
+            <input type="image" src="images/submit_botton.jpg" style="width:84px; height:24px;" />
+            <input type="image" src="images/cancel_bottom.jpg" style="width:84px; height:24px;" />
+         
+          
+        </div>
+		
+      </div>
+	  <div id="upload_form_btm"></div>
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+	require_once('includes/footer.php'); 
+?>

@@ -1,0 +1,206 @@
+<?php
+	require_once('cmiadmin/config.php'); 
+		
+	if(isset($_SESSION['s4c_user_id']))
+	{
+		//continue
+	}
+	else
+	{
+		redirect('index.html');
+	}
+	
+	$campus_area = optional_param('campus_area','',PARAM_RAW);
+	$campus_type = get_field('campus_type','type','id',$campus_area);
+	$state = optional_param('state','',PARAM_RAW);
+	$state_name = get_field('state','name','id',$state);
+    $school_name = optional_param('school_name','',PARAM_RAW);
+	
+	$population_id = optional_param('population','',PARAM_RAW);
+	if(!empty($population_id) && $population_id!="15000")
+	{
+		$exp_arr=explode("_",$population_id);
+		$population_title = $exp_arr[1];
+	}else{
+		$population_title= $population_id;
+	}
+	//$population = get_field('school_student_population','title','id',$population_id);
+	
+	$school_type = optional_param('school_type','',PARAM_RAW);
+	//$school_type = get_field('school_type','type','id',$type_id);
+	
+	$affiliations_accreditation_id = optional_param('affiliations_accreditation','',PARAM_RAW);
+	$affiliations_accreditation = get_field('schools_affiliations_accreditation','title','id',$affiliations_accreditation_id);
+	
+	$degree_id = optional_param('degree','',PARAM_RAW);
+	$degree = get_field('school_degrees_offered','degree','id',$degree_id);
+	
+	$mfratio_id = optional_param('mfratio','',PARAM_RAW);
+	$mfratio = get_field('school_student_body','title','id',$mfratio_id);
+	
+	$cultural_diversity_id = optional_param('cultural_diversity','',PARAM_RAW);
+	$cultural_diversity = get_field('school_cultural_diversity','title','id',$cultural_diversity_id);
+	
+	$only_for_locals = optional_param('locals','',PARAM_RAW);
+	$locals = $only_for_locals;	
+	
+	$sports = optional_param('sports','',PARAM_RAW);	
+	
+	$club_id = optional_param('club','',PARAM_RAW);
+	$club = get_field('school_culture_campuslife_clubs','club_title','id',$club_id);
+	
+	$going_greek = optional_param('going_greek','',PARAM_RAW);
+	
+	$dorm = optional_param('dorm_sweet_dorm','',PARAM_RAW);
+	$dorm_sweet_dorm = urldecode($dorm);
+	
+	$selectivity_data = optional_param('selectivity','',PARAM_RAW);
+	$selectivity = urldecode($selectivity_data);
+	
+	$gpa_id = optional_param('gpa','',PARAM_RAW);
+	$gpa = get_field('school_culture_campuslife_gpa','gpa','id',$gpa_id);
+	
+	$majors_data = optional_param('majors','',PARAM_RAW);
+	$majors = explode(',',$majors_data);
+	
+	$qry = optional_param('query','',PARAM_RAW);
+	$query = $qry;
+		
+	if(isset($_POST['submit']))
+	{
+		$title = optional_param('title','',PARAM_RAW);		
+		$campus_area = optional_param('campus_area','',PARAM_RAW);
+		$state = optional_param('state','',PARAM_RAW);
+		$population = optional_param('population','',PARAM_RAW);
+		$school_type = optional_param('school_type','',PARAM_RAW);
+		$affiliations_accreditation = optional_param('affiliations_accreditation','',PARAM_RAW);		
+		$degree = optional_param('degree','',PARAM_RAW);
+		$mfratio = optional_param('mfratio','',PARAM_RAW);
+		$cultural_diversity = optional_param('cultural_diversity','',PARAM_RAW);
+		$locals = optional_param('locals','',PARAM_RAW);
+		$club = optional_param('club','',PARAM_RAW);
+		$sports = optional_param('sports','',PARAM_RAW);
+		$going_greek = optional_param('going_greek','',PARAM_RAW);
+		$dorm_sweet_dorm = optional_param('dorm_sweet_dorm','',PARAM_RAW);
+		$selectivity = optional_param('selectivity','',PARAM_RAW);
+		$gpa = optional_param('gpa','',PARAM_RAW);
+		$majors = optional_param('majors','',PARAM_RAW);		
+		$query = optional_param('query','',PARAM_RAW);
+        $school_name = optional_param('school_name','',PARAM_RAW);
+		
+		$save = new object();
+		$save->user_id = $_SESSION['s4c_user_id'];
+		$save->title = $title;
+        $save->keyword = urldecode($school_name);
+		$save->query = addslashes(urldecode($query));
+		$save->added_date = time();		
+		$save->campus_area = $campus_type;
+		$save->state = $state_name;
+		//$save->population = $population;
+		$save->population = $population_title;
+		$save->college_type = urldecode($school_type);
+		$save->affiliation = $affiliations_accreditation;
+		$save->degree = $degree;
+		$save->mfratio = $mfratio;
+		$save->culture = $cultural_diversity;
+		$save->locals = $locals;
+		$save->clubs = $club;
+		$save->sports = $sports;
+		$save->greek = $going_greek;
+		$save->dorm = $dorm_sweet_dorm;
+		$save->selectivity = $selectivity;
+		$save->gpa = $gpa;
+		$save->majors = $majors;	
+
+		if(insert_record('save_search',$save))
+		{
+?>			<script  type="text/javascript">	
+				parent.window.location = "advanced_search.html?msg=Search Result Saved Successfully !!!";
+				parent.Mediabox.close();			
+			</script>
+<?php
+		}
+	}
+?>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="css/formcheck.css">
+<script language="javascript" type="text/javascript" src="js/mootools.js" ></script>
+<script language="javascript" type="text/javascript" src="js/mootools_more.js" ></script>
+<script language="javascript" type="text/javascript" src="js/en.js" ></script>
+<script language="javascript" type="text/javascript" src="js/formcheck.js" ></script>
+<script type="text/javascript">
+	
+	window.addEvent('domready', function(){
+		new FormCheck('save_search_frm',{display:{showErrors:1}});
+	});
+	
+	function refine_search()
+	{	
+		parent.window.location = "advanced_search.html";
+		parent.Mediabox.close();			
+	}
+	
+</script>
+</head>
+<body>
+<h3><span style="font-size: 20px; font-family : Verdana;">SAVE SEARCH</span></h3>
+<form name="save_search_frm" id="save_search_frm" method="post" action="">
+<span style="font-size: 12px; font-family : Verdana;">Title</span> : <input type="text" name="title" class="validate['required']" size="50" /><br>
+
+<?php if($campus_area!=''||$state!=''||$population_id!=''||$type_id!=''||$affiliations_accreditation_id!='') { ?>
+<br><br><b>BASIC<span></b><br>
+<?php if($campus_area!='') { ?><b>Campus Area</b>: <?php echo $campus_type; ?><input type="hidden" name="campus_area" value="<?php echo $campus_area; ?>"/><br><?php } ?>
+<?php if($state!='') { ?><b>State</b>: <?php echo $state_name; ?><input type="hidden" name="state" value="<?php echo $state; ?>"/><br><?php } ?>
+<?php if($population_id!='') { ?><b>Population</b>: <?php echo $population_title; ?><input type="hidden" name="population" value="<?php echo $population_id; ?>"/><br><?php } ?>
+<?php if($type_id!='') { ?><b>College Type</b>: <?php echo $school_type; ?><input type="hidden" name="school_type" value="<?php echo $school_type; ?>"/><br><?php } ?>
+<?php if($affiliations_accreditation_id!='') { ?><b>Affiliation Accreditation</b>: <?php echo $affiliations_accreditation; ?><input type="hidden" name="affiliations_accreditation" value="<?php echo $affiliations_accreditation; ?>"/><br><?php } ?>
+<?php } ?>
+
+<?php if($degree!=''||$majors_data!='') { ?>
+<br><b><span style="font-size: 15px; font-family : Verdana;">ACADEMICS</span></b><br>
+<?php if($degree!='') { ?><b>Degree</b>: <?php echo $degree; ?><input type="hidden" name="degree" value="<?php echo $degree; ?>"/><br><?php } ?>
+<?php if(is_array($majors)) { ?><b>Majors</b>:<br> 
+<?php 
+	foreach($majors as $major)
+	{
+		echo get_field('majors','name','id',$major)."<br>";
+	}
+?>
+<input type="hidden" name="majors" value="<?php echo $majors_data; ?>"/><br><?php } ?>
+<?php } ?>
+
+<?php if($mfratio_id!=''||$cultural_diversity_id!=''||$locals!='') { ?>
+<br><b><span style="font-size: 15px; font-family : Verdana;">STUDENT BODY</span></b><br>
+<?php if($mfratio_id!='') { ?><b>Male/Female Ratio</b>: <?php echo $mfratio; ?><input type="hidden" name="mfratio" value="<?php echo $mfratio; ?>"/><br><?php } ?>
+<?php if($cultural_diversity_id!='') { ?><b>Cultural Diversity</b>: <?php echo $cultural_diversity; ?><input type="hidden" name="cultural_diversity" value="<?php echo $cultural_diversity; ?>"/><br><?php } ?>
+<?php if($locals!='') { ?><b>For Locals Only</b>: <?php echo $locals; ?><input type="hidden" name="locals" value="<?php echo $locals; ?>"/><br><?php } ?>
+<?php } ?>
+
+<?php if($sports!=''||$club_id!='') { ?>
+<br><b><span style="font-size: 15px; font-family : Verdana;">CAMPUS LIFE</span></b><br>
+<?php if($sports!='') { ?><b>Sports</b>: <?php echo $sports; ?><input type="hidden" name="sports" value="<?php echo $sports; ?>"/><br><?php } ?>
+<?php if($club_id!='') { ?><b>Club</b>: <?php echo $club; ?><input type="hidden" name="club" value="<?php echo $club; ?>"/><br><?php } ?>
+<?php } ?>
+
+<?php if($going_greek!='') { ?>
+<br><b><span style="font-size: 15px; font-family : Verdana;">GOING GREEK</span></b><br>
+<b><?php echo $going_greek; ?></b><input type="hidden" name="going_greek" value="<?php echo $going_greek; ?>"/><br>
+<?php } ?>
+
+<?php if($dorm_sweet_dorm!='') { ?>
+<br><b><span style="font-size: 15px; font-family : Verdana;">DORM SWEET DORM</span></b><br>
+<b><?php echo $dorm_sweet_dorm; ?></b><input type="hidden" name="dorm_sweet_dorm" value="<?php echo $dorm_sweet_dorm; ?>"/><br>
+<?php } ?>
+
+<?php if($selectivity!=''||$gpa!='') { ?>
+<br><b><span style="font-size: 15px; font-family : Verdana;">GETTING IN</span></b><br>
+<?php if($selectivity!='') { ?><b>Selectivity</b>: <?php echo $selectivity; ?><input type="hidden" name="selectivity" value="<?php echo $selectivity; ?>"/><br><?php } ?>
+<?php if($gpa!='') { ?><b>GPA</b>: <?php echo $gpa; ?><input type="hidden" name="gpa" value="<?php echo $gpa; ?>"/><br><?php } ?>
+<?php } ?>
+<br>
+<input type="hidden" name="query" value="<?php echo $query; ?>" />
+<input type="submit" name="submit" value="SAVE" /><input type="button" value="EDIT SEARCH" onClick="refine_search();" />
+</form>
+</body>
+<html>

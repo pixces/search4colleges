@@ -1,0 +1,54 @@
+<?php 
+	require_once('includes/header.php');
+	$id=optional_param('seo_keyword','', PARAM_TEXT);
+	$get_new = get_record('news','seo_keyword',$id,'status','active');
+	if($get_new!='')
+	{
+		$id=$get_new->id;
+		$sql="select * from `{$CFG->prefix}news` where  status='active' and id=$id ORDER BY `added_date` DESC ";
+		$news=get_record_sql($sql);
+	
+?>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+   <?php require_once("includes/left_content.php"); 
+?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+		<?php
+			if($news!='')
+			{?>
+				<ul>
+					<li><a href="index.html"><strong>Home</strong></a></li>
+					<li class="in_aroow">News/Articles</li>		
+					<li class="in_aroow"><span><?php  echo $news->name;?></span></li>
+			  </ul>
+		    </div>
+				<div class="in_Right_link">
+					<a href="#"></a><?php   echo date('d F Y',$news->news_date);?>
+				</div>
+				<div class="clear"></div>
+					<h1><?php  echo $news->name;?></h1>			   
+				<div class="clear"></div>
+			  </div>
+				<?php  echo $news->long_description;?>
+				<?php
+			}
+}?>
+			</div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+	require_once('includes/footer.php'); 
+?>

@@ -1,0 +1,218 @@
+<?php
+	require_once('includes/header.php');
+	
+	$cid = optional_param('cid','',PARAM_TEXT);
+
+	if(!empty($cid)){
+		$data = get_record_sql("SELECT c.*,u.image FROM ".$CFG->prefix."counselors c ,fe_users u WHERE c.status = 'active' and c.id=$cid and c.user_id=u.id");
+	}
+	$target_path = $CFG->siteroot."/file.php/personal/";
+?>
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><a href="financial_provider_search.html"><strong>Counselors</strong></a></li>
+            <li class="in_aroow"><span>
+            <?php 
+                   if(isset($data->first_name) && !empty($data->first_name))
+                   {
+                      echo $data->first_name;
+                   }
+                   if(isset($data->last_name) && !empty($data->last_name))
+                   {
+                      echo " ".$data->last_name;
+                   }
+            ?>
+            </span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+
+        <div class="clear"></div>
+        <h1><span><?php 
+                   if(isset($data->first_name) && !empty($data->first_name))
+                   {
+                      echo $data->first_name;
+                   }
+                   ?>
+                   </span></h1>  
+        <div style="float:right;color:red"><a style="color:red" href="ask_question.html?flag=sentbox&id=<?php echo $data->user_id;?>" rel ="lightbox[sent_<?php echo $pid?> 500 300] " title="Ask query">Ask a Query</a></div>				   
+        <div class="clear"></div>
+      </div>
+	 
+	  
+      <div class="clear"></div>
+  
+	 
+	  
+    	
+        <div id="wraper">
+	  
+<div class="clear"></div>
+</div>
+        
+
+		<table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+			  <tr>
+					<td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Image</b></td>
+					<td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+					        <?php 
+							if(isset($data->image) && !empty($data->image))
+							{ 
+							?>
+							<a rel="lightbox[img]" href="<?php echo $target_path.$data->image; ?>" title="<?php echo $data->image; ?>"><img src="<?php echo $target_path.'f2_'.$data->image; ?>" border="0" title=""/></a>
+							<?php } else {?>
+							 <img src="images/noimage.jpg" border="0"/>
+							<?php } ?>
+					</td>
+			  </tr>
+        </table>
+		<?php if(isset($data->first_name) && !empty($data->first_name)) { ?>
+        <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+            <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>First Name</b></td>
+   				<td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+        		   <?php echo $data->first_name;?>
+                </td>
+            </tr>
+          </table>
+        <?php } ?>
+        <?php if(isset($data->last_name) && !empty($data->last_name)) { ?>  
+          <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Last Name</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $data->last_name;?>
+                </td>
+          </tr>
+          </table>
+        <?php } ?>
+        <?php if(isset($data->experience) && !empty($data->experience)) { ?>
+          <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Experience</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $data->experience;?>
+                </td>
+          </tr>
+          </table>
+        <?php } ?>
+        <?php if(isset($data->proffession) && !empty($data->proffession)) { ?> 
+          
+          <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Profession</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $data->proffession;?>
+                </td>
+          </tr>
+          </table>
+        <?php } ?>
+        <?php if(isset($data->gender) && !empty($data->gender)) { ?>   
+          <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Gender</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $data->gender;?>
+                </td>
+          </tr>
+          </table>
+        <?php } ?>
+        <?php if(isset($data->date_of_birth) && !empty($data->date_of_birth)) { ?>  
+          <!--<table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Date of Birth</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $data->date_of_birth;?>
+                </td>
+          </tr>
+          </table>-->
+        <?php } ?>
+        <?php if(isset($data->address) && !empty($data->address)) { ?>  
+          <!--<table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Address</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $data->address;?>
+                </td>
+          </tr>
+          </table>-->
+        <?php } ?>
+        <?php if(isset($data->street) && !empty($data->street)) { ?>  
+          <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Street</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $data->street;?>
+                </td>
+              </tr>
+            </table>  
+        <?php } ?>
+        <?php if(isset($data->state) && !empty($data->state)) { ?>    
+            <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >  
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>State</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $state = get_field('state','name','id',$data->state);?>
+                </td>
+              </tr>
+            </table>  
+        <?php } ?>
+        <?php if(isset($data->city) && !empty($data->city)) { ?>    
+            <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >  
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>City</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $state = get_field('city','name','id',$data->city);?>
+                </td>
+              </tr>
+            </table>  
+        <?php } ?>
+        <?php if(isset($data->zip_code) && !empty($data->zip_code)) { ?>    
+            <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >  
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Zip Code</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $data->zip_code;?>
+                </td>
+              </tr>
+             </table> 
+        <?php } ?>
+        <?php if(isset($data->about_me) && !empty($data->about_me)) { ?>    
+             <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" > 
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>About Me</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $data->about_me;?>
+                 </td>
+              </tr>
+			</table>
+		<?php } ?>
+  </div>	
+	     
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+	
+  </div>
+ 
+  <!-- << content section -->
+  <!-- footer section >> -->
+
+<?php 
+	require_once('includes/footer.php'); 
+?>

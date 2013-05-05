@@ -1,0 +1,11 @@
+<?php 
+	require_once('cmiadmin/config.php');
+	if(isset($_SESSION['user_login']))unset($_SESSION['user_login']);
+	if(isset($_SESSION['user_username']))unset($_SESSION['user_username']);	
+	if(isset($_SESSION['s4c_user_id']))unset($_SESSION['s4c_user_id']);	
+	if(isset($_SESSION['user_type']))unset($_SESSION['user_type']);	
+	if(isset($_SESSION['user_login_time']))unset($_SESSION['user_login_time']);	
+	session_destroy();
+	
+	header("location:index.html");
+?>

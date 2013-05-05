@@ -1,0 +1,132 @@
+<?php 
+	
+	require_once('includes/checkExpire.php');
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 
+	$user_info = check_login();
+?>
+<script  type="text/javascript">
+
+	function delete_gallery(id){			
+		var req = new Request({
+			 method: 'post',
+			 url: 'ajax_handler.php',
+			 data: {'id' : id,						
+					'flag' : 'delete_gallery'	
+				 },
+			 onRequest: function() {},
+			 onComplete: function(response) { 
+				window.location.reload();
+			}
+		}).send();	
+	}
+</script>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+	<?php include_once('includes/left_content.php'); 
+	?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>            
+            <li class="in_aroow"><span>Pictures & Videos</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+        <div class="clear"></div>
+        <h1><span>Pictures & Videos</span></h1>       
+        <div class="clear"></div>
+      </div>
+	  <div class="in_left_text">
+	    <h3>Pictures</h3>
+	  </div><div class="in_Right_link">
+	  <div class="upload_photo"><a href="photo_uploaded.html"><strong>upload photo</strong></a></div>
+      </div>
+      
+	  <div class="clear"></div>
+	  <div id="photo_gallery">
+	  <?php
+		$user_id = $_SESSION['s4c_user_id'];
+		$photo_uploaded = get_records_select('gallery'," approved='approved' AND type='image' AND user_id=$user_id AND status ='active' ");
+		$photo_uploaded_count = count($photo_uploaded);
+		$i =1;
+		if($photo_uploaded){
+			foreach($photo_uploaded as $record){
+				if($i == 4)
+					$class ='upload_img_last';
+				else
+					$class ='upload_img';
+				echo "
+					<div class='$class'>
+						<a href='$CFG->siteroot/file.php/gallery/$record->name' rel ='lightbox' title='$record->name' >
+							<img src='$CFG->siteroot/file.php/gallery/f3_$record->name' title='$record->name' width='124' height='91' />
+						</a>
+						<strong><br />$record->comment</strong>&nbsp;&nbsp;<a href='javascript:void(0);' onclick='delete_gallery($record->id);'>&nbsp;Delete</a>
+					</div>";
+				$i++;
+			}
+		}else{
+			echo "<center><h5>No Images </h5></center>";
+		}
+
+	  ?>
+
+		<div class="clear"></div>
+	  </div>
+	  <div class="in_left_text">
+	    <h3>Video</h3>
+	  </div>
+	  <div class="in_Right_link">
+	  <div class="upload_video"><a href="video_uploaded.html"><strong>upload video</strong></a></div>
+      </div>
+	  <div class="clear"></div>
+	  <div id="video_gallery">
+		<?php
+		$user_id = $_SESSION['s4c_user_id'];
+		$video_uploaded = get_records_select('gallery'," approved='approved' AND type='video' AND user_id=$user_id AND status ='active' ");
+		$video_uploaded_count = count($video_uploaded);
+		$i =1;
+		if($video_uploaded){
+			foreach($video_uploaded as $record){				
+				echo "
+					<div class='upload_clip'>
+					<a href='$CFG->siteroot/file.php/gallery/$record->name' rel ='lightbox' title='$record->name' >
+						<img src='images/video_img.jpg' width='128' height='86' alt='$record->name'/>
+					</a>
+						<strong><br />$record->comment</strong>&nbsp;&nbsp;<a href='javascript:void(0);' onclick='delete_gallery($record->id);'>&nbsp;Delete</a>
+					</div>";
+				$i++;
+			}
+		}else{
+			echo "<center><h5>No Videos </h5></center>";
+		}
+	  ?>
+
+
+
+	  <div class="clear"></div>
+	  </div>
+	  <div class="clear"></div>
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+	require_once('includes/footer.php'); 
+?>

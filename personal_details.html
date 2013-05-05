@@ -1,0 +1,391 @@
+<?php 
+	
+	require_once('includes/checkExpire.php');
+	
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 
+	$user_info = check_login();
+	if(isset($_FILES['image']['name']) ){
+		$updatepersonal = new object();
+		$target_path = $CFG->dataroot.'/personal/';
+		if(!file_exists($target_path)){
+			mkdir($CFG->dataroot.'/personal/',777);
+		}
+		$personal_image = '';
+		$updatepersonal->image = '';
+		if(isset($_FILES['image']['name']) && !empty($_FILES['image']['name'])){
+			$personal_image = upload_image('image',$target_path);
+			
+			if($personal_image)
+				$updatepersonal->image = $personal_image;
+			else
+				$updatepersonal->image = '';
+		}
+		$image = $personal_image;
+		if($updatepersonal->image){
+			$updatepersonal->id = $_SESSION['s4c_user_id'];
+			$update = update_record('fe_users', $updatepersonal);
+		}
+	}
+
+	if(isset($user_info->user_id))
+		$personal_info = get_personal_info($user_info->user_id);
+	$update_persional ='';	
+	if(isset($personal_info)){
+		foreach($personal_info as $key=>$value){
+			if($key !='date_of_birth'){
+				$update_persional .= '"'.$key.'" : $("'.$key.'").value,';
+			}
+		}
+	}
+
+	
+	if(isset($_SESSION['user_type']) && ($_SESSION['user_type'] == 'student' || $_SESSION['user_type'] == 'counselor' || $_SESSION['user_type'] == 'teacher') && isset($user_info->id)){
+		$academic_info = get_records('academic','student_id',$user_info->id);
+		$academic_info_count = count($academic_info);		
+	}
+
+	if(isset($_SESSION['user_type']) && ($_SESSION['user_type'] == 'student' || $_SESSION['user_type'] == 'counselor' || $_SESSION['user_type'] == 'parent' || $_SESSION['user_type'] == 'teacher')){
+		$update_persional .= "'date_month': $('date_month').value, 'date_day':$('date_day').value, 'date_year':$('date_year').value,";
+	}
+
+?>
+<script  type="text/javascript">
+
+	function show_upload(){
+		$('show_upload').show();
+		$('hide_upload').hide();
+	}
+	function hide_upload(){
+		$('show_upload').hide();
+		$('hide_upload').show();
+	}
+
+	function checkPersionalDetails(){
+
+		var type = <?php echo "'".$_SESSION['user_type']."'"; ?>;
+		if(type == 'school'){
+			if($('school_name').value == '' || $('web_url').value == '' || $('address').value == '' || $('street').value == '' || $('city').value == '' || $('zip_code').value == '' || $('state').value == ''){	
+				//return false;				
+			}else{
+				update_personal_detail();
+				//window.location.href='<?php echo $CFG->siteroot; ?>/personal_details.html';
+			}
+		}
+		else if($('first_name').value == '' || $('last_name').value == '' || $('address').value == '' || $('street').value == '' || $('state').value == '' || $('city').value == '' || $('zip_code').value == ''){
+			update_personal_detail();
+			//window.location.href='<?php echo $CFG->siteroot; ?>/personal_details.html';
+		}
+		else{
+			update_personal_detail();
+			//window.location.href='<?php echo $CFG->siteroot; ?>/personal_details.html';
+			//return true;  
+		}
+	}
+
+	function populate_personal_detail(){
+			
+			var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {'flag' : 'populate_personal_detail'						
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+					 $('personal_detail').innerHTML = response;
+					 //$('personal_msg').innerHTML = '';
+				}
+			}).send();	
+		}
+		function edit_personal_detail(){
+			
+			var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {'flag' : 'edit_personal_detail'						
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+					 $('personal_detail').innerHTML = response;
+					 new DatePicker('.demo_vista1', { 
+						pickerClass: 'datepicker_vista',
+						allowEmpty: false ,
+						format: 'F d, Y'
+					});
+				 window.addEvent('domready', function(){
+					new FormCheck('personal_detail_form',{display:{showErrors:1}});
+				});
+				}
+			}).send();	
+		}
+		function update_personal_detail(){			
+			var req = new Request({			
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: { <?php echo $update_persional; ?>
+						"flag" : "update_personal_detail"						
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+					window.location.reload();
+					// $('show_div').innerHTML = "<font color='red'>!! Data updated !!</font>";
+					//populate_personal_detail();
+					//$('personal_msg').innerHTML = ' &nbsp;&nbsp;&nbsp;(&nbsp;&nbsp;&nbsp;Personal Infomation Added&nbsp;&nbsp;&nbsp;)';
+				}
+			}).send();	
+		}
+		
+		populate_personal_detail();
+
+		function addAcademic(){
+			
+			var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {"institute_name":$('institute_name_add').value,
+						 "degree":$('degree_add').value,
+						 "date_month":$('date_month').value,
+						 "date_day":$('date_day').value,
+						 "date_year":$('date_year').value,
+						 //"year_of_passing":$('year_of_passing_add').value,	
+						'flag' : 'addAcademic'	
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+					 $('addremove').innerHTML = response;
+					 window.addEvent('domready', function(){
+						new FormCheck('academic_form',{display:{showErrors:1}});
+					 });
+					 new DatePicker('.demo_vista1', { 
+						pickerClass: 'datepicker_vista',
+						allowEmpty: true ,
+						format: 'F d, Y'
+					});
+					populateAcademic();
+					//$('academic_msg').innerHTML = ' &nbsp;&nbsp;&nbsp;(&nbsp;&nbsp;&nbsp;Academic Infomation Added&nbsp;&nbsp;&nbsp;)';
+				}
+			}).send();	
+		}
+
+		function showAcademic(){
+			
+			var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {
+						'flag' : 'showAcademic'	
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+					 $('addremove').innerHTML = response;
+					 window.addEvent('domready', function(){
+						new FormCheck('academic_form',{display:{showErrors:1}});
+					 });
+					 new DatePicker('.demo_vista1', { 
+						pickerClass: 'datepicker_vista',
+						allowEmpty: true ,
+						format: 'F d, Y'
+					});
+					//populateAcademic();
+				}
+			}).send();	
+		}
+
+		function editAcademic(id){			
+			var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {'id' : id,	
+						'flag' : 'editAcademic'	
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+					 $('addremove').innerHTML = response;
+					window.addEvent('domready', function(){
+						new FormCheck('academic_form',{display:{showErrors:1}});
+					});
+					 new DatePicker('.demo_vista1', { 
+						pickerClass: 'datepicker_vista',
+						allowEmpty: true ,
+						format: 'F d, Y'
+					});
+				}
+			}).send();	
+		}
+		function deleteAcademic(id){
+			
+			var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {'id' : id,	
+						'flag' : 'deleteAcademic'	
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) {
+					 populateAcademic();
+				}
+			}).send();	
+		}
+		function cancelAcademic(){
+			populateAcademic();
+		}
+		
+		function updateAcademic(id){
+			if($('institute_name_change').value != '' && $('degree_change').value !=''){
+				var req = new Request({
+					
+					 method: 'post',
+					 url: 'ajax_handler.php',
+					 data: { "institute_name":$('institute_name_change').value,
+							 "degree":$('degree_change').value,
+							 "date_month":$('date_month').value,
+						 	 "date_day":$('date_day').value,
+						 	 "date_year":$('date_year').value,
+							 //"year_of_passing":$('year_of_passing_change').value,						 
+							 "id":id,
+							 "flag" : "updateAcademic"						
+						 },
+					 onRequest: function() {},
+					 onComplete: function(response) { 
+						 $('addremove').innerHTML = response;
+						 populateAcademic();
+						 $('academic_msg').innerHTML = ' &nbsp;&nbsp;&nbsp;(&nbsp;&nbsp;&nbsp;Academic Infomation Updated&nbsp;&nbsp;&nbsp;)';
+					}
+				}).send();	
+			}
+		}
+
+		function populateAcademic(){
+			var req = new Request({
+				
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: { 
+						"flag" : "populateAcademic"						
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+					 $('addremove').innerHTML = response;
+					 //$('academic_msg').innerHTML = ' ';
+				}
+			}).send();	
+		}
+		function get_city(id,flag){
+		
+			if(id != ''){
+				var req = new Request({
+				 method: 'get',
+				 url: 'ajax_handler.php',
+				 data: { 'id' : id,'flag' : 'city_from' },
+				 onRequest: function() { },
+				 onComplete: function(response) { 
+					$(flag).innerHTML = response;
+				}
+			 
+			}).send();	
+			}
+		}
+		<?php if($_SESSION['user_type'] == 'student' || $_SESSION['user_type'] == 'counselor' || $_SESSION['user_type'] == 'teacher'){?>
+		populateAcademic();
+		<?php } ?>
+
+</script>
+
+<style type="text/css">
+#addremove {display: inline;}
+</style>
+
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); 
+
+  ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>            
+            <li class="in_aroow"><span>Personal Details</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+        <div class="clear"></div>
+        <h1><span>Personal Details</span></h1>       
+        <div class="clear"></div>
+      </div>
+      
+	  <div class="clear"></div>
+	 <dl class="accordion">
+         <dt class="accordion_toggler_1">
+			<span>Personal Details</span>-
+			<?php echo isset($user_info->first_name)?$user_info->first_name:'' ; echo "&nbsp;"; isset($user_info->last)?$user_info->last_name:'' ;?>
+			<span id="personal_msg" style="color: #B26E0D; font-size:11px;"></span>
+		</dt>
+         <dd class="accordion_content accordion_content_1" >
+				<div class="Personal_img" id="process_image">
+					<form name="s4c_reg" id="s4c_reg" action="personal_details.html" method="POST" enctype="multipart/form-data">
+						
+						<?php 
+						if(isset($_SESSION['s4c_user_id'])){
+							$image = get_field('fe_users','image','id',$_SESSION['s4c_user_id']);
+							if($image){
+								echo "<div class='personal_details_image'> <img src='$CFG->siteroot/file.php/personal/f4_$image' width='82px' height='91' alt='$image' /></div><br/>";
+							}else{
+								echo "<img src='images/noimage.jpg' /><br/>";
+							}
+						}
+						?>
+						<br/>
+						<div id="show_upload" style="display:none; float:left; margin-top: 6px;">
+							<input name='image' id='image' type='file' size='10' class="validate['required','image']" />
+							<input type="image" src="images/save.jpg" class="personal_detail_save" />
+                            <span onclick="hide_upload();" style="cursor:pointer;" class="image_change_new" ><img src="images/cancel_buttan.jpg" /></span>
+						</div>
+						<div id="hide_upload">
+							<span onclick="show_upload();" style="cursor:pointer;" class="personal_detail_save_text" ><b>Change</b></span>
+						</div>
+					</form> 
+				</div>
+				<center><div id="show_div"></div></center>
+
+				<div class="in_Right_link" style="float:right; text-align:right;"><img src="images/pen_edit.jpg" alt="Edit" width="11" height="11" vspace="0" />
+                                    <a href="javascript:void(0);" onclick="edit_personal_detail()">Edit</a>
+
+                                    <div class="clean"></div>
+                                     <div class="Personal_details">
+					<div id="personal_detail"></div>					
+				     </div>
+				
+			</div>
+			<div class="clear"></div>
+		 </dd>
+		<?php if($_SESSION['user_type'] == 'student' || $_SESSION['user_type'] == 'counselor' || $_SESSION['user_type'] == 'teacher') { ?>
+         <dt class="accordion_toggler_1"><span>Academic Details</span><span id="academic_msg" style="color: #B26E0D; font-size:11px;"></span></dt>
+         <dd class="accordion_content accordion_content_1" >		
+			<div id="addremove">
+			</div>
+		 </dd>	
+		 <?php } ?>
+      </dl>
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+ <?php 
+	require_once('includes/footer.php'); 
+?>

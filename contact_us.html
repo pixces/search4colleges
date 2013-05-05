@@ -1,0 +1,78 @@
+<?php 
+	require_once('includes/header.php'); 
+?>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  
+		
+  <div id="content_sec">
+  
+    <!-- << left content -->
+   <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!--  inner content >> -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><span>Contact Us</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+
+        <div class="clear"></div>
+        <h1><span>Contact Us</span></h1>       
+        <div class="clear"></div>
+      </div>
+	  
+	  <!--  inner content txt >> -->
+		<p><b>Have a question or comment?</b></p>
+		<p>
+		Search 4 Colleges is interested in your thoughts. If you have a question or comment concerning this site, please select the subject title that best applies.
+		</p>
+		<p>
+If you would like to request information about a school on this site, please use the contact form provided by clicking on that school's name. You can also email us at <a href="mailto:info@search4colleges.com">info@search4colleges.com</a>.		</p>
+	  <p>
+Thank you and best wishes.
+		</p>
+		<form id="contactForm" method="post" action="cmi_emailer/email.php" name="contactForm" enctype="multipart/form-data">
+		<input type="hidden" name="config" value="Contact_us" />
+			<p>
+				<span>Name</span>
+				<input type="text" name="Fullname" class="input_text validate['required']" />
+			</p>
+			<p>
+				<span>Email</span>
+				<input type="text" name="Email" class="input_text validate['required','email']" />
+			</p>
+			<p>
+				<span>Telephone</span>
+				<input type="text" name="Telephone" class="input_text validate['required','phone']" />
+			</p>
+			<p>
+				<span>Your Message</span>
+				<textarea type="text" name="Your_Message" class="text_area_box validate['required']"></textarea>
+			</p>
+			<div>
+				<input type="submit" name="submit" value="Submit"/>
+				<input type="reset" name="reset" value="Reset"/>
+			</div>
+		</form>
+	  <!-- <<  inner content txt -->
+      
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+	require_once('includes/footer.php'); 
+?>

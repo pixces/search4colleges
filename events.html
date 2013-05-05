@@ -1,0 +1,266 @@
+<?php 
+	include_once("cmiadmin/config.php");
+	
+	$user_info = check_login();
+	$msg ='';
+	require_once('includes/checkExpire.php');
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	$date = '';
+	$staff_permission = '';
+	$page_name = 'events';
+
+	if(isset($_SESSION['user_type'])){
+		if(isset($_GET['edit']) && isset($_GET['view'])){
+			$exam_data = get_record_sql('Select * from '.$CFG->prefix.'school_exam where status = "active" and school_id = '.$_SESSION['s4c_user_id'].' and id= '.$_GET['edit'].' order by added_date ');
+		}
+	}
+	if($_POST){
+		$name 				= optional_param('name', PARAM_RAW);
+		$short_description 	= optional_param('short_description', PARAM_RAW);
+		$opening_date		= optional_param('opening_date', PARAM_RAW);
+		$closing_date		= optional_param('closing_date','', PARAM_RAW);		
+		$event_type 		= optional_param('event_type','', PARAM_RAW);
+		$priority 			= optional_param('priority', PARAM_RAW);
+			
+		
+		$update_mode						= new object();	
+		$update_mode->name					= $name;
+		$update_mode->short_description		= $short_description;
+		$update_mode->opening_date			= $opening_date;
+		$update_mode->closing_date			= $closing_date;
+		$update_mode->event_type 			= $event_type;
+		$update_mode->sort_order 			= '1';
+		$update_mode->priority				= $priority;
+		$update_mode->added_date			= time();
+		$update_mode->added_by				= $_SESSION['s4c_user_id'];
+		$update_mode->status				= 'active';
+		
+
+		if(!empty($update_mode)){
+			
+			$update = insert_record('event', $update_mode);
+			if($update){
+?>
+				<script  type="text/javascript">	
+					parent.window.location = 'my_calendar.html';
+					parent.Mediabox.close();			
+				</script>
+<?php
+			}
+		}	
+	}
+	
+		if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'staff')
+		{
+			$allowed = get_field('school_staff_user','allowed_sections','fe_staff_id',$_SESSION['s4c_user_id']);
+
+			$staff_permission = 'no';
+
+			if(!empty($allowed))
+			{
+				$alloweds = explode(",",$allowed);
+				if(in_array($page_name,$alloweds))
+				{
+					$staff_permission = 'yes';
+				}
+				else
+				{
+					$staff_permission = 'no';
+				}
+			}
+
+		}
+
+
+include_once("includes/header.php");
+?>
+<script type="text/javascript" >
+	window.addEvent('domready', function(){
+	    //new FormCheck('edit_form',{display:{showErrors:1}});
+		new FormCheck('edit_form',{submit:false,onValidateSuccess: check});
+		new DatePicker('.demo_time', {
+			pickerClass: 'datepicker_vista',
+			format: 'F d, Y @ H:i',
+			timePicker: true
+		});
+		
+	});
+	function check()
+	{
+		if($("closing_date_id").value<$("opening_date_id").value)
+		{
+		  document.getElementById('date_error').innerHTML = 'Closing date should be greater that opening date';
+		}else{
+			document.profile_form.submit();
+		}
+		
+	}
+	function save_me(id){
+		if(id){
+		    
+			var req = new Request({
+			 method: 'post',
+			 url: 'ajax_handler.php',
+			 data: {'id' : id,
+					'name' : $(id+"_name").value,
+					'opening_date' : $(id+"_opening_date").value,
+					'closing_date' : $(id+"_closing_date").value,
+					'description' : $(id+"_description").value,
+					'flag' : 'update_event'
+				 },
+			 onRequest: function() {},
+			 onComplete: function(response) {
+				window.location.reload();
+			}
+		}).send();
+		}
+	}
+	function delete_me(id){
+		if(id){
+			var req = new Request({
+			 method: 'post',
+			 url: 'ajax_handler.php',
+			 data: {'id' : id,
+					'flag' : 'delete_event'
+					},
+			 onRequest: function() {},
+			 onComplete: function(response) {
+				window.location.reload();
+			}
+		}).send();
+		}
+	}
+</script>
+<?php
+//print_object($_GET);
+if(isset($_GET['date'])){
+	$arr = explode(',',$_GET['date']);
+	$datset = mktime(7, 0, 0, $arr[1], $arr[0], $arr[2]);
+	$datsetc = mktime(7, 0, 0, $arr[1], $arr[0]+1, $arr[2]);
+
+	if(isset($_SESSION['s4c_user_id']))
+		$all_events = get_records('event','added_by',$_SESSION['s4c_user_id']);
+	else
+		$all_events = '';
+}
+else{
+	$datset = '';
+}
+
+	
+?>
+</head>
+
+<div id="content_sec">
+ <?php require_once("includes/left_content.php"); 
+ ?>
+
+	<br />
+    
+    <div id="inner_content">
+    
+	<div class="inner_top">
+	 <h3><span style="vertical-align:super">Event :</span><?php if($staff_permission != 'no' && isset($_SESSION['s4c_user_id']) && $_SESSION['s4c_user_id'] != '') { ?><img style="cursor:pointer" src ="images/add.png" width="30" height="30" alt="Add" title="Add New Event" onclick="$('new_event').style.display='';$('msg').style.display='none'" ><?php } ?></h3>
+	  <form method="post" action="events.html" id="edit_form" name="profile_form" enctype="multipart/form-data"/>
+	  
+	  <input type="hidden" name="view" value=<?php if(isset($_SESSION['s4c_user_id'])) echo $_SESSION['s4c_user_id']; ?> />
+	  <input type="hidden" name="exam_id" value=<?php if(isset($_GET['edit'])) echo $_GET['edit']; ?> />
+	
+	  <table id="new_event" style="display:none; margin-top:20px;" class="scholarship_main_box" cellspacing="0" cellpadding="8">
+		<tr>
+			<td bgcolor="#F9F9F9"><b>Title</b></td>
+			<td bgcolor="#F9F9F9">
+				<input type="text" name="name" class="validate['required']"/>
+			</td>
+		</tr>
+		<tr>
+			<td bgcolor="#F0F0F0"><b>Priority</b></td>
+			<td bgcolor="#F0F0F0">
+				<select name="priority" class="validate['required']">
+					<option >Select</option>
+					<option value="high">High</option>
+					<option value="normal">Normal</option>
+					<option value="low">Low</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td bgcolor="#F9F9F9"><b>Opening Date</b></td>
+			<td bgcolor="#F9F9F9">
+				<input readonly="true" name="opening_date" maxlength="30" style="width:150px;" type="text" class="demo_time txtBox " value="<?php echo $datset;?>" id="opening_date_id"/>
+			</td>
+		</tr>
+		<tr>
+			<td bgcolor="#F0F0F0"><b>Closing Date</b></td>
+			<td bgcolor="#F0F0F0">
+				<input readonly="true" name="closing_date" maxlength="30" style="width:150px;" type="text" class="demo_time txtBox " value='<?php echo $datsetc;?>' id="closing_date_id"/><div id="date_error"></div>
+			</td>
+		</tr>
+		<tr>
+			<td bgcolor="#F9F9F9"><b>Event Type</b></td>
+			<td bgcolor="#F9F9F9">
+				<select name="event_type" class="validate['required']">
+					<option >Select</option>
+					<option value="exam">Exam</option>
+					<option value="seminar">Seminar</option>
+					<option value="conference">Conference</option>
+					<option value="other">Other</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td bgcolor="#F0F0F0"><b>Remark</b></td>
+			<td bgcolor="#F0F0F0">
+				<textarea name="short_description"></textarea>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="1" style="text-align:center" bgcolor="#F9F9F9"><input type="image" src="images/save_button.jpg" /></td>
+			<td bgcolor="#F9F9F9"><img src="images/cancel_bottom.jpg" onclick="$('new_event').style.display='none'"/></td>
+		</tr>
+	  </table>
+	  </form>
+	</div>
+    </div>
+	<?php
+		if(!empty($all_events)){ ?>
+			<div style="width:150px; height:20px; float:left; margin-left:10px; font-size:14px; font-weight:bold;"><span>All Events</span></div>
+			<table align="center" class="event_details_table" width="720px">
+			<?php 
+			foreach($all_events as $data){
+				if(isset($data->opening_date)){
+					
+					$day = date('d',$data->opening_date);
+					$month = date('n',$data->opening_date);
+					$year = date('Y',$data->opening_date);
+
+					$comparedate = $year.$month.$day;
+					$arr_comparedate = $arr[2].$arr[1].$arr[0];
+					if($comparedate == $arr_comparedate){ ?>
+						<tr>
+							<td valign="top"><input type="text" id="<?php echo $data->id;?>_name" value="<?php echo $data->name;?>"></td>
+							<td valign="top"><input readonly="true" name="opening_date" id="<?php echo $data->id;?>_opening_date" maxlength="30" style="width:150px;" type="text" class="demo_time txtBox " value="<?php echo $data->opening_date;?>" /></td>
+							<td valign="top"><input id="<?php echo $data->id;?>_closing_date" readonly="true" name="closing_date" maxlength="30" style="width:150px;" type="text" class="demo_time txtBox " value="<?php echo $data->closing_date;?>" /></td>
+							<td valign="top"><textarea id="<?php echo $data->id;?>_description"><?php echo $data->short_description;?></textarea></td>
+							<td valign="top"><img style="cursor:pointer" onclick="save_me(<?php echo  $data->id; ?>)" src="images/save.png" title="save" alt="Save"></td>
+							<td valign="top"><img style="cursor:pointer" onclick="delete_me(<?php echo  $data->id; ?>)" src="images/delete_icon.png" alt="Delete" title="Delete"></td>
+
+						</tr>
+					<?php }
+				}
+			}?>
+			</table>
+		<?php }
+			?>
+
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+ <?php
+ 
+	require_once('includes/footer.php'); 
+?> 

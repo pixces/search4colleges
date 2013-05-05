@@ -1,0 +1,438 @@
+<?php 
+	require_once("cmiadmin/lib/phpmailer/class.phpmailer.php");
+	
+require_once('includes/checkExpire.php');
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 
+	$school_id	= optional_param('view','', PARAM_RAW);
+	$preview	= optional_param('preview','', PARAM_RAW);
+
+	if(isset($_POST['x']) && $_POST['x']!=''){
+
+		$added_date				= time();			
+		$email					= required_param('email', PARAM_RAW);
+		$name					= required_param('name', PARAM_RAW);
+		$password				= required_param('password', PARAM_RAW); 		
+		$code					= generate_random(8);
+		$reg_type				= 'staff';
+
+		$allowed_sections = optional_param('sections', PARAM_RAW);
+		$allowed_sections = implode(',',$allowed_sections);
+
+
+		$add_user					= new object();	
+		$add_user->email			= $email;
+		$add_user->password 		= md5($password);
+		$add_user->status 			= 'active';
+		$add_user->code  			= $code;
+		$add_user->added_date 		= $added_date;
+		$add_user->user_type 		= $reg_type;
+
+		$to= $email;
+		$sub = "Search 4 Colleges Verification";
+		$msg = "<br /><a href='".$CFG->siteroot."'><img src='".$CFG->siteroot."/cmiadmin/theme/cmi/images/cmi_logo.png' alt='Logo' border='0' /></a><br /><br />"; 
+		$msg .= '<b>Dear '.$name.'</b>,<br /><br />We have sent you a verification email.
+				Kindly click on the link to verify your account with us.
+				<a href="'.$CFG->siteroot.'/verify.html?code='.$code.'">Click Here</a><br />';
+
+		$msg .= <<<OP
+			<div style="background-color:#FFFFFF;">
+				  <br /><b>Thanks,</b><br />
+					<b>S4c </b>
+			</div>
+OP;
+		global $CFG; 
+		$mail				= new PHPMailer();
+		$mail->IsHTML(true);
+		$mail->From			= $CFG->frommail;
+		$mail->FromName		= $CFG->fromname;
+		$mail->Subject		= $sub;
+		$mail->Body			= $msg;
+		$mail->AddAddress($to);
+		$mail->AddReplyTo($CFG->frommail, "Registration");
+		if($mail->Send())
+		{
+			$new = insert_record('fe_users', $add_user);
+			
+			if($new){
+
+				$add_info					= new object();	
+				$add_info->name 			= $name ;	
+				$add_info->allowed_sections = $allowed_sections;
+				$add_info->added_date 		= $added_date;	
+				$add_info->status 			= 'active';
+				$add_info->fe_staff_id  	= $new;
+				$add_info->fe_school_id  	= $school_id;
+
+				if(!empty($add_info)){
+					$new_staff				= insert_record('school_staff_user', $add_info);
+				}
+				
+			}
+		}
+		/*switch($reg_type){
+		
+			case 'school':		$table							='schools';
+								$school_name					= optional_param('school_name', PARAM_RAW);
+								$address						= optional_param('address', PARAM_RAW);
+								$phone							= optional_param('phone', PARAM_RAW);
+								$country						= optional_param('country', PARAM_RAW);
+								$state							= optional_param('state', PARAM_RAW);
+								$city							= optional_param('city', PARAM_RAW);
+								$zip_code						= optional_param('zip_code', PARAM_RAW);
+								$school_website					= optional_param('school_website', PARAM_RAW);
+								unset($add_info->gender);
+								unset($add_info->first_name);
+								unset($add_info->date_of_birth);
+								$add_info->school_name			= $school_name;
+								$add_info->address 				= $address;	
+								$add_info->phone 				= $phone;		
+								$add_info->country 				= $country;		
+								$add_info->state 				= $state;		
+								$add_info->city 				= $city;		
+								$add_info->zip_code 			= $zip_code;		
+								$add_info->web_url				= $school_website;	
+								$add_info->image				= '';
+								$add_info->logo					= '';
+								$add_info->added_date 			= $added_date;
+								break;
+			
+		}
+
+
+		$student_additional_data = get_record_sql('Select * from '.$CFG->prefix.'schools_additional where school_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+	
+		if(!empty($student_additional_data)){
+			$update_info						= new object();	
+			$update_info->department			= $department;
+			$update_info->department_head		= $department_head;	
+			$update_info->department_email		= $department_email;
+			$update_info->profile  				= $profile ;	
+			$update_info->board_members 		= $board_members;	
+			$update_info->student_population  	= $student_population ;	
+			$update_info->type_of_campus_area 	= $campus_type;	
+			$update_info->student_body 			= $student_body;
+			$update_info->location_google_map 	= $location_google_map;
+			$update_info->id 					= $student_additional_data->id;
+
+			//print_object($update_info);
+
+			if(!empty($update_info)){
+				$update = update_record('schools_additional', $update_info);
+			}
+		}*/
+	}
+	?>
+	<script type="text/javascript">
+		var email_flag=false;
+		function customEmail(el){
+			var movealert = new SexyAlertBox();
+			if($('email').value != ''){
+				var req = new Request({
+					 method: 'post',
+					 url: 'ajax_handler.php',
+					 data: { 'emailid' : $('email').value,flag: 'email_exists',},
+					
+					 onRequest: function() { },
+					 onComplete: function(response) { 
+						if(response=='yes')
+						 {
+							$('email').value = "";
+							movealert.error('<h1>Sorry! Email is already registerd.</h1>');
+						 }
+						 else
+						 {
+							email_flag = true;
+						 }
+					}
+				 
+				}).send();
+			}
+		}
+
+		function edit_me(id){
+			if(id){
+				var sections = '';
+				//console.log($(id).value);
+				$$('.'+id).each(function(item, index){
+					if(item.checked == true){
+						sections += item.value+",";
+
+					}
+				}); 
+				
+				var req = new Request({
+					 method: 'post',
+					 url: 'ajax_handler.php',
+					 data: {'id' : id,
+							'flag' : 'edit_staff_section'
+					 },
+					onRequest: function() {},
+					onComplete: function(response) {
+					$('view_table').hide();
+					$('edit_section').innerHTML = response;
+					}
+				}).send();
+			}
+		}
+
+		function save_me(id){
+			if(id){
+				var sections = '';
+				var namer = $('namer').value;
+
+				//console.log($(id).value);
+				$$('.'+id).each(function(item, index){
+					if(item.checked == true){
+						sections += item.value+",";
+
+					}
+				}); 
+				
+				var req = new Request({
+					 method: 'post',
+					 url: 'ajax_handler.php',
+					 data: {'id' : id,
+							'sections' : sections,
+							'namer' : namer,
+							'flag' : 'update_manage_users'
+					 },
+					onRequest: function() {},
+					onComplete: function(response) {
+					window.location.reload();
+					}
+				}).send();
+			}
+		}
+
+		function delete_me(id){
+			if(id){
+				var req = new Request({
+					 method: 'post',
+					 url: 'ajax_handler.php',
+					 data: {'id' : id,
+							'flag' : 'delete_manage_user'
+							},
+					 onRequest: function() {},
+					 onComplete: function(response) {
+						window.location.reload();
+					}
+				}).send();
+			}
+		}
+	</script>
+	<?php
+
+
+	$allowed_sections = array('colleges_profile','college_leads','college_news','college_statistics','colleges_admissions','colleges_contact_information','colleges_culture_campus_life','colleges_degrees','colleges_download_brochures','colleges_gallery','colleges_scholarships','colleges_send_enquiry','college_membership','college_affiliated_banks','colleges_related_colleges','events');
+
+	asort($allowed_sections);
+
+	if(isset($_SESSION['s4c_user_id']) && $school_id != '' && !isset($_GET['preview']) && $school_id == $_SESSION['s4c_user_id']){
+		
+			
+			if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'school'){
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+
+				$school_staff_user = get_records_sql('Select * from '.$CFG->prefix.'school_staff_user where fe_school_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+
+			}
+					
+				
+			$user_info = check_login();
+		?>
+			
+		  <!-- content section >> -->
+<div id="content_sec">
+  
+	<!-- << left content -->
+   <?php require_once("includes/left_content.php"); 
+   ?>
+	<!-- left content >> -->
+	
+	<!-- << inner content -->
+		<div id="inner_content">
+		  <div class="inner_top">
+			<div class="inner_link">
+			  <ul>
+				<li><a href="index.html"><strong>Home</strong></a></li>           
+				<li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+			  </ul>
+			</div>
+			<?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+				<div class="clear"></div>
+				<h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+				
+				<div class="clear"></div>
+			  </div>
+			  <div class="banner"> <img src="file.php/schools/<?php if(!empty($student_data->logo)){ echo 'f6_'.$student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner" />
+				<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)) echo get_field('city','name','status','active','id',$student_data->city).', '; ?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+			 <?php 
+				$city	= cmi_genrate_url(get_data_frontend('city','name',$student_data->city));
+				$state	= cmi_genrate_url(get_data_frontend('state','name',$student_data->state));
+
+				$url  = get_s4c_seo($student_data->seo_keyword,$city,$state,$student_data->user_id);	
+
+				get_menu_college($student_data->user_id,"colleges_users",$url);
+			 ?>
+			
+			<div> <h3><span style="vertical-align:super">Manage Users :</span><img style="cursor:pointer" src ="images/add.png" width="30" height="30" alt="Add" title="Add New User" onclick="$('new_event').style.display=''" ></h3></div>
+
+			<form method="post" action="college_users.html" id="profile_form" name="profile_form" enctype="multipart/form-data"/>
+	  
+			  <input type="hidden" name="view" value=<?php if(isset($_SESSION['s4c_user_id'])) echo $_SESSION['s4c_user_id']; ?> />
+			  			
+			  <table id="new_event" style="display:none; margin-top:20px;" class="scholarship_main_box" cellspacing="0" cellpadding="8">
+				<tr>
+					<td bgcolor="#F9F9F9"><b>Name</b></td>
+					<td bgcolor="#F9F9F9">
+						<input type="text" name="name" class="validate['required']"/>
+					</td>
+				</tr>
+				<tr>
+					<td bgcolor="#F0F0F0"><b>Email ID</b></td>
+					<td bgcolor="#F0F0F0">
+						<input type="text" id="email" name="email" class="validate['required','email','%customEmail']"/>
+					</td>
+				</tr>
+				<tr>
+					<td bgcolor="#F9F9F9"><b>Password</b></td>
+					<td bgcolor="#F9F9F9">
+						<input type="password" name="password" class="validate['required']"/>
+					</td>
+				</tr>
+				<tr>
+					<td bgcolor="#F0F0F0"><b>Sections</b></td>
+					<td bgcolor="#F0F0F0">
+						<select multiple name="sections[]">
+						<?php
+							foreach($allowed_sections as $data){
+						?>
+							<option value="<?php echo $data;?>"><?php echo ucfirst(str_replace('_',' ',$data));?></option>
+						<?php
+
+						}
+						?>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="1" style="text-align:center" bgcolor="#F9F9F9"><input type="image" src="images/save_button.jpg" /></td>
+					<td bgcolor="#F9F9F9"><img src="images/cancel_bottom.jpg" onclick="$('new_event').style.display='none'"/></td>
+				</tr>
+	  </table>
+	  </form>
+	  
+
+	  <?php 
+				if(!empty($school_staff_user)){ ?>
+					<table border="0" cellspacing="0" cellpadding="8" width="100%" id="view_table" >
+<tr>
+					<th width="15%" bgcolor="#ededed">Name</th>
+					<th width="70%" align="center" bgcolor="#ededed">Allowed sections</th>
+				    <th width="5%" bgcolor="#ededed">Edit</th>
+				    <th width="5%" bgcolor="#ededed">Delete</th>
+							
+					  </tr>
+					<?php 
+					foreach($school_staff_user as $data)
+					{
+					if(!empty($data->allowed_sections))
+					{
+						$last_sect = $data->allowed_sections[(strlen($data->allowed_sections)-1)];
+					}
+						if($last_sect == ',')
+						{
+							$allow_section = substr_replace(str_replace("_"," ",$data->allowed_sections),"",-1);
+						}
+						else
+						{
+							$allow_section = str_replace("_"," ",$data->allowed_sections);
+						}
+					?>
+						<tr>
+							<td valign="top"><?php if(isset($data->name)) echo $data->name; ?></td>
+							<td valign="top"><?php echo $allow_section ;?> </td>
+							<td valign="top"><img style="cursor:pointer" onclick="edit_me(<?php echo  $data->id; ?>)" src="images/edit.gif" title="Edit" alt="Edit"></td>
+							<td valign="top"><img style="cursor:pointer" onclick="delete_me(<?php echo  $data->id; ?>)" src="images/delete_icon.png" alt="Delete" title="Delete"></td>
+						<?php }
+					?>
+					</table>
+
+    <?php }
+				
+			?>
+
+			<div class="clear"></div>
+				<div id="edit_section">					
+			<?php 
+				if(!empty($school_staff_user)){ ?>
+					<table border="1" cellspacing="0" cellpadding="5" width="100%" style="display:none;">
+						<tr>
+							<th>Name</th>
+							<th>Allowed sections</th>
+							<th>Save</th>
+							<th>Delete</th>
+							
+						</tr>
+					<?php 
+					foreach($school_staff_user as $data){ 
+							if(isset($data->allowed_sections)){
+								$arr_sections = explode(',',$data->allowed_sections);
+								$sections = '';
+								foreach($arr_sections as $data1){
+									//$sections .= $data1."<br />";
+								}
+								foreach($allowed_sections as $data1){
+
+									if(in_array($data1,$arr_sections)){
+										$checked = "checked='checked'";
+									}
+									else{
+										$checked = "";
+									}
+									$sections .= "<input class='".$data->id."' type='checkbox' name='".$data->id."[]' ".$checked." value='".$data1."'>".$data1."<br />";
+								}
+							}
+						?>
+						<tr>
+							<td valign="top"><input type="text" value="<?php if(isset($data->name)) echo $data->name;?>" id="<?php echo  $data->id; ?>"> </td>
+							<td><?php echo $sections;?> </td>
+							<td valign="top"><img style="cursor:pointer" onclick="save_me(<?php echo  $data->id; ?>)" src="images/save.png" title="save" alt="Save"></td>
+							<td valign="top"><img style="cursor:pointer" onclick="delete_me(<?php echo  $data->id; ?>)" src="images/delete_icon.png" alt="Delete" title="Delete"></td>
+						<?php }
+					?>
+					</table>
+
+				<?php }
+				
+			?>
+				</div>
+
+			<div class="clear"></div>
+			</div>
+			<div class="clear"></div>
+			<!-- << inner content>> -->
+		  </div>
+		  <!-- << content section -->
+		  <!-- footer section >> -->
+
+		  <?php 
+		
+	}
+	else{
+	
+	}
+
+
+	require_once('includes/footer.php'); 
+?>

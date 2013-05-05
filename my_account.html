@@ -1,0 +1,204 @@
+<?php 
+	require_once('includes/checkExpire.php');
+	
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 
+
+if(isset($_SESSION['user_login']) && ($_SESSION['user_login'] == 'yes') && isset($_SESSION['s4c_user_id']))
+{		
+	$user_info = check_login();
+
+?>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+ <?php require_once("includes/left_content.php"); 
+?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+			<li class="in_aroow"><span> My Account</span></li>
+          </ul>
+        </div>
+        <div class="clear"></div>
+        <h1><span>Dashboard</span></h1>       
+        <div class="clear"></div>
+		
+      </div>
+	 <div class="wraper4"><img src="images/my-account-image.jpg" width="281" height="189" /></div>
+		<div class="wraper4">
+		<div class="banner_fields2">
+        <div><img src="images/arrow.gif" alt="arrow" /> Find your School, College and Institute <a  href="advanced_search.html">Advanced Search</a></div>
+        
+        <form method="post" id="form_school_colleges" name="form_school_colleges" action="colleges.html">
+           <div class="Category">Major
+            <select name="search_major[]">
+			<option value=''>Select Major</option>
+					<?php 
+						$main_majors = get_records('majors','parent_id','0'); 
+						if($main_majors)
+						{
+							foreach($main_majors as $main)
+							{					
+					?>			<option disabled value="0"><?php echo $main->name; ?></option>
+								<?php
+									$major_data = get_records('majors','parent_id',$main->id);
+									if($major_data)
+									{
+										foreach($major_data as $data)
+										{
+											if(is_array($major)&&in_array($data->id,$major))
+											{
+								?>				<option selected="selected" value="<?php echo $data->id; ?>">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $data->name; ?></option>
+								<?php		}
+											else
+											{
+								?>				<option value="<?php echo $data->id; ?>">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $data->name; ?></option>
+								<?php		}
+										}
+									}					
+							}
+						}							
+					?>				
+			</select>		
+          </div>
+          <div class="city">State
+			<select name="state"> <!--class="validate['required']"-->
+				<option value="">Select State</option>
+				<?php 
+					$state_data = get_records('state','status','active');
+					if($state_data)
+					{
+						foreach($state_data as $state)
+						{
+						?>	
+						<option value="<?php echo $state->name; ?>"><?php echo $state->name; ?></option>
+				<?php	}
+					}
+					
+				?>
+			</select>			
+          </div>
+          <div class="zipcode">Zipcode
+            <input type="text" name="search_zip" maxlength="7"/>
+            <input type="hidden" name="submit" />
+          </div>
+          <div class="go-button2">
+            <input type="image" src="images/go_btn.gif" alt="go" />
+          </div>
+        </form>
+      </div>
+	  <p>Whenever you register for or enroll in a product or service on <br />Search4colleges.com (courses, practice tests, college consulting, etc.) <br />quick links will show up here.</p>
+	  </div>
+	  <div class="clear"></div>
+	  <div id="friend_search">
+	  <div class="friend_box_left">
+	  <div class="box_strong">education professions</div>
+	  <div class="box_img"><img src="images/friend_img.jpg" /></div>
+	  <div class="box_content">
+	    <p style="text-align:left;">Search for teachers and college instructors who can assist you in selecting a college that fits your individual needs</p>
+	    <div class="search_link"><a href="professionals_search.html">Connect with an Educator</a></div>
+	  </div>
+	  </div>
+	  <div class="friend_box_right">
+	   <div class="box_strong">friends</div>
+	  <div class="box_img"><img src="images/friend002.jpg" /></div>
+	  <div class="box_content">
+	    <p style="text-align:left;">Selecting a college or post-secondary school is more fun if you do it with a friend.  Share your searches, exchange college information, and compare college life styles.</p>
+	    <div class="search_link"><a href="friends.html">Find College friends</a></div>
+	  </div>
+	  </div>
+	  <div class="clear"></div>
+	   <div class="friend_box_left">
+	  <div class="box_strong">Financial Institution</div>
+	  <div class="box_img"><img src="images/friend003.jpg" /></div>
+	  <div class="box_content">
+	     <p style="text-align:left;">Search for available financial aid from a large database of grant providers.  Did you know over 50% of student financial assistance is never found by those who need it most?</p>
+	    <div class="search_link"><a href="financial_provider_search.html">Find Student-aid</a></div>
+	  </div>
+	  </div>
+	  <div class="friend_box_right">
+	   <div class="box_strong">you can ask a counselors</div>
+	  <div class="box_img"><img src="images/friend004.jpg" /></div>
+	  <div class="box_content">
+	    <p style="text-align:left;">Finding the right university or college is a key component of academic Counseling.  Search 4 colleges is a vital tool, which will help you connect with Counselors who can assist in finding the right school.</p>
+	    <div class="search_link"><a href="counselor_search.html">Connect with a Counselor</a></div>
+	  </div>
+	  </div>
+	    <div class="clear"></div>
+	   <div class="friend_box_left">
+	  <div class="box_strong">blogs</div>
+	  <div class="box_content2">
+	     <p>Lorem ipsum dolor sit amet, 
+consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa.</p>
+	    <p>Cum sociis natoque penatibus etew agnis dis parturient montes</p>
+	    <div class="search_link"><a href="<?php echo $CFG->siteroot; ?>/blog.html">Search your Blog</a></div>
+	  </div>
+	  </div>
+	  <div class="friend_box_right" style="height:auto;">
+	   <div class="box_strong">Articles</div>
+	   <div class="box_content2">
+	    <ol>
+		<?php 
+        	$time = time();
+			
+            $sql="select * from {$CFG->prefix}articles where status='active' AND article_date <= $time ORDER BY `article_date` DESC LIMIT 0,8 ";
+			$articles=get_records_sql($sql);
+			if($articles!='')
+			{
+				foreach($articles as $record)
+				{			
+					/*echo '<li> <a href="'.$CFG->siteroot.'/articles/'.$record->seo_keyword.'.html"> <strong>'.$record->name.'</strong></a></li>';*/
+					echo "<li> <a href='$CFG->siteroot/articles_details.html?id=$record->id'><strong>$record->name</strong></a></li>";
+				}
+			}
+		?>
+		</ol>
+		<div class="more" align="right"><a href="<?php echo $CFG->siteroot; ?>/articles.html">more&gt;&gt;</a></div>
+	  </div>
+	  </div>
+	  <div class="clear"></div>
+	   <div class="friend_box_left">
+	  <div class="box_strong">Useful links</div>
+	  <div class="box_content2">
+	  <ol>
+	  <?php
+		//$link_list = get_records('usefull_link','status','active');
+		$sql="select * from `{$CFG->prefix}usefull_link` where  status='active' ORDER BY `added_date` DESC LIMIT 3 ";
+		$link_list = get_records_sql($sql);
+		if($link_list){
+			foreach($link_list as $record){
+				echo "<li><a href='$record->link' target='_blank'><strong>  $record->title ,</strong></a>".substr($record->description,0,50)." </li>";
+			}
+		}
+	  ?>
+	  
+	  </ol>
+	  <div class="more"><a href="#">more&gt;&gt;</a></div>
+	  </div>
+	  </div>
+	  
+	  </div>
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php }
+else{
+	redirect('index.html');
+}
+
+	require_once('includes/footer.php'); 
+?>

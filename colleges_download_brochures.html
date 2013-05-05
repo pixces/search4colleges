@@ -1,0 +1,432 @@
+<?php 
+	require_once('includes/checkExpire.php');
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php');
+	$master_table_name = 'schools_brochures';
+	$master_image_path = 'brochures';
+
+	$school_id	= optional_param('view','', PARAM_RAW);
+	$preview	= optional_param('preview','', PARAM_RAW);
+	$edit_id	= optional_param('edit','', PARAM_RAW);
+	$delete_id	= optional_param('delete','', PARAM_RAW);
+	$hidden_id	= optional_param('hidden','', PARAM_RAW);
+
+	$seo_keyword	= optional_param('seo_keyword', '', PARAM_RAW);
+	if($seo_keyword != '')
+	{
+		$sqldata  = get_record('schools','seo_keyword',$seo_keyword,'status','active');
+		if(isset($sqldata->user_id))
+				$school_id = $sqldata->user_id;
+	}
+
+	$message1	= '';
+	$staff_permission = '';
+		
+	if(isset($edit_id) && $edit_id != '')
+	{
+		$school_edit = get_record_sql('Select * from '.$CFG->prefix.'schools_brochures where id  = '.$edit_id.' and status = "active"');
+
+		$title				= $school_edit->title;
+		$short_description	= $school_edit->short_description;
+		$filename			= $school_edit->filename;
+		$ext				= pathinfo($filename);
+		$extension			= $ext['extension'];
+	}
+
+	if(isset($delete_id) && $delete_id != '')
+	{
+		$update_mode->status			= 'delete' ;
+
+		$update_mode->id   = $delete_id;
+		if($update = update_record($master_table_name, $update_mode))
+		{
+			$message1 = "Record has been deleted Successfully..";
+			
+		}
+
+	}
+
+
+	if(isset($_POST['x']) && $_POST['x']!='')
+	{
+
+		$title				= optional_param('title','',PARAM_RAW);
+		$short_description	= optional_param('short_description','',PARAM_RAW);
+
+		if(isset($hidden_id) && $hidden_id != '')
+		{
+			
+			$update_mode	 = new object();
+
+			$update_mode->title 				=$title ;
+			$update_mode->short_description 	=$short_description ;
+		
+
+			$target_path = $CFG->dataroot."/$master_image_path/";
+			if(!file_exists($target_path)){
+				mkdir($CFG->dataroot."/$master_image_path/",777,true);
+			}
+			if(isset($_FILES['image']['name']) && !empty($_FILES['image']['name'])){
+				$update_mode_image = upload_files('image',$target_path);
+				
+				if($update_mode_image)
+					$update_mode->filename = $update_mode_image;
+				else
+					$update_mode->filename = '';
+				
+			}
+
+			if(!empty($update_mode->title))
+			{
+				$update_mode->id   = $hidden_id;
+				if($update = update_record($master_table_name, $update_mode))
+				{
+					$message1 = "Record has been updated Successfully..";
+					
+				}
+			}
+
+		}
+		else
+		{
+			
+			$added_date 			= time();
+
+			$add_mode	 = new object();
+
+			$add_mode->title 				=$title ;
+			$add_mode->short_description 	=$short_description ;
+			$add_mode->school_id			=$school_id ;
+			$add_mode->added_date			=$added_date ;
+			$add_mode->status				='active' ;
+			
+			$target_path = $CFG->dataroot."/$master_image_path/";
+			if(!file_exists($target_path)){
+				mkdir($CFG->dataroot."/$master_image_path/",777,true);
+			}
+			if(isset($_FILES['image']['name']) && !empty($_FILES['image']['name'])){
+				$add_mode_image = upload_files('image',$target_path);
+				
+				if($add_mode_image)
+					$add_mode->filename = $add_mode_image;
+				else
+					$add_mode->filename = '';
+			}
+			$filename = $add_mode_image;
+
+			if(!empty($add_mode->title))
+			{
+				if($new = insert_record($master_table_name, $add_mode))
+				{
+					$message1 = "Record has been added Successfully..";
+					
+				}
+			}
+
+		}
+	}
+
+
+	if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'staff')
+		{
+			$allowed = get_field('school_staff_user','allowed_sections','fe_staff_id',$_SESSION['s4c_user_id']);
+
+			if(!empty($allowed))
+			{
+				$alloweds = explode(",",$allowed);
+				if(in_array($page_name,$alloweds))
+				{
+					$staff_permission = 'yes';
+				}
+				else
+				{
+					$staff_permission = 'no';
+				}
+			}
+
+		}
+
+
+	if(isset($_SESSION['s4c_user_id']) && !isset($_GET['preview']) && ($staff_permission == 'yes' || $school_id == $_SESSION['s4c_user_id'])) {
+
+			if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'staff'){
+				
+				$school_staff = get_field('school_staff_user','fe_school_id','fe_staff_id',$_SESSION['s4c_user_id']);
+
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$school_staff.' and status = "active"');
+
+				$school_brochures = get_records_sql('Select * from '.$CFG->prefix.'schools_brochures where school_id  = '.$school_staff.' and status = "active"');
+
+
+			}
+			elseif(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'school'){
+				
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+
+				$school_brochures = get_records_sql('Select * from '.$CFG->prefix.'schools_brochures where school_id  = '.$_SESSION['s4c_user_id'].' and status = "active"');
+
+			}
+						
+			$user_info = check_login();
+?>
+   <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+ <?php require_once("includes/left_content.php"); 
+
+ ?>
+  <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>                  
+			<li class="in_aroow"><a><strong>Colleges</strong></a></li>      	
+            <li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+          </ul>
+        </div>
+         <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="<?php echo $CFG->siteroot;?>/my_account.html">My Account</a></div>
+		<?php }} ?>
+        <div class="clear"></div>
+        <h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+        
+        <div class="clear"></div>
+      </div>
+      <div class="banner"> <img src="<?php echo $CFG->siteroot;?>/file.php/schools/<?php if(!empty($student_data->logo)) { echo $student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner"  />
+				<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)){ echo get_field('city','name','status','active','id',$student_data->city).', '; }?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+	  <div style="clear:both;"></div>
+
+      <?php 
+
+			$city	= cmi_genrate_url(get_data_frontend('city','name',$student_data->city));
+			$state	= cmi_genrate_url(get_data_frontend('state','name',$student_data->state));
+
+			$url  = get_s4c_seo($student_data->seo_keyword,$city,$state,$student_data->user_id);
+
+			get_menu_college($student_data->user_id,"colleges_download_brochures",$url);
+	  ?>
+
+	  <div style="clear:both;float:right; margin:10px 0 0 0;">
+			<a target="_blank" href="colleges_download_brochures.html?view=<?php if(isset($student_data->user_id)) echo $student_data->user_id; ?>&preview"><b>Preview</b></a></div>
+			  <span style="margin:15px 0; text-align:center; clear:both; display:block;"><?php echo $message1;?></span>
+			 <h3><span style="vertical-align:super">Download Brochures :</span><img style="cursor:pointer" src ="images/add.png" width="30" height="30" alt="Add" title="Add More" onclick="$('add_table').style.display='inline'" ></h3>
+
+
+			<form method="post" action="colleges_download_brochures.html?view=<?php echo $school_id; ?>" id="profile_form" name="profile_form" enctype="multipart/form-data" />
+				  <input type="hidden" name="view" value=<?php if(isset($student_data->user_id)) echo $student_data->user_id; ?> />
+				  
+				  <table border="0" cellspacing="0" cellpadding="8" id="add_table" <?php if(isset($edit_id) && $edit_id == '') { ?> style="display:none" <?php } ?> class="scholarship_main_box" width="100%">
+					<tr>
+						<td bgcolor="#F9F9F9" width="100">Title</td>
+						<td bgcolor="#F9F9F9">:</td>
+						<td bgcolor="#F9F9F9"width="580"><input type="text" name="title" id="title" class="validate['required'] profile_inputs" value="<?php echo isset($title)?$title:'';?>" /></td>
+					</tr>
+					<?php if(isset($filename) && $filename != ''){ ?>
+								<tr>
+									<td bgcolor="#F0F0F0">Preview </td>
+									<td bgcolor="#F0F0F0">:</td>
+									<td bgcolor="#F0F0F0">
+										<span class="gift_image">
+										<a href="<?php echo $CFG->siteroot?>/file.php/<?php echo $master_image_path;?>/<?php echo $filename; ?>" rel="<?php if($extension == 'pdf') { echo 'lightbox'; } ?>" title="<?php echo $filename; ?>">
+											<img src="<?php echo $CFG->siteroot?>/images/<?php if($extension == 'pdf') { echo 'pdf'; } elseif($extension == 'doc' || $extension == 'docx') { echo 'doc'; } elseif($extension == 'xls') { echo 'xls'; }?>.png" alt="<?php echo $filename; ?>" />
+										</a>
+										</span>
+									</td>
+								</tr>
+					<?php } ?>	
+					<tr>
+						<td bgcolor="#F0F0F0">Upload Brochure</td>
+						<td bgcolor="#F0F0F0">:</td>
+						<td bgcolor="#F0F0F0"><input type="file" name="image" id="image" class="<?php if($edit_id) { ?> validate['documents'] <?php } else { ?>validate['required','documents']<?php } ?> txtBox" /></td>
+					</tr>
+					<tr>
+						<td bgcolor="#F9F9F9">Short Description</td>
+						<td bgcolor="#F9F9F9">:</td>
+						<td bgcolor="#F9F9F9"><textarea name="short_description" id="short_description" class="validate['required']"/><?php echo isset($short_description)?$short_description:'';?></textarea>
+						<input type="hidden" name="hidden" id="hidden" value="<?php if($edit_id) { echo $edit_id;  } else {  echo '';  } ?>" /></td>
+					</tr>
+					
+					<tr>
+						<td colspan="3" style="text-align:center" bgcolor="#F9F9F9">
+							<input type="image" src="images/save_button.jpg" />
+							<img src="images/cancel_bottom.jpg" onclick="$('add_table').style.display='none'"/>
+						</td>
+					</tr>
+				  </table>
+				  </form>
+
+<?php 
+	if(!empty($school_brochures)){ 
+		foreach($school_brochures as $data){  ?>
+
+    <div class="college_admission_box">
+       <div class="college_admission_box_text">
+       <h1><div ><a class="news_links" href="<?php echo $CFG->siteroot;?>/brochures_details.html?id=<?php echo $data->id; ?>"><b><?php if(isset($data->title)) echo $data->title; ?></b></a>
+		<span style ="float:right; margin-left:10px;"><img title="Delete" alt="Delete" style="cursor:pointer;float:right" src="<?php echo $CFG->siteroot;?>/images/delete.png"  onclick="location.href='colleges_download_brochures.html?view=<?php echo $school_id; ?>&delete=<?php echo $data->id; ?>'" /></span>
+		<span style ="float:right; "><img title="Edit" alt="Edit" style="cursor:pointer;float:right" src="images/edit.gif"  onclick="location.href='colleges_download_brochures.html?view=<?php echo $school_id; ?>&edit=<?php echo $data->id; ?>'" /></span>
+		</div></h1>
+       <h2><?php if(isset($data->short_description)) echo $data->short_description; ?></h2>
+       </div>
+       <div class="college_admission_box_pdfimg"><a href="<?php echo $CFG->siteroot?>/file.php/<?php echo $master_image_path;?>/<?php echo $data->filename; ?>" target="_blank"><img src="<?php echo $CFG->siteroot;?>/images/download.png" alt="Download Form" border="0" /></a></div>
+    </div>
+<?php			
+	}
+}
+?>
+
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+ <?php 
+		
+	}
+	else
+	{
+		if($school_id != '')
+		{
+		
+			$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$school_id.' and status = "active"');
+
+			$school_brochures = get_records_sql('Select * from '.$CFG->prefix.'schools_brochures where school_id  = '.$school_id.' and status = "active"');
+
+		}
+		?>
+	<!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	  <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>       
+			<?PHP
+			if(isset($_GET['preview']))
+			{
+			?>			
+				<li class="in_aroow"><a><strong>Colleges</strong></a></li>      				
+            <?php
+			}
+			else
+			{
+			?>
+				<li class="in_aroow"><a href="<?php echo $CFG->siteroot;?>/colleges.html"><strong>Colleges</strong></a></li>     
+			<?php
+			}
+			?>     	           
+            <li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+          </ul>
+        </div>
+         <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){?>
+			<div class="in_Right_link"><a href="#"></a><a href="<?php echo $CFG->siteroot;?>/my_account.html">My Account</a></div>
+		<?php } ?>
+        <div class="clear"></div>
+        <h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+        
+        <div class="clear"></div>
+      </div>
+      <div class="banner"> <img src="<?php echo $CFG->siteroot;?>/file.php/schools/<?php if(!empty($student_data->logo)){ echo $student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner"  />
+				<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)){ echo get_field('city','name','status','active','id',$student_data->city).', '; }?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+	  <div style="clear:both;"></div>
+
+      <?php 
+			$city	= cmi_genrate_url(get_data_frontend('city','name',$student_data->city));
+			$state	= cmi_genrate_url(get_data_frontend('state','name',$student_data->state));
+
+			$url  = get_s4c_seo($student_data->seo_keyword,$city,$state,$student_data->user_id);
+
+			get_menu_college($student_data->user_id,"colleges_download_brochures",$url);
+	  ?>
+	
+	<h3><span style="vertical-align:super">Download Brochures :</span></h3>
+
+<form method="post" action="colleges_download_brochures.html?view=<?php echo $school_id; ?>" id="profile_form" name="profile_form" enctype="multipart/form-data" />
+				  <input type="hidden" name="view" value=<?php if(isset($student_data->user_id)) echo $student_data->user_id; ?> />
+				  
+				  <table border="0" cellspacing="0" cellpadding="8" id="add_table" <?php if(isset($edit_id) && $edit_id == '') { ?> style="display:none" <?php } ?> class="scholarship_main_box" width="100%">
+					<tr>
+						<td bgcolor="#F9F9F9" width="100">Title</td>
+						<td bgcolor="#F9F9F9">:</td>
+						<td bgcolor="#F9F9F9"width="580"><input type="text" name="title" id="title" class="validate['required'] profile_inputs" value="<?php echo isset($title)?$title:'';?>" /></td>
+					</tr>
+					<?php if(isset($image) && $image != ''){ ?>
+								<tr>
+									<td bgcolor="#F0F0F0">Preview</td>
+									<td bgcolor="#F0F0F0">:</td>
+									<td bgcolor="#F0F0F0">
+										<span class="gift_image">
+										<a href="<?php echo $CFG->siteroot?>/file.php/<?php echo $master_image_path;?>/<?php echo $image; ?>" rel ="lightbox" title="<?php echo $image; ?>">
+											<img src="<?php echo $CFG->siteroot?>/file.php/<?php echo $master_image_path;?>/f1_<?php echo $image; ?>" alt="<?php echo $image; ?>"/>
+										</a>
+										</span>
+									</td>
+								</tr>
+					<?php } ?>	
+					<tr>
+						<td bgcolor="#F0F0F0">Upload Brochure</td>
+						<td bgcolor="#F0F0F0">:</td>
+						<td bgcolor="#F0F0F0"><input type="file" name="image" id="image" class="<?php if($edit_id) { ?> validate['image'] <?php } else { ?>validate['required','image']<?php } ?> txtBox" /></td>
+					</tr>
+					<tr>
+						<td bgcolor="#F9F9F9">Short Description</td>
+						<td bgcolor="#F9F9F9">:</td>
+						<td bgcolor="#F9F9F9"><textarea name="short_description" id="short_description" class="validate['required']"/><?php echo isset($short_description)?$short_description:'';?></textarea></td>
+					</tr>
+					
+					<tr>
+						<td colspan="3" style="text-align:center" bgcolor="#F9F9F9">
+							<input type="image" src="images/save_button.jpg" />
+							<img src="images/cancel_bottom.jpg" onclick="$('add_table').style.display='none'"/>
+						</td>
+					</tr>
+				  </table>
+				  </form>
+
+<?php 
+	if(!empty($school_brochures)){ 
+		foreach($school_brochures as $data){  ?>
+
+    <div class="college_admission_box">
+       <div class="college_admission_box_text">
+       <h1><div ><a class="news_links" href="brochures_details.html?id=<?php echo $data->id; ?>"><b><?php if(isset($data->title)) echo $data->title; ?></b></a>
+		</div></h1>
+       <h2><?php if(isset($data->short_description)) echo $data->short_description;?></h2>
+       </div>
+       <div class="college_admission_box_pdfimg"><a href="<?php echo $CFG->siteroot?>/file.php/<?php echo $master_image_path;?>/<?php echo $data->filename; ?>" target="_blank"><img src="<?php echo $CFG->siteroot;?>/images/download.png" alt="Download Form" border="0" /></a></div>
+    </div>
+<?php			
+	}
+}
+else{ ?>
+	<center><div> No Brochures Found.</div></center>
+<?php }
+?>
+
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+	<?php 
+	}
+	require_once('includes/footer.php'); 
+?>

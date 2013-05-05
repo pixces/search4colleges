@@ -1,0 +1,86 @@
+<?php 
+require_once('includes/header.php');
+	
+$code = optional_param('code','', PARAM_RAW);
+$friend = optional_param('friend','', PARAM_RAW);
+$email = optional_param('email','', PARAM_RAW);
+if($code !=''){
+	$_SESSION['user_login']='yes';
+	$verify	=	get_record('fe_users',"code",$code,'status','active');
+	if($verify)
+	{
+		if($code == $verify->code)
+		{	
+			$login=new object();
+			$login->id= $verify->id;		
+			$login->isapproved = 1;
+			
+			if(update_record('fe_users',$login))
+			{
+				$msg="<h1> Email Address Verification Complete !!! </h1>";
+				redirect('index.html',' Email Verification Complete !!! ',5);
+			}
+		}
+		else
+		{
+			$msg="Email Address Verification Failed !!!";
+		}
+	}
+	else
+	{
+		$msg="Email Address Verification Failed !!!";
+	}
+	
+}
+else if($friend !=''){
+	$verify	=	get_record('friends',"code",$friend,'status','active');		
+	if($verify){
+		if($verify->code == $friend){
+			$qry="select * from ".$CFG->prefix."friends where code='".$friend."'";
+			$student = get_record_sql($qry);
+			if($student){				
+				$id			= $student->id;
+				$login		= new object();
+				$login->id	= $id;		
+				$login->invitaion_status ='approved';
+				update_record('friends',$login);
+				
+				$msg="<h1>Added in Friend List !!!</h1>";
+			}
+		}else{
+			echo "unable to complete your request";
+		}
+	}else{
+		echo "unable to complete your request";
+	}
+}
+?>
+
+
+
+
+<!--Content Start-->
+<div id="content_main_wrapper">
+
+<!--Right box start here-->
+<div id="content_main_wrapper_right">
+
+<!--Feature Peoject start-->
+	<div id="feature_product_details_box">	
+		<div class="feature_product_details_box_corner_main_bg">
+		<center><p>&nbsp;<?php if(!empty($msg)) { echo $msg; } ?></p></center>
+        </div>
+	<div id="feature_product_details_box_bottom_corner"></div>
+</div>
+<!--Feature Peoject Close-->
+
+</div>
+<!--Right box start here-->
+
+
+</div>
+<!--Content Colse-->
+
+<?php 
+	require_once('includes/footer.php'); 
+?>

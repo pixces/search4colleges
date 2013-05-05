@@ -1,0 +1,153 @@
+/*TIMEPICKER CSS*/
+.timepickerwrap ul {
+	margin: 0;
+	padding: 0;
+}
+
+.timepickerwrap a {
+	color: blue;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.timepickerwrap .ampm {
+	padding: .1em .4em;
+	cursor: pointer;
+	display: block;
+}
+
+	.mootimeampm_active {
+		color: #ff2400;
+		font-weight: bold;
+	}
+
+.timepickerwrap a:visited {
+	color: blue;
+}
+
+.timepickerwrap a:hover{
+	color: #ff2400;
+}
+
+.timepickerwrap .controls {
+	float: right;
+	font-size: 1.1em;
+}
+
+.timepickerwrap { 
+	font-family: arial, sans-serif; 
+	font-size: 12px !important;
+	border: 1px solid #cccccc;
+	padding: .8em 1em 1em 1em;
+	background-color: white;
+	position: absolute;
+	z-index: 1000;
+	height: auto;
+	width: auto;
+	display: none;
+	color: black;
+} 
+
+.timepickerwrap .timepicker {
+	float: left;
+	width: 26em;
+}
+
+.timepickerwrap div.time {
+	padding: .5em;
+	font-size: 1.3em;
+	border: 1px dotted #cccccc;
+	float: left;
+	background-color: white;
+}
+
+.timepickerwrap .amorpm {
+	float: left;
+	
+}
+
+.timepickerwrap .sep {
+	float: left;
+	width: 100%;
+	height: 2px;
+	
+}
+
+.timepickerwrap .hours, .timepickerwrap .min_first, .timepickerwrap .min_second {
+	list-style-type: none;
+	margin: .6em 0 .3em;
+	width: 100%;
+	float: left;
+	margin-top: .9em;
+}
+	
+	.timepickerwrap .hours li {
+		display: inline;
+		font-family: courier new, monospace;
+		padding: .3em .4em .2em .4em;
+		margin: 0;
+		background-color: white;
+		cursor: pointer;
+		font-weight: bold;
+	}
+	
+	.timepickerwrap .min_first li {
+		display: inline;
+		padding: .3em .4em;
+		background-color: #ffeedd;
+		background-color: white;
+		cursor: pointer;
+		font-family: courier new, monospace;
+		font-weight: bold;
+	}
+	
+.timepickerwrap .min_second {
+	margin-top: .7em;
+	margin-left: 2.2em;
+}
+	
+	.timepickerwrap .min_second li {
+		display: inline;
+		padding: .3em .4em;
+		background-color: #ffeedd;
+		background-color: white;
+		cursor: pointer;
+		font-family: courier new, monospace;
+		font-weight: bold;
+	}
+
+.timepickerwrap li.legend, .timepickerwrap li.minlegend {
+	background-color: #eeeeee !important;
+	border: none !important;
+	color: #333333;
+}
+
+.timepickerwrap li.minlegend {
+	padding: .4em .4em .4em .4em !important;
+}
+
+.timepickerwrap .mootime_active {
+color: red;
+}
+/* /Notes ========*/
+
+
+/* Example CSS  ========*/
+#goin_left {
+
+}
+
+#goin_right {
+float: right;
+}
+
+#goin_down_left {
+margin-top: 600px;
+}
+
+#goin_down_right {
+float: right;
+}
+/* /Example CSS  ========*/
+
+

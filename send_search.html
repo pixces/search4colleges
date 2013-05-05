@@ -1,0 +1,355 @@
+<?php
+	
+	require_once('includes/checkExpire.php');	
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 
+	$user_info = check_login();	
+
+	require_once("cmiadmin/lib/phpmailer/class.phpmailer.php");
+	
+	$search_id		= optional_param('search_id', '', PARAM_RAW);
+	$description	= optional_param('description', '', PARAM_RAW);
+
+	$to = '';
+
+	$data = get_record('save_search','id',$search_id);
+
+	$query = $data->query;		
+	$totalcount = count_records_sql($query);	
+	$student_data = get_records_sql($query);	
+
+	if(isset($_POST['friend']) && $_POST['friend'] != '')
+	{
+
+		if($search_id=='')
+		{
+			redirect('index.html');
+		}
+		
+		$data = get_record('save_search','id',$search_id);
+
+			echo "State is".$data->state;
+		
+		$query = $data->query;		
+		$totalcount = count_records_sql($query);	
+		$student_data = get_records_sql($query);	
+
+		$count = count($_POST['friend']);
+		
+		if($count > 0)
+		{
+			$friends = implode(",",$_POST['friend']);
+			
+			$emails = get_records_sql("SELECT * FROM {$CFG->prefix}fe_users WHERE id in (".$friends.")");
+
+			if($_SESSION['user_type'] == 'school')
+			{
+				$username = get_record_sql("SELECT f.*,u.* FROM {$CFG->prefix}fe_users as f LEFT JOIN {$CFG->prefix}schools as u ON f.id = u.user_id WHERE f.id =".$_SESSION['s4c_user_id']);
+
+				$user_name = $username->school_name;
+				$from_emailid = $username->email;
+				$from_name = $user_name;
+			}
+			elseif($_SESSION['user_type'] == 'student')
+			{
+				$username = get_record_sql("SELECT f.*,u.* FROM {$CFG->prefix}fe_users as f LEFT JOIN {$CFG->prefix}student as u ON f.id = u.user_id WHERE f.id =".$_SESSION['s4c_user_id']);
+
+				$user_name = $username->first_name." ".$username->last_name;
+				$from_emailid = $username->email;
+				$from_name = $user_name;
+			}
+			elseif($_SESSION['user_type'] == 'counselor')
+			{
+				$username = get_record_sql("SELECT f.*,u.* FROM {$CFG->prefix}fe_users as f LEFT JOIN {$CFG->prefix}counselors as u ON f.id = u.user_id WHERE f.id =".$_SESSION['s4c_user_id']);
+
+				$user_name = $username->first_name." ".$username->last_name;
+				$from_emailid = $username->email;
+				$from_name = $user_name;
+			}
+			elseif($_SESSION['user_type'] == 'staff')
+			{
+				$username = get_record_sql("SELECT f.*,u.* FROM {$CFG->prefix}fe_users as f LEFT JOIN {$CFG->prefix}school_staff_user as u ON f.id = u.fe_staff_id WHERE f.id =".$_SESSION['s4c_user_id']);
+
+				$user_name = $username->name;
+				$from_emailid = $username->email;
+				$from_name = $user_name;
+				
+				
+			}
+
+			foreach($emails as $value)
+			{
+				$email_id = $value->email;
+			
+				$message = '<table width="100%" border="1" class="table_font" style="border:1px solid #E5E5E5;">
+							<tr bgcolor="#F5F5F6" style="color:#6C6C6C">
+								
+								<td width="38%"><b>Name </b></td>
+								<td width="10%"><b>Address </b></td>
+                                <td width="11%"><b>Location </b></td>
+								<td width="12%"><b>Entrance Difficulty</b></td>
+								<td width="10%"><b>Add to<br />Wishlist</b></td>
+								
+							</tr>';
+			
+				foreach($student_data as $data1)
+				{
+					$student_data_selectivirty = get_record_sql('SELECT * FROM '.$CFG->prefix.'school_culture_campus_life WHERE status = "active" AND school_id='.$data1->user_id);
+					$selectivity = '';
+
+					if(!empty($student_data_selectivirty))
+					{
+						$selectivity = $student_data_selectivirty->selectivity;
+					}
+			
+					$message .=	'<tr>
+								<td>
+									<a href="'.$CFG->siteroot.'/colleges_profile.html?view='.$data1->user_id.'">'.$data1->school_name.'
+									</a>
+								</td>
+								
+								<td>'.$data1->address.' </td>
+                                <td>
+									'.$city = get_field('city','name','id',$data1->city).',<br />
+									'.$state = get_field('state','name','id',$data1->state).'
+								</td>
+								<td>'.$selectivity.'</td>
+								<td><a href="'.$CFG->siteroot.'/colleges_profile.html?view='.$data1->user_id.'"><img src="'.$CFG->siteroot.'/images/add_to_wishlist.jpg" border="0" /></a></td>
+								</tr>';
+				}
+				$message .= "</table>";
+
+
+				$headmsg = "<b><i>Selected Search Criteria</i></b><br><br>";
+
+				if(isset($data->keyword) && $data->keyword!='') 
+				{ 
+					$headmsg .= "<b>Keyword</b> - ".$data->keyword."<br>";
+				}
+
+				if(isset($data->campus_area) && $data->campus_area!='') 
+				{ 
+					$headmsg .= "<b>Campus Area</b> - ".$data->campus_area."<br>";
+				}
+				if(isset($data->state)&&$data->state!='')
+				{
+					$headmsg .= "<b>State</b> - ".$data->state."<br>"; 
+				}
+				if(isset($data->population)&&$data->population!='') 
+				{
+					$headmsg .= "<b>Population</b> - ".$data->population."<br>"; 
+				}
+				if(isset($data->college_type)&&$data->college_type!='') 
+				{
+					$headmsg .= "<b>College Type</b> - ".$data->college_type."<br>"; 
+				}
+				if(isset($data->affiliation)&&$data->affiliation!='') 
+				{
+					$headmsg .= "<b>Affiliation</b> - ".$data->affiliation."<br>"; 
+				}
+				if(isset($data->degree)&&$data->degree!='') 
+				{
+					$headmsg .= "<b>Degree</b> - ".$data->degree."<br>"; 
+				}
+                if(isset($data->majors)&&$data->majors!='') 
+                { 
+                    $headmsg.= "<b>Majors -</b><br>";
+                    $mdata = explode(',',$data->majors);
+                    foreach($mdata as $data1)
+                    {
+                        $headmsg .= get_field('majors','name','id',$data1)."<br>";
+                        
+                    }				
+                }				
+							if(isset($data->mfratio)&&$data->mfratio!='')
+							{
+								$headmsg .= "<b>Male/Female Ratio</b> -".$data->mfratio."<br>"; 
+							}
+							if(isset($data->culture)&&$data->culture!='') 
+							{
+								$headmsg .= "<b>Cultural Diversity</b> - ".$data->culture."<br>"; 
+							}
+							if(isset($data->locals)&&$data->locals!='')
+							{
+								$headmsg .= "<b>Locals</b> - ".$data->locals."<br>"; 
+							}
+							if(isset($data->sports)&&$data->sports!='') 
+							{
+								$headmsg .= "<b>Sports</b> - ".$data->sports."<br>"; 
+							}
+							if(isset($data->clubs)&&$data->clubs!='') 
+							{
+								$headmsg .= "<b>Clubs</b> - ".$data->clubs."<br>"; 
+							}
+							if(isset($data->greek)&&$data->greek!='')
+							{
+								$headmsg .= "<b>Going Greek</b> - ".$data->greek."<br>"; 
+							}
+							if(isset($data->dorm)&&$data->dorm!='')
+							{
+								$headmsg .= "<b>Drom Sweet Dorm</b> - ".$data->dorm."<br>"; 
+							}
+							if(isset($data->selectivity)&&$data->selectivity!='')
+							{
+								$headmsg .= "<b>Selectivity</b> - ".$data->selectivity."<br>"; 
+							}
+							if(isset($data->gpa)&&$data->gpa!='')
+							{
+								$headmsg .= "<b>GPA</b> - ".$data->gpa; 
+							}
+							
+							$headmsg .= "<br/>";
+
+	
+			$footmsg = "<br/><b><i>Description :</i></b><br/><br/>";
+
+			$footmsg .= $description."<br/>";
+
+			//Mail Sending....
+
+			//$first_name = $data->
+			$to = $email_id;
+			$sub = "Search 4 Colleges Searched History";
+			$msg = "<br /><a href='".$CFG->siteroot."'><img src='".$CFG->siteroot."/cmiadmin/theme/cmi/images/cmi_logo.png' alt='Logo' border='0' /></a><br /><br />"; 
+			$msg .= '<b>Hi Dear </b>,<br /><br />Your Friend '.$user_name.' has sent you list of Colleges.<br/>Following are the Details:<br/><br/>';
+					
+			$msg .= $headmsg;
+
+			$msg .= $message;
+
+			$msg .= $footmsg;
+
+			$msg .= <<<OP
+				<div style="background-color:#FFFFFF;">
+					  <br /><b>Thanks,</b><br />
+						<b>S4c </b>
+				</div>
+OP;
+
+			//echo $msg;
+			global $CFG; 
+			$mail				= new PHPMailer();
+			$mail->IsHTML(true);
+			$mail->From			= $from_emailid;
+			$mail->FromName		= $from_name;
+			$mail->Subject		= $sub;
+			$mail->Body			= $msg;
+			$mail->AddAddress($to);
+			//$mail->AddReplyTo($CFG->frommail, "Registration");
+			if($mail->Send())
+			{
+				$show_msg = "Mail sent Successfully....";
+				?>
+				<script  type="text/javascript">	
+					parent.window.location = 'user_search.html?search_id=<?php echo $search_id; ?>&success=yes';
+					parent.Mediabox.close();			
+				</script>
+				<?php
+			}
+			else
+			{
+				$show_msg = "Mail not sent. Try Again !!!";
+				?>
+				<script  type="text/javascript">	
+					parent.window.location = 'user_search.html?search_id=<?php echo $search_id; ?>&success=no';
+					parent.Mediabox.close();			
+				</script>
+				<?php
+			}
+
+
+			//Mail Sending Ends....
+
+
+			}
+
+		}
+	}
+	
+?>
+
+<script type="text/javascript" >
+function populate_all_friends_list()
+	{
+		var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {'flag' : 'populate_all_friends_list'						
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+					 if(response != ''){
+						 $('populate_all_friends_list').innerHTML = response;					 
+						  Mediabox.scanPage();
+					 }
+					 else{
+						 $('nofriends_div').innerHTML  = "You dont have any friend to send search results";
+						 $('form_content').set('styles',{display: 'none'});
+																
+					}
+					 //$('personal_msg').innerHTML = '';
+				}
+			}).send();
+	}
+	populate_all_friends_list();
+</script>
+
+  <!-- content section >> -->
+  <div id="content_sec">
+
+        <h1><span>User Friends</span></h1>
+        <div class="clear"></div>
+
+		<div >
+=
+		<b><i>Selected Search Criteria</i></b><br><br>
+		<?php
+			if(isset($data->campus_area)&&$data->campus_area!='') { echo "<b>Campus Area</b> - ".$data->campus_area."<br>"; }
+			if(isset($data->state)&&$data->state!='') { echo "<b>State</b> - ".$data->state."<br>"; }
+			if(isset($data->population)&&$data->population!='') { echo "<b>Population</b> - ".$data->population."<br>"; }
+			if(isset($data->college_type)&&$data->college_type!='') { echo "<b>College Type</b> - ".$data->college_type."<br>"; }
+			if(isset($data->affiliation)&&$data->affiliation!='') { echo "<b>Affiliation</b> - ".$data->affiliation."<br>"; }
+			if(isset($data->degree)&&$data->degree!='') { echo "<b>Degree</b> - ".$data->degree."<br>"; }
+			if(isset($data->majors)&&$data->majors!='') 
+			{ 
+				echo "<b>Majors -</b><br>";
+				$mdata = explode(',',$data->majors);
+				foreach($mdata as $data1)
+				{
+					echo get_field('majors','name','id',$data1)."<br>";
+					
+				}				
+			}				
+			if(isset($data->mfratio)&&$data->mfratio!='') { echo "<b>Male/Female Ratio</b> -".$data->mfratio."<br>"; }
+			if(isset($data->culture)&&$data->culture!='') { echo "<b>Cultural Diversity</b> - ".$data->culture."<br>"; }
+			if(isset($data->locals)&&$data->locals!='') { echo "<b>Locals</b> - ".$data->locals."<br>"; }
+			if(isset($data->sports)&&$data->sports!='') { echo "<b>Sports</b> - ".$data->sports."<br>"; }
+			if(isset($data->clubs)&&$data->clubs!='') { echo "<b>Clubs</b> - ".$data->clubs."<br>"; }
+			if(isset($data->greek)&&$data->greek!='') { echo "<b>Going Greek</b> - ".$data->greek."<br>"; }
+			if(isset($data->dorm)&&$data->dorm!='') { echo "<b>Drom Sweet Dorm</b> - ".$data->dorm."<br>"; }
+			if(isset($data->selectivity)&&$data->selectivity!='') { echo "<b>Selectivity</b> - ".$data->selectivity."<br>"; }
+			if(isset($data->gpa)&&$data->gpa!='') { echo "<b>GPA</b> - ".$data->gpa; }
+			
+			echo "</br>";
+		?>
+	</div>
+
+	<form name="friend_list" method="post" action="">
+      <div id="populate_all_friends_list"></div>
+	  <div id="form_content">
+		<br/>
+		<input type="hidden" name="search_id" id="search_id" value="<?php echo $search_id; ?>" />
+		<div style="float:left;" valign="top"><strong>Description : </strong></div>
+		<div style="float:left;">
+		<textarea name="description" id="description" rows="3" cols="25"></textarea></div>
+		<br><br><br><br><br>
+		<center><input type="image" src="images/send_button.jpg"></center>
+	 </div>
+	 <div id="nofriends_div"> </div>
+	</form>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->

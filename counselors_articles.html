@@ -1,0 +1,392 @@
+<?php 
+	require_once('includes/header.php');
+	if(isset($_SESSION['s4c_user_id']) && $_SESSION['user_type']=="counselor")
+	{
+	
+	}else{
+					?>
+					<script  type="text/javascript">	
+					window.location.href = 'index.html';
+					</script>
+					<?php
+	  
+	}
+	///
+	$edit_id	= optional_param('edit','', PARAM_RAW);
+	$hidden_id	= optional_param('hidden','', PARAM_RAW);
+	$master_table_name = 'articles';
+	if(isset($edit_id) && $edit_id != '')
+	{
+		$school_edit = get_record_sql('Select * from '.$CFG->prefix.'articles where id  = '.$edit_id.' and status = "active"');
+
+		$name				= $school_edit->name;
+		$seo_keyword		= $school_edit->seo_keyword;
+		$category_id		= $school_edit->category_id;
+		$article_date		= $school_edit->article_date;
+		$long_description   = $school_edit->long_description;
+	}
+	
+	if(isset($_POST['x']) && $_POST['x']!='')
+	{
+
+		$name				= optional_param('name','', PARAM_TEXT);
+		$seo_keyword		= optional_param('seo_keyword','', PARAM_TEXT);
+		$category_id		= optional_param('category_id','', PARAM_RAW);
+		$article_date		= optional_param('article_date','', PARAM_RAW);
+		$long_description	= optional_param('long_description','', PARAM_RAW);
+
+		if(isset($hidden_id) && $hidden_id != '')
+		{
+			
+			$update_mode	 = new object();
+
+			$update_mode->name 					=	$name ;
+			$update_mode->seo_keyword 			=	$seo_keyword ;
+			$update_mode->category_id			=	$category_id ;
+			$update_mode->article_date			=	$article_date ;
+			$update_mode->long_description		=	$long_description ;
+		
+			if(!empty($update_mode->name))
+			{
+				$update_mode->id   = $hidden_id;
+				if($update = update_record($master_table_name, $update_mode))
+				{
+					$message1 = "your article has been updated Successfully..";
+					
+				}
+			}
+
+		}
+		else
+		{
+			
+			$added_date 			= time();
+
+			$add_mode	 = new object();
+
+			$add_mode->name 				=	$name ;
+			$add_mode->seo_keyword 			=	$seo_keyword ;
+			$add_mode->category_id			=	$category_id ;
+			$add_mode->article_date			=	$article_date ;
+			$add_mode->long_description		=	$long_description ;
+			$add_mode->added_date			=	$added_date;
+			$add_mode->user_id				=	$_SESSION['s4c_user_id'];
+			$add_mode->status				=	'active' ;
+			
+			if(!empty($add_mode->name))
+			{
+				if($new = insert_record($master_table_name, $add_mode))
+				{
+					
+					?>
+					<script  type="text/javascript">	
+					window.location.href = 'counselors_articles.html?msg=y';
+					</script>
+					<?php
+					
+				}
+			}
+
+		}
+	}
+
+	
+	
+	/// display code
+	
+	$perpage			= '3';
+	$page				= optional_param('page', '0', PARAM_TEXT); 
+	$baseurl			= 'articles.html?page';
+	//$baseurl			= 'products.html?category='.$seo_keyword.'&';
+	$start				= ($page) * $perpage;	
+	$txtname			= optional_param('txtname','',PARAM_TEXT);
+
+	$current_time = time();
+
+	$main_arr =array();
+    $sql ="SELECT c.id,c.parent_id,c.name from articles a , article_category c where a.category_id = c.id and c.status='active' and
+    a.article_date <= $current_time AND (a.name LIKE '%$txtname%' OR c.name LIKE '%$txtname%') AND a.user_id='".$_SESSION['s4c_user_id']."' AND a.approved='1' group by c.id order by c.name asc";
+    $cat_info = get_records_sql($sql);
+	
+	$cat_arr=array();
+	foreach($cat_info as $catv)
+	{
+			if($catv->parent_id!=0)
+			{
+				$sql ="SELECT * from article_category where id = $catv->parent_id and status='active'";
+				$pr_info = get_record_sql($sql);
+				$cat_arr[$pr_info->id]['id'] = $pr_info->id;
+				$cat_arr[$pr_info->id]['parent_id'] = $pr_info->parent_id;
+				$cat_arr[$pr_info->id]['name'] = $pr_info->name;
+			}else{
+				$cat_arr[$catv->id]['id'] = $catv->id;
+				$cat_arr[$catv->id]['parent_id'] = $catv->parent_id;
+				$cat_arr[$catv->id]['name'] = $catv->name;
+				
+			}
+	}
+	//print_object($cat_info);
+	//print_object($cat_arr);
+?>
+<script type="text/javascript" >
+	window.addEvent('domready', function(){
+		//new FormCheck('add_blog_frm',{display:{showErrors:1}},{submitByAjax:true});	
+		new FormCheck('article_search',{display:{showErrors:1}},{submitByAjax:true});	
+		
+	});
+	function clearText() {
+	//key=key.replace(/ /g,"_");
+
+     document.profile_form.seo_keyword.value=filterNum(document.profile_form.name.value).replace(/ /g,"_");
+
+     function filterNum(str) {
+          re = /\$|,|@|#|~|`|\%|\*|\^|\&|\(|\)|\+|\=|\[|\-|\_|\]|\[|\}|\{|\;|\:|\'|\"|\<|\>|\?|\||\\|\!|\$|\./g;
+          return str.replace(re, "");
+     }
+}
+	
+</script>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><span>Articles</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+
+        <div class="clear"></div>
+        <h1><span>Articles</span></h1>        
+        <div class="clear"></div>
+      </div>
+	   <center><?php if($_REQUEST['msg']=="y"){echo $message1 = "Thank you for your article.<br />Your article will be moderated by Search For Colleges and published soon.";}else{ echo $message1;}?></center>
+			 <h3><img style="cursor:pointer" src ="images/add.png" width="30" height="30" alt="Add" title="Add More" onclick="$('add_table').style.display='inline'" > Add Article</h3>
+
+			<form method="post" action="counselors_articles.html" id="profile_form" name="profile_form" enctype="multipart/form-data" />
+				  <input type="hidden" name="view" value=<?php if(isset($student_data->user_id)) echo $student_data->user_id; ?> />
+				  
+				  <table border="0" cellspacing="0" cellpadding="8" id="add_table" <?php if(isset($edit_id) && $edit_id == '') { ?> style="display:none" <?php } ?> class="scholarship_main_box" width="100%">
+					<tr>
+						<td bgcolor="#F9F9F9" width="100"><?php echo get_string('label_category','cmi'); ?></td>
+						<td bgcolor="#F9F9F9">:</td>
+						<td bgcolor="#F9F9F9" width="580">
+						<select id="category_id" name="category_id" class="validate['required'] txtBox" >
+										<option value="0">Select Category</option>
+										<?php
+									        $sql = "select * from {$CFG->prefix}article_category where status='active'";
+											//$sql = "select * from {$CFG->prefix}article_category where id not in(select `parent_id` from article_category where parent_id !=0 group by parent_id ) AND status='active'";
+											$category_info = get_records_sql($sql);
+											if($category_info){
+												foreach($category_info as $record){
+													if($category_id == $record->id){
+														$class = 'selected';
+													}else{
+														$class = '';
+													}
+													if($record->parent_id!=0)
+													{
+													$sql = "select name from {$CFG->prefix}article_category where status='active' AND id=$record->parent_id";
+													$parent_info = get_record_sql($sql);
+													echo "<option value='$record->id' $class >".$parent_info->name."/".$record->name."</option>";
+													}else{
+													echo "<option value='$record->id' $class >$record->name</option>";
+													}
+												}
+											}
+										?>									
+									</select>
+						</td>
+					</tr>
+					
+					<tr>
+						<td bgcolor="#F0F0F0">Title</td>
+						<td bgcolor="#F0F0F0">:</td>
+						<td bgcolor="#F0F0F0">
+						<input name="name" id="name" class="validate['required'] txtBox" type="text" size="25" value="<?php if(isset($name)) echo $name;?>" onblur="clearText();" />
+						</td>
+					</tr>
+					
+					<tr>
+						<td bgcolor="#F0F0F0">Seo Keyword :</td>
+						<td bgcolor="#F0F0F0">:</td>
+						<td bgcolor="#F0F0F0">
+						<input id="seo_keyword" name="seo_keyword" class="validate['required','seo'] taken txtBox" type="text" size="38" value="<?php if(isset($seo_keyword)) echo $seo_keyword;?>" />
+						</td>
+					</tr>
+					<tr>
+						<td bgcolor="#F9F9F9">Article Date  :</td>
+						<td bgcolor="#F9F9F9">:</td>
+						<td bgcolor="#F9F9F9">
+						<input readonly="true" name="article_date" value="<?php echo $article_date;?>" maxlength="30" id="date" style="width: 150px;" type="text" class="validate['required'] date  demo_vista1" value=<?php echo $article_date;?> />
+						</td>
+					</tr>
+					<tr>
+						<td bgcolor="#F0F0F0">Description</td>
+						<td bgcolor="#F0F0F0">:</td>
+						<td bgcolor="#F0F0F0">
+						<textarea name="long_description" id="editor1" class="editor txtBox"><?php 							if(isset($long_description)) echo $long_description;?></textarea>
+										<script type="text/javascript">
+											init_ckfinder('editor1');
+										</script>
+						<input type="hidden" name="hidden" id="hidden" value="<?php if($edit_id) { echo $edit_id;  } else {  echo '';  } ?>" />
+						</td>
+					</tr>
+					<tr>
+						<td colspan="3" style="text-align:center" bgcolor="#F9F9F9">
+							<input type="image" src="images/save_button.jpg" />
+							<a href="counselors_articles.html"><img src="images/cancel_bottom.jpg" onclick="$('add_table').style.display='none'"/><a>
+						</td>
+					</tr>
+				  </table>
+				  </form>
+				
+
+		<div class="clear"></div>
+		<?php
+
+		if(isset($cat_arr) || $txtname!="")
+		{
+		?>
+		<div id="upload_form">
+			<form method="post" action="counselors_articles.html" name="article_search" id="article_search">
+			<div class="rgs_heading">
+				<h2>Search Articles  by </h2>
+				<div class="text_name2">Keywords</div>
+				<div class="text_input">
+					<input name="txtname" id="txtname" type="text" class="validate['required'] input-text"  value="<?php echo $txtname; ?>" />
+				</div>
+				<div class="clear"> </div>
+			</div>
+			<div class="wraper6">
+				<input type="image" src="images/search_btn.jpg" style="width:84px; height:23px;" />
+                <img src="images/clear-search.png" alt="" onclick="window.location='counselors_articles.html'" style="cursor:pointer;"/>
+			</div>
+			</form>
+		</div>
+		
+		<div id="upload_form_btm"></div>
+		<?php
+		}
+		?>
+		<div class="clear"></div>
+
+
+<?php //echo print_paging($get_sent_msg_count,$page, $perpage, $baseurl,'','','','',$start,''); ?>
+
+<div class="clear"></div>
+<?php
+echo "<table border='0' id='blog_forum' >";
+if($cat_arr)
+{
+	foreach($cat_arr as $par=>$cat_data)
+    {
+            echo "<tr> <td class='td_color'>".$cat_data['name']."</td></tr>";
+           
+                		        echo "<tr> <td style='padding:1px 1px 1px 30px ;'>";
+                               $sql ="SELECT * from articles where category_id =".$cat_data['id']." and status='active' AND user_id='".$_SESSION['s4c_user_id']."' AND approved='1' order by name";
+    							$article_info = get_records_sql($sql);
+                                if($article_info){
+                                            echo "<table border='0' width='100%'  >";
+                                            $count = count($article_info);
+                                            $i = 1;
+                                            foreach($article_info as $article_data){
+                                                
+                                                    $style = ($count == $i)?'':" style='border-bottom:1px dotted black;' ";
+                                                    echo"<tr>";
+                                                        echo"<td class='blog_col_1' $style>
+														<img  src='images/forum.gif' />
+														<img title=\"Edit\" alt=\"Edit\" style=\"cursor:pointer;float:right\" src=\"images/edit.gif\"  onclick=\"location.href='counselors_articles.html?edit=$article_data->id'\" />
+														</td>";
+                                                        echo"<td class='blog_col_2' $style>"."<a href='articles_details.html?id=$article_data->id' class='anchor_dec'> ".ucfirst($article_data->name)."</a>"."</td>";
+                                                        echo"<td class='blog_col_3' $style>".date("d:m:Y  g:h:i a",$article_data->added_date)."</td>";						
+                                                    echo"</tr>";
+                                                    $i++;
+                                                
+                                            }
+                                            echo"</table>";
+                                        }
+										$sql ="SELECT * from article_category where parent_id = ".$cat_data['id']." AND status='active' order by name";
+										$child_cat = get_records_sql($sql);
+					if($child_cat)
+					{
+								echo "</td></tr>";
+								echo "<tr> <td>&nbsp;</td></tr>";
+								echo "<tr> <td style='padding:1px 1px 1px 30px ;'>";
+								echo "<table border='0' width='100%'  >";
+						foreach($child_cat as $child_data)
+						{
+								$sql ="SELECT * from articles where category_id = $child_data->id AND status='active' AND user_id='".$_SESSION['s4c_user_id']."' AND approved='1' order by name";
+    							$article_info = get_records_sql($sql);
+                                if($article_info){
+                                echo "<tr> <td class='td_color'>$child_data->name</td></tr>";
+                                echo "<tr> <td style='padding:1px 1px 1px 30px ;'>";
+                                
+                                            echo "<table border='0' width='100%'  >";
+                                            $count = count($article_info);
+                                            $i = 1;
+                                            foreach($article_info as $article_data){
+                                                
+                                                    $style = ($count == $i)?'':" style='border-bottom:1px dotted black;' ";
+                                                    echo"<tr>";
+                                                        echo"<td class='blog_col_1' $style>
+														<img  src='images/forum.gif' />
+														<img title=\"Edit\" alt=\"Edit\" style=\"cursor:pointer;float:right\" src=\"images/edit.gif\"  onclick=\"location.href='counselors_articles.html?edit=$article_data->id'\" />
+														</td>";
+                                                        echo"<td class='blog_col_2' $style>"."<a href='articles_details.html?id=$article_data->id' class='anchor_dec'> ".ucfirst($article_data->name)."</a>"."</td>";
+                                                        echo"<td class='blog_col_3' $style>".date("d:m:Y  g:h:i a",$article_data->added_date)."</td>";						
+                                                    echo"</tr>";
+                                                    $i++;
+                                                
+                                            }
+                                            echo"</table>";
+                                        
+                                        echo "</td></tr>";
+										echo "<tr> <td>&nbsp;</td></tr>";
+										}
+                        }
+                        echo"</table>";
+                        echo "</td></tr>";
+										
+					}
+									
+                                         echo "</td></tr>";
+                						
+                
+                 echo "</td></tr>";
+				 echo "<tr> <td>&nbsp;</td></tr>";
+     }
+
+}
+echo"</table>";
+?>
+ <div class="clear"></div>
+	
+	<?php //echo print_paging($get_sent_msg_count,$page, $perpage, $baseurl,'','','','',$start,''); ?>
+
+    </div>
+  <div class="clear"></div>  
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+
+
+<?php 
+	require_once('includes/footer.php'); 
+	
+?>

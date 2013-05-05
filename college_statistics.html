@@ -1,0 +1,178 @@
+<?php 
+	
+require_once('includes/checkExpire.php');
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 
+	$school_id	= optional_param('view','', PARAM_RAW);
+	$preview	= optional_param('preview','', PARAM_RAW);
+	$message	= '';
+
+
+	
+	if(isset($_SESSION['s4c_user_id']) && $school_id != '' && !isset($_GET['preview']) && $school_id == $_SESSION['s4c_user_id']){
+
+			if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'school'){
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+
+				$scholorship_data = get_records_sql('Select * from '.$CFG->prefix.'school_scholarship where status = "active" and school_id = '.$_SESSION['s4c_user_id'].' order by added_date ');
+
+			}
+			$user_info = check_login();
+		?>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); 
+  ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+				  <ul>
+					<li><a href="index.html"><strong>Home</strong></a></li>           
+					<li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+				  </ul>
+		</div>
+         <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+				<div class="clear"></div>
+				<h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+				
+				<div class="clear"></div>
+			  </div>
+			  <div class="banner"> <img src="file.php/schools/<?php if(!empty($student_data->logo)) { echo 'f6_'.$student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner"/>
+				<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)) echo get_field('city','name','status','active','id',$student_data->city).', '; ?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+       <?php 
+				$city	= cmi_genrate_url(get_data_frontend('city','name',$student_data->city));
+				$state	= cmi_genrate_url(get_data_frontend('state','name',$student_data->state));
+
+				$url  = get_s4c_seo($student_data->seo_keyword,$city,$state,$student_data->user_id);	
+
+				get_menu_college($student_data->user_id,"colleges_statistics",$url);
+		 ?>
+	<br />
+	<!--<div style="clear:both;float:right"><a target="_blank" href="college_statistics.html?view=<?php if(isset($student_data->id)) echo $student_data->user_id; ?>&preview"><b>Preview</b></a></div>-->
+	 
+      <h4>Statistics</h4>
+	 <?php 
+	$week = time() - (7 * 24 * 60 * 60);
+	$month = time() - (30 * 24 * 60 * 60);
+	$year = time() - (365 * 24 * 60 * 60);
+	$totime=time();
+	############################## Query For Student #############################
+	$views_d=get_record_sql("SELECT COUNT(*) as s_day FROM {$CFG->prefix}schools_view_count WHERE added_date>='".strtotime(date("Y-m-d"))."' and school_id=$school_id");
+	$views_w=get_record_sql("SELECT COUNT(*) as s_weak FROM {$CFG->prefix}schools_view_count WHERE (added_date>=$week AND added_date<=$totime) and school_id=$school_id");
+	$views_m=get_record_sql("SELECT COUNT(*) as s_month FROM {$CFG->prefix}schools_view_count WHERE (added_date>=$month AND added_date<=$totime) and school_id=$school_id");
+	############################## Query End For Student #########################
+    ?>
+
+			<table width="100%" cellspacing="0" cellpadding="0" border="1" class="main_header">
+                <tbody><tr>
+                                                <td height="35" align="center" bgcolor="#e6e6e6" colspan="3">&nbsp;<strong>Views Count</strong></td>
+                                                      </tr>
+                                                             
+                                                              <tr>
+                                                                <td align="left">&nbsp;Total views today</td>
+                                                                <td align="left">&nbsp;<?php echo $views_d->s_day;?></td>
+																<td align="left">&nbsp;<a href="college_statistics_details.html?view=<?php echo $school_id;?>&mode=d">View Details</a></td>
+                                                              </tr>
+                                                              <tr>
+                                                                <td align="left">&nbsp;Total views This week</td>
+                                                                <td align="left">&nbsp;<?php echo $views_w->s_weak;?></td>
+																<td align="left">&nbsp;<a href="college_statistics_details.html?view=<?php echo $school_id;?>&mode=w">View Details</a></td>
+                                                              </tr>
+                                                              <tr>
+                                                                <td align="left">&nbsp;Total views This month</td>
+                                                                <td align="left">&nbsp;<?php echo $views_m->s_month;?></td>
+																<td align="left">&nbsp;<a href="college_statistics_details.html?view=<?php echo $school_id;?>&mode=m">View Details</a></td>
+                                                              </tr>
+                                                    </tbody></table>
+	 
+     </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+
+  <?php 
+
+	}
+	else{ 
+		if($school_id != ''){
+		
+			$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$school_id.' and status = "active"');
+
+			$scholorship_data = get_records_sql('Select * from '.$CFG->prefix.'school_scholarship where status = "active" and school_id = "'.$school_id.'" order by added_date ');
+		}
+		?>
+		  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+				  <ul>
+					<li><a href="index.html"><strong>Home</strong></a></li>           
+					<li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+				  </ul>
+		</div>
+       				<div class="clear"></div>
+				<h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+				
+				<div class="clear"></div>
+			  </div>
+			  <div class="banner"> <img src="file.php/schools/<?php if(!empty($student_data->logo)){ echo 'f6_'.$student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner"/>
+				<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)) echo get_field('city','name','status','active','id',$student_data->city).', '; ?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+      <div class="inner_nav">
+        <ul>
+          <li><a href="colleges_profile.html?view=<?php if(isset($student_data->id)) echo $student_data->id; ?>">Profile</a></li>
+          <li><a href="colleges_degrees.html?view=<?php if(isset($student_data->id)) echo $student_data->id; ?>">Degrees</a></li>
+          <li><a href="colleges_culture_campus_life.html">Culture & Campus Life</a></li>
+          <li><a href="colleges_gallery.html?view=<?php if(isset($student_data->id)) echo $student_data->id; ?>">Gallery</a></li>
+          <li><a href="colleges_scholarships.html?view=<?php if(isset($student_data->id)) echo $student_data->id; ?>">Scholarships</a></li>
+          <li><a href="colleges_admissions.html">Admissions</a></li>
+          <li><a href="colleges_contact_information.html">Contact Information</a></li>
+          <li><a href="colleges_send_enquiry.html">Send Enquiry</a></li>
+          <li><a href="colleges_download_brochures.html">Download Brochures</a></li>
+          <li><a href="colleges_related_colleges.html">Related colleges</a></li>
+        </ul>
+        <div class="clear"></div>
+      </div>
+      <h4>Statistics</h4>
+	<center> <img src="images/u_c.jpg" /> </center>
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php
+
+	}
+ 
+	require_once('includes/footer.php'); 
+?>

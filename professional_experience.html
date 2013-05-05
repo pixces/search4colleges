@@ -1,0 +1,157 @@
+<?php
+		
+	require_once('includes/checkExpire.php');
+	
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php');
+	$user_info = check_login();
+?>
+<script  type="text/javascript">
+	
+	function checkProfessional(){
+		if($('organization').value == '' || $('designation').value == '' || $('work_nature').value == '' || $('short_description').value == ''){
+			//	editProfessional();
+			//  return false; 
+		}
+		else{
+			saveProfessional();
+			//  return true;  
+		}
+	}
+
+	function editProfessional(){			
+			var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {'flag' : 'editProfessional'						
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+					 $('populateProfessional').innerHTML = response;
+					 new DatePicker('.demo_vista1', { 
+						pickerClass: 'datepicker_vista',
+						allowEmpty: true ,
+						format: 'F d, Y'
+					});
+					window.addEvent('domready', function(){
+						new FormCheck('professional_form',{display:{showErrors:1}});
+					});
+				}
+			}).send();	
+		}
+	function saveProfessional(){	
+	    if($('current_emp').checked==true)
+		{
+			$cur_emp_val=1;
+		}else{
+			$cur_emp_val="";
+		}	
+		var req = new Request({
+			 method: 'post',
+			 url: 'ajax_handler.php',
+			 data: {'organization' : $('organization').value,
+					'designation' : $('designation').value,
+					"date_month_f":$('date_month_f').value,
+					"date_day_f":$('date_day_f').value,
+					"date_year_f":$('date_year_f').value,
+					"date_month_t":$('date_month_t').value,
+					"date_day_t":$('date_day_t').value,
+					"date_year_t":$('date_year_t').value,
+					//'work_from' : $('work_from').value,
+					'current_emp' : $cur_emp_val,
+					'work_nature' : $('work_nature').value,
+					'short_description' : $('short_description').value,
+					'flag' : 'saveProfessional'	
+				 },
+			 onRequest: function() {},
+			 onComplete: function(response) { 
+				 $('populateProfessional').innerHTML = response;
+				 populateProfessional();
+			}
+		}).send();	
+	}
+
+	function populateProfessional(){
+			
+			var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {'flag' : 'populateProfessional'						
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+					 $('populateProfessional').innerHTML = response;
+				}
+			}).send();	
+		}
+	populateProfessional();
+	function checkChecked(obj)
+	{
+	if(obj.checked)
+	{
+	document.getElementById('date_month_t').style.display = 'none';
+	document.getElementById('date_day_t').style.display = 'none';
+	document.getElementById('date_year_t').style.display = 'none';
+	document.getElementById('to_id').style.display = 'none';
+	document.getElementById('chk_span_id').style.width = '100%';
+	}
+	else
+	{
+	document.getElementById('date_month_t').style.display = '';
+	document.getElementById('date_day_t').style.display = '';
+	document.getElementById('date_year_t').style.display = '';
+	document.getElementById('to_id').style.display = '';
+	document.getElementById('chk_span_id').style.width = '20%';
+	}
+}
+	
+</script>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+ <?php require_once("includes/left_content.php"); 
+ ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>            
+            <li class="in_aroow"><span>Professional Experience</span></li>
+          </ul>
+        </div>
+		<?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+        <div class="clear"></div>
+        <h1><span>Professional Experience</span></h1>       
+        <div class="clear"></div>
+		
+      </div>
+	
+
+
+		<div id="populateProfessional">
+		</div>
+
+	  <div class="clear"></div>
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+	require_once('includes/footer.php'); 
+?>
+
+<a href='javascript:void(0);' onclick='editAchievements();' ><img src='images/edit.gif' border='0' /></a>

@@ -1,0 +1,90 @@
+
+.tab-container	{ width:1000px; background:#eee; padding:5px 10px; }
+ul.tabs			{ list-style-type:none; margin:0; padding:0; }
+ul.tabs li		{ float:left; margin:10px 5px 0 0; }
+ul.tabs li a	{ padding:5px 137px; border:1px solid #ddd; font-weight:bold; background:url(../images/fbsprite.gif) 0 0 repeat-x; color:#000; text-decoration:none; }
+ul.tabs li a.active	{ border-color:#028433; background-position:0 -96px; color:#fff; }
+ul.tabs li a.active:hover	{ text-decoration:none; cursor:default; }
+ul.tabs li:hover	{ text-decoration:underline; }
+ul.tabs-content	{ margin:10px 0 0 0; padding:0; }
+ul.tabs-content li	{ height:0; overflow:hidden; margin:0; padding:0; }
+
+/* ie fixes ... lame */
+* html ul.tabs-content li { float:left; } /* ie6 */
+*+ html ul.tabs-content li { width:99%; float:left; } /* ie7 */
+.clear { clear:both; }	
+
+
+/* Send Newaletter table*/
+table.generaltable1 {
+  background-color: #EEEEEE;
+}	
+table.generaltable1 th.header {
+  padding-bottom: 10px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #EEEEEE #CCCCCC #CCCCCC #EEEEEE;
+}
+table.generaltable1 td.cell {
+  white-space: normal;
+  border-color: #DDDDDD;
+}
+
+div.ii1 {
+    background-color: transparent;
+    background-image: url("pix/borders.png");
+    background-position: 0 0;
+    background-repeat: repeat-y;
+    padding: 0 0 0 12px;
+}
+
+div.ii2 {
+    background-attachment: scroll;
+    background-color: transparent;
+    background-image: url("pix/borders.png");
+    background-position: 100% 0;
+    background-repeat: repeat-y;
+    padding: 0 12px 0 0;
+}
+
+div.ii3 {
+    background-color: #FFFFFF;
+    border-color: #FFFFFF;
+    border-style: solid;
+    border-width: 1px 0;
+    padding: 0 5px;
+}
+
+div.back{
+	background-image: url("pix/bg.jpg");
+	background-color: #FAFAFA;
+    color: #333333;
+    font-family: verdana,arial,helvetica,sans-serif;
+    font-size: 100%;
+    margin: 0;
+    padding: 0;
+}
+.main_header{
+	border-collapse: collapse;
+    border:1px solid #e6e6e6;
+    color: #000;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 5px;
+}
+.main_header td {
+	border-collapse: collapse;
+    border:1px solid #e6e6e6;
+    color: #000;
+    font-size: 14px;
+    font-weight: normal;
+    padding: 2px;
+}
+.main_header th {
+	border-collapse: collapse;
+    border:1px solid #e6e6e6;
+    color: #000;
+    font-size: 14px;
+    font-weight: normal;
+    padding: 2px;
+}

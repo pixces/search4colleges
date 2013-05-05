@@ -1,0 +1,187 @@
+<?php
+	require_once('includes/header.php');	 
+	
+	$search_id = optional_param('search_id', '', PARAM_RAW);
+	$success = optional_param('success', '', PARAM_RAW);
+	
+	$perpage			= '10';
+	$page				= optional_param('page', '0', PARAM_TEXT);
+	$start				= ($page) * $perpage;
+	$baseurl			= 'user_search.html?search_id='.$search_id.'&page';	
+	$totalcount 		= 0;
+	
+	if($search_id=='')
+	{
+		redirect('index.html');
+	}
+	
+	if(isset($_GET['success']))
+	{
+		if($success == 'no')
+		{
+			$msg = "There Was an Error Sending Your Email !!!";
+		}
+		else
+		{
+			$msg = "Your Email Has Been Send Successfully !!!";
+		}
+	}
+	else
+	{
+		$msg = '';
+	}
+	$data = get_record('save_search','id',$search_id);
+   
+	$query = $data->query;
+	
+	$data_count = get_records_sql($query);	 
+    
+	
+	$totalcount = count($data_count);
+	
+	$student_data = get_records_sql($query.' LIMIT '.$start.', '.$perpage);	
+	 
+?>
+
+  <!-- content section >> -->
+  <div id="content_sec">
+
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><span>Search Colleges</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+
+        <div class="clear"></div>
+        <h1><span>Colleges</span></h1>
+        <div class="clear"></div>
+      </div>
+	  <div align='center'><?php if(isset($show_msg) && $show_msg !='') { echo $show_msg; } ?></div>
+     <div class="clear"></div>
+    <div id="upload_form">
+	
+        <div class="rgs_heading">
+			<h2>User's Search History</h2>			
+		</div>
+		<div style="margin-left:30px;">	
+		<b><i>Selected Search Criteria</i></b><br><br>
+		<?php
+		    
+			if(isset($data->keyword)&&$data->keyword!='') { echo "<b>Keyword</b> - ".$data->keyword."<br>"; }
+            if(isset($data->campus_area)&&$data->campus_area!='') { echo "<b>Campus Area</b> - ".$data->campus_area."<br>"; }
+			if(isset($data->state)&&$data->state!='') { echo "<b>State</b> - ".$data->state."<br>"; }
+            if(isset($data->zipcode)&&$data->zipcode!='') { echo "<b>Zip Code</b> - ".$data->zipcode."<br>"; }
+			if(isset($data->population)&&$data->population!='') { echo "<b>Population</b> - ".$data->population."<br>"; }
+			if(isset($data->college_type)&&$data->college_type!='') { echo "<b>College Type</b> - ".$data->college_type."<br>"; }
+			if(isset($data->affiliation)&&$data->affiliation!='') { echo "<b>Affiliation</b> - ".$data->affiliation."<br>"; }
+			if(isset($data->degree)&&$data->degree!='') { echo "<b>Degree</b> - ".$data->degree."<br>"; }
+			if(isset($data->majors)&&$data->majors!='') 
+			{ 
+				echo "<b>Majors -</b><br>";
+				$mdata = explode(',',$data->majors);
+				foreach($mdata as $data1)
+				{
+					echo get_field('majors','name','id',$data1)."<br>";
+					
+				}				
+			}			
+			if(isset($data->mfratio)&&$data->mfratio!='') { echo "<b>Male/Female Ratio</b> -".$data->mfratio."<br>"; }
+			if(isset($data->culture)&&$data->culture!='') { echo "<b>Cultural Diversity</b> - ".$data->culture."<br>"; }
+			if(isset($data->locals)&&$data->locals!='') { echo "<b>Locals</b> - ".$data->locals."<br>"; }
+			if(isset($data->sports)&&$data->sports!='') { echo "<b>Sports</b> - ".$data->sports."<br>"; }
+			if(isset($data->clubs)&&$data->clubs!='') { echo "<b>Clubs</b> - ".$data->clubs."<br>"; }
+			if(isset($data->greek)&&$data->greek!='') { echo "<b>Going Greek</b> - ".$data->greek."<br>"; }
+			if(isset($data->dorm)&&$data->dorm!='') { echo "<b>Drom Sweet Dorm</b> - ".$data->dorm."<br>"; }
+			if(isset($data->selectivity)&&$data->selectivity!='') { echo "<b>Selectivity</b> - ".$data->selectivity."<br>"; }
+			if(isset($data->gpa)&&$data->gpa!='') { echo "<b>GPA</b> - ".$data->gpa; }			
+		?>
+		</div>
+	</div>
+		
+	<?php
+		if(!empty($student_data))
+		{
+	?>
+
+	<div class="msg_lst"></div>
+	<div class="list_page2">  </div>
+	<div class="wishlist"><a href="send_search.html?search_id=<?php echo $search_id; ?>" rel="lightbox[30% 30%]"><strong>Send</strong></a></div>
+	<br><br><div><b><?php echo $msg ; ?></b></div><br>
+	<!-- pagination block start -->
+		<?php echo print_paging($totalcount, $page, $perpage, $baseurl,'','','','','','');  ?>
+	<!-- pagination block end -->
+
+	<table width="100%" border="0" class="table_font" style="border:1px solid #E5E5E5;">
+			<tr bgcolor="#F5F5F6" style="color:#6C6C6C">
+				<td width="38%"><b>Name </b></td>
+				<td width="11%"><b>Location </b></td>
+				<td width="10%"><b>Enrollment </b></td>
+				<td width="12%"><b>Entrance Difficulty</b></td>
+			</tr>
+			<?php
+				foreach($student_data as $data)
+				{
+					$student_data_selectivirty = get_record_sql('SELECT * FROM '.$CFG->prefix.'school_culture_campus_life WHERE status = "active" AND school_id='.$data->user_id);
+					$selectivity = '';
+
+					if(!empty($student_data_selectivirty))
+					{
+						$selectivity = $student_data_selectivirty->selectivity;
+					}
+			?>
+					<tr>
+						<td>
+							<a href="colleges_profile.html?view=<?php if(isset($data->user_id)) echo $data->user_id;?>">
+							<?php echo $data->school_name;?>
+							</a>
+						</td>
+						<td>
+							<?php echo get_field('city','name','status','active','id',$data->city).","; ?><br />
+							<?php echo  get_field('state','name','status','active','id',$data->state); ?> 
+						</td>
+						<td>13069 </td>
+						<td><?php echo $selectivity;?></td>
+						
+					</tr>
+			<?php
+				}
+			?>
+		</table>
+
+		<!-- pagination block start -->
+			<?php echo print_paging($totalcount, $page, $perpage, $baseurl,'','','','','','');  ?>
+		<!-- pagination block end -->
+		<br>
+		<div class="msg_lst"></div>
+		<div class="list_page2"></div>
+		
+		<div class="wishlist"><a href="send_search.html?search_id=<?php echo $search_id; ?>" rel="lightbox[30% 30%]"><strong>Send</strong></a></div>
+
+	<?php
+		}
+	?>
+    </div>
+
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php
+
+  require_once('includes/footer.php');
+
+?>

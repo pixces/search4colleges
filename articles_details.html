@@ -1,0 +1,106 @@
+<?php 
+	require_once('includes/header.php');
+
+	$seo_keyword	= optional_param('seo_keyword', '', PARAM_RAW);
+	$id	= optional_param('id', '', PARAM_RAW);
+	if($seo_keyword != '')
+	{
+		$sqldata  = get_record('articles','seo_keyword',$seo_keyword,'status','active');
+		if(isset($sqldata->id))
+				$id = $sqldata->id;
+	}else{
+	  $id = $id;
+	}
+	$current_time = time();	
+		$sql ="SELECT a.*, c.id,c.parent_id,c.name as cat_name from articles a , article_category c where a.category_id = c.id 
+    			and c.status='active' and a.article_date <= $current_time AND a.id=$id";
+    			$aritcle_info = get_record_sql($sql);
+    if(isset($aritcle_info) && !empty($aritcle_info))
+    {
+        if($aritcle_info->parent_id!='0')
+        {
+                $sql ="SELECT name from article_category where id = $aritcle_info->parent_id";
+                $parent_cat = get_record_sql($sql);
+        }
+    }
+	
+?>
+<script type="text/javascript" >
+	window.addEvent('domready', function(){
+		new FormCheck('add_blog_frm',{display:{showErrors:1}},{submitByAjax:true});		
+	});
+	
+</script>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+	
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><a href="articles.html"><strong>Articles</strong></a></li>
+			<?php
+			if(isset($parent_cat->name)) { 
+				echo '<li class="in_aroow"><a href="articles.html"><strong>'.$parent_cat->name.'</strong></a></li>';				
+			}	
+			?>            
+			<li class="in_aroow"><span><?php  echo isset($aritcle_info->cat_name)?$aritcle_info->cat_name:''; ?></span></li>
+          </ul>
+        </div>
+		<div class="in_Right_link">
+					<a href="#"></a><?php   //echo date('d F Y',$blog->date);?>
+				</div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+      
+        <div class="clear"></div>
+      </div>
+	  
+	  
+<div class="news_wraper_right"></div>
+
+<div class="clear"></div>
+<?php 
+
+	echo'<table width="100%" cellspacing="0" cellpadding="6" border="0" align="center" >';
+	if($aritcle_info){	
+		echo "<tr>";
+			echo "<td class='td_color'>";
+				echo "<div style='float:left;'><span class='blog_detail_head'>".ucfirst($aritcle_info->name)."</span>";
+				echo "<br />".date('M Y',$aritcle_info->added_date)."</div>"."";
+			echo "</td>";
+		echo "</tr>";
+		echo "<tr><td>&nbsp;<p>".ucfirst($aritcle_info->long_description)."</p></td></tr>";
+	}
+	echo'</table>';
+
+
+?>		
+			
+
+ <div class="clear"></div>
+  
+    
+<div class="news_wraper_right"></div>
+    </div>
+  <div class="clear"></div>  
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+
+<?php 
+	require_once('includes/footer.php'); 
+?>

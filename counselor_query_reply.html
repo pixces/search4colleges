@@ -1,0 +1,111 @@
+<?php
+	require_once("cmiadmin/lib/phpmailer/class.phpmailer.php");
+	require_once('cmiadmin/config.php'); 
+	require_once('includes/header.php');
+	$user_info = check_login();	
+	require_once('includes/checkExpire.php');
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	if(isset($_POST['add_mode']) && $_POST['add_mode'] =='add_mode'){
+		
+		$message_id		= optional_param('message_id','',PARAM_INT);
+		$message		= optional_param('message','',PARAM_TEXT);
+
+		$msg_info			= get_record('messages','id',$message_id);
+		$query_reply_to		= get_user_info($msg_info->sender_id);
+		$query_reply_from	= get_user_info($msg_info->receiver_id);		
+
+		$subject="Search 4 Colleges Reply Question";
+		$msg = "<br /><a href='http://demo.cmitechnologies.in/search4colleges.com/'><img src='http://demo.cmitechnologies.in/search4colleges.com/cmiadmin/theme/cmi/images/cmi_logo.png' alt='Logo' border='0' /></a><br /><br />";
+		$msg .="<dl><dt><b>Hello User,'$query_reply_to->name.'<br/> Your query :<br/>Subject:  </b></dt><dd>$msg_info->subject</dd><dt><b>Question:</b></dt><dd>$msg_info->message<b></dd><dt>Reply: </b ></dt><dd>$msg_info->message</dd></dl>";
+		$msg .= <<<OP
+				<div style="background-color:#FFFFFF;">
+					  <br /><b>Thanks,</b><br />
+						<b>S4c </b>
+				</div>
+OP;
+
+		global $CFG;
+		$mail				= new PHPMailer();
+		$mail->IsHTML(true);
+		$mail->FromName		= $query_reply_from->name;
+		$mail->ToName		= $query_reply_to->name;
+		$mail->From			= $query_reply_from->email;
+		$mail->Subject		= $subject;
+		$mail->Body			= $msg;
+		$mail->AddAddress($query_reply_to->email);
+		if($mail->send()) 
+		{
+			if($msg_info){
+				$message_info					= new object();
+				$message_info->sender_id		= $msg_info->receiver_id;
+				$message_info->receiver_id		= $msg_info->sender_id;			
+				$message_info->is_query			= 'yes';			
+				$message_info->is_replied		= 1;
+				$message_info->is_child			= 1;
+				$message_info->message			= $message;
+				$message_info->added_date		= time();
+				$new							= insert_record('messages',$message_info);
+				$update_parent_msg				= new object();
+				$update_parent_msg->id			= $msg_info->id;
+				$update_parent_msg->parent_id	= $new;
+				update_record('messages',$update_parent_msg);
+			?>
+			<script  type="text/javascript">
+				parent.window.location = 'counselor_query.html?query=success';
+				parent.Mediabox.close();			
+			</script>
+			<?php
+			}	
+		}else
+		{
+			?>
+			<script  type="text/javascript">
+				parent.window.location = 'counselor_query.html?query=fail';
+				parent.Mediabox.close();			
+			</script>
+			<?php
+		}
+	}
+	$message_id  = required_param('id',PARAM_INT);
+	$get_msg     = get_record('messages','id',$message_id);
+	$sender_info = get_user_info($get_msg->sender_id);
+	
+		
+?>
+<script type="text/javascript" >
+	window.addEvent('domready', function(){
+		new FormCheck('counselor_query_reply',{display:{showErrors:1}});
+	});	
+	
+</script>
+<form action="counselor_query_reply.html" method="post" name="counselor_query_reply" id="counselor_query_reply" >
+<table width='100%' border='0' class='table_font'>
+<tr bgcolor='#7E7D7D' style='color:#FFFFFF'>
+	<td colspan="2"><div style="width:100%;"><div style="float:left;">Reply To : <?php echo $sender_info->name; ?></div>
+	<div style="float:right;">
+	<?php echo "&nbsp;&nbsp;&nbsp;Requested On &nbsp;: ".date('d F Y',$get_msg->added_date)."  "; ?></div></div></td>
+</tr>
+
+<tr>
+	<td>Topic</td>
+	<td align="left"><?php echo $get_msg->subject; ?></td>
+</tr>
+<tr>
+	<td>Question:</td>
+	<td align="left"><?php echo $get_msg->message; ?></td>
+</tr>
+<tr>
+	<td>Reply:</td>
+	<td align="left"><textarea name="message"  rows="2" cols="30" class="text_area_box validate['required']"/></textarea></td>
+</tr>
+<tr>
+	<input type="hidden" name="message_id" value="<?php echo $get_msg->id;   ?>"/>
+	<td colspan="2"><input type="image" name="submit" src="images/submit.jpg"/>
+					<input type="hidden" name="add_mode" value="add_mode"/>
+					<input type="hidden" name="update_mode" value="update_mode"/>
+	</td>
+</tr>
+</table>
+</form>

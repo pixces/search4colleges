@@ -1,0 +1,347 @@
+<?php 
+	 
+	require_once('includes/checkExpire.php');
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php');
+	$school_id	= optional_param('view','', PARAM_RAW);
+	$preview	= optional_param('preview','', PARAM_RAW);
+	$message	= '';
+
+	if(isset($_GET) && isset($_GET['afil_all']))
+	{
+			
+		$ids = explode(',',optional_param('afil_all', PARAM_RAW));
+		
+		foreach($ids as $value){
+			$insert = new object();
+			$insert->affilation_id = $value;
+			$insert->user_id = $school_id;
+			$insert->name = '';
+			$insert->short_description = '';
+			$insert->web_url = '';
+			$insert->added_date = time();
+			$insert->status = 'active';
+
+			$afil_data = get_records_sql('select * from school_affiliation_with_banks where affilation_id = '.$value.' and user_id = '.$school_id);
+			
+			if(empty($afil_data)){
+				insert_record('school_affiliation_with_banks',$insert);
+			}
+		}
+		$message = "Records Marked affilated";
+	}
+
+	if(isset($_GET) && isset($_GET['afil_all_remove']))
+	{
+			
+		$ids = explode(',',optional_param('afil_all_remove', PARAM_RAW));
+
+		execute_sql('DELETE  from school_affiliation_with_banks where affilation_id in ('.$_GET['afil_all_remove'].') and user_id = '.$school_id,false);
+
+		$message = "Records UnMarked affilated";
+	}
+
+
+	if(isset($_GET['edit'])){ ?>
+		
+	<?php }
+ 			
+	if($_POST && !isset($_POST['scho_id'])){
+		
+	
+		$added_date			= time();			
+		$title				= optional_param('title', PARAM_RAW);
+		$duration			= optional_param('duration', PARAM_RAW);		
+		$criteria			= optional_param('criteria', PARAM_RAW);		
+		$amount 			= optional_param('amount', PARAM_RAW);		
+		$hiddenid				= optional_param('view', PARAM_RAW);
+
+		$add_scholorship				= new object();	
+		$add_scholorship->school_id		= $hiddenid;
+		$add_scholorship->title			= $title;
+		$add_scholorship->duration		= $duration;
+		$add_scholorship->criteria		= $criteria;
+		$add_scholorship->amount		= $amount;
+		$add_scholorship->status		= 'active';
+		$add_scholorship->added_date 	= $added_date;
+		
+		if(!empty($add_scholorship)){
+			$scholorship_insert =  insert_record('school_scholarship',$add_scholorship);
+			if($scholorship_insert){
+				$message =  "<font color=\"red\">!! Scholorship added !!</font>";
+			}
+		}
+
+	}
+	if(isset($_SESSION['s4c_user_id']) && $school_id != '' && !isset($_GET['preview']) && $school_id == $_SESSION['s4c_user_id']){
+
+			if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'school'){
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+
+				$affilated_data = get_records_sql('Select * from '.$CFG->prefix.'financial_provider order by title ');
+
+				$affilated_data_schhol = get_records_sql('Select * from '.$CFG->prefix.'school_affiliation_with_banks where  user_id = '.$_SESSION['s4c_user_id']);
+
+				
+
+				$schhol_afile_data = array();
+
+				if(!empty($affilated_data_schhol)){
+					foreach($affilated_data_schhol as $data){
+
+						$schhol_afile_data[$data->affilation_id] = $data->affilation_id;
+					}
+				}
+			}
+			$user_info = check_login();
+		?>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+
+  <script type="text/javascript" >
+
+	 function check_all_checkbox()
+	{
+
+		if($('check'))
+		{ 
+			
+			if($('check').get('rel') == 'yes' || $('check').get('rel') == 'null')
+			{
+				do_check = false;
+				$('check').set('checked','').set('rel','no');
+			}
+			else
+			{
+				do_check = true;
+				$('check').set('checked','true').set('rel','yes');
+			}
+			$$('.check-me').set('checked',do_check) 
+			
+		}
+	}
+
+	function add_affilation(val)
+	{
+
+		Sexy = new SexyAlertBox();
+		
+		var total = '';
+		$$('.check-me').each(function(el){
+			 if(el.checked == true){
+				total += el.value+',';
+			 }
+			 
+		});
+		tot = total.substring(0,total.length-1);
+		if(total != '')
+			window.location.href = "college_affiliated_banks.html?view="+val+"&afil_all="+tot;
+		else{
+			Sexy.error('Select atleast one record to Affilate with college !'); 
+			return false;
+		}
+	}
+	function remove_affilation(val)
+	{
+		var total = '';
+		$$('.check-me').each(function(el){
+			 if(el.checked == true){
+				total += el.value+',';
+			 }
+			 
+		});
+		tot = total.substring(0,total.length-1);
+		if(total != '')
+			window.location.href = "college_affiliated_banks.html?view="+val+"&afil_all_remove="+tot;
+		else{
+			Sexy.error('Select atleast one record to remove Affilation with college!'); 
+			return false;
+		}
+	}
+	</script>
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); 
+  ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+				  <ul>
+					<li><a href="index.html"><strong>Home</strong></a></li>           
+					<li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+				  </ul>
+		</div>
+         <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+				<div class="clear"></div>
+				<h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+				
+				<div class="clear"></div>
+			  </div>
+			  <div class="banner"> <img src="file.php/schools/<?php if(!empty($student_data->logo)) { echo 'f6_'.$student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner" />
+				<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)) echo get_field('city','name','status','active','id',$student_data->city).', '; ?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+       <?php 
+				$city	= cmi_genrate_url(get_data_frontend('city','name',$student_data->city));
+				$state	= cmi_genrate_url(get_data_frontend('state','name',$student_data->state));
+
+				$url  = get_s4c_seo($student_data->seo_keyword,$city,$state,$student_data->user_id);	
+				
+				get_menu_college($student_data->user_id,"colleges_affiliated_banks",$url);
+		?>
+	<br />
+	<div style="clear:both;float:right"><a target="_blank" href="college_affiliated_banks.html?view=<?php if(isset($student_data->id)) echo $student_data->user_id; ?>&preview"><b>Preview</b></a></div>
+	 
+      <h4>Affiliated Banks</h4>
+	 <?php 
+		if(!empty($affilated_data)){ ?>
+			
+			<br />
+			<table border="1" cellspacing="0" cellpadding="5" width="100%" id="view_table" >
+				<tr>
+					<th bgcolor="#e6e6e6" ><input type="checkbox" name="check" id="check" onclick="check_all_checkbox()"></th>
+					<th bgcolor="#e6e6e6" >Title of Provider</th>
+					<th bgcolor="#e6e6e6" >Email</th>
+					<th bgcolor="#e6e6e6" >Contact Person</th>
+					<th bgcolor="#e6e6e6" >Contact No.</th>
+					<th bgcolor="#e6e6e6" >Address</th>
+					
+				</tr>
+				<?php 
+				foreach($affilated_data as $data)
+				{
+					$checked = '';
+					if(in_array($data->id,$schhol_afile_data)){
+						$checked  = "checked='checked'";
+					}
+				?>
+					<tr>
+						<td valign="top"><input <?php echo $checked; ?> type="checkbox" class="check-me" id="deletecheck" name="checkbox[]" value="<?php if(isset($data->id)) echo $data->id; ?>"></td>
+						<td valign="top"><?php if(isset($data->title)) echo $data->title; ?></td>
+						<td valign="top"><?php if(isset($data->email_id)) echo $data->email_id; ?></td>
+						<td valign="top"><?php if(isset($data->contact_person)) echo $data->contact_person; ?></td>
+						<td valign="top"><?php if(isset($data->contact_no)) echo $data->contact_no; ?></td>
+						<td valign="top"><?php if(isset($data->address)) echo $data->address; ?></td>
+					</tr>	
+						
+				<?php 
+				}
+					?>
+					<tr>
+						<td valign="top" colspan="5">
+						<a onclick="add_affilation(<?php if(isset($student_data->id)) echo $student_data->user_id; ?>); return false;" href="college_affiliated_banks.html?view=<?php if(isset($student_data->id)) echo $student_data->user_id; ?>&affil_all=1"> Add </a>&nbsp;	
+						<a onclick="remove_affilation(<?php if(isset($student_data->id)) echo $student_data->user_id; ?>); return false;" href="college_affiliated_banks.html?view=<?php if(isset($student_data->id)) echo $student_data->user_id; ?>&affil_all=1"> Remove </a><td>
+					</tr>
+				</table>
+		<?php }
+	 ?>
+     </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+
+  <?php 
+
+	}
+	else{ 
+		if($school_id != ''){
+		
+			$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$school_id.' and status = "active"');
+
+			$affilated_data = get_records_sql('Select * from '.$CFG->prefix.'financial_provider order by title ');
+
+			$sql = 'Select * from '.$CFG->prefix.'school_affiliation_with_banks  sab  inner join financial_provider fp on (sab.affilation_id = fp.id) where  sab.user_id = '.$_SESSION['s4c_user_id'];
+			
+			$affilated_data_schhol = get_records_sql($sql);
+		}
+		?>
+		  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+				  <ul>
+					<li><a href="index.html"><strong>Home</strong></a></li>           
+					<li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+				  </ul>
+		</div>
+       				<div class="clear"></div>
+				<h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+				
+				<div class="clear"></div>
+			  </div>
+			  <div class="banner"> <img src="file.php/schools/<?php if(!empty($student_data->logo)){ echo 'f6_'.$student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner" />
+				<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)) echo get_field('city','name','status','active','id',$student_data->city).', '; ?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+			<?php 
+
+				 get_menu_college($student_data->user_id,"colleges_affiliated_banks");
+
+			 ?>
+      <h4>Affiliated Banks</h4>
+	<?php 
+		if(!empty($affilated_data_schhol)){ ?>
+
+						
+				<br />
+				<table border="1" cellspacing="0" cellpadding="5" width="100%" id="view_table" >
+					<tr>
+						<th bgcolor="#e6e6e6" >Title of Provider</th>
+						<th bgcolor="#e6e6e6" >Email</th>
+						<th bgcolor="#e6e6e6" >Contact Person</th>
+						<th bgcolor="#e6e6e6" >Contact No.</th>
+						<th bgcolor="#e6e6e6" >Address</th>
+					</tr>
+					<?php 
+					foreach($affilated_data_schhol as $data){			
+							?>
+							<tr>
+								<td valign="top"><?php if(isset($data->title)) echo $data->title; ?></td>
+								<td valign="top"><?php if(isset($data->email_id)) echo $data->email_id; ?></td>
+								<td valign="top"><?php if(isset($data->contact_person)) echo $data->contact_person; ?></td>
+								<td valign="top"><?php if(isset($data->contact_no)) echo $data->contact_no; ?></td>
+								<td valign="top"><?php if(isset($data->address)) echo $data->address; ?></td>
+							</tr>
+						<?php 
+						
+					}
+					?>
+					</table>
+		<?php 
+			 }
+	 ?>
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php
+
+	}
+ 
+	require_once('includes/footer.php'); 
+?>

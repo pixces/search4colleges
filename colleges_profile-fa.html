@@ -1,0 +1,650 @@
+<?php 
+	
+	require_once('includes/checkExpire.php');
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	
+	require_once('includes/header.php'); 
+	$school_id	= optional_param('view','', PARAM_RAW);
+	$preview	= optional_param('preview','', PARAM_RAW);
+
+	$seo_keyword	= optional_param('seo_keyword', '', PARAM_RAW);
+	if($seo_keyword != '')
+	{
+		$sqldata  = get_record('schools','seo_keyword',$seo_keyword,'status','active');
+		if(isset($sqldata->user_id))
+				$school_id = $sqldata->user_id;
+	}
+	$profile = $board_members = $department = $department_head = $department_email = $student_population = $campus_type = $student_body = $location_google_map = '';
+	$staff_permission = '';
+
+	if($_POST){
+
+		$added_date				= time();			
+		$department				= optional_param('department', PARAM_RAW);
+		$department_head		= optional_param('department_head', PARAM_RAW);		
+		$department_email		= optional_param('department_email', PARAM_RAW);		
+		$profile 				= optional_param('history', PARAM_RAW);		
+		$board_members			= optional_param('board_members', PARAM_RAW);		
+		$campus_type			= optional_param('campus_type', PARAM_RAW);		
+		$institution_type		= optional_param('institution_type', PARAM_RAW);		
+		$student_population 	= optional_param('population', PARAM_RAW);  
+		$affiliations_id		= optional_param('afiilation', PARAM_RAW); 
+		$student_body			= optional_param('student_body', PARAM_RAW);
+		$location_google_map	= optional_param('location_google_map', PARAM_RAW);
+		$hiddenid				= optional_param('view', PARAM_RAW);
+		$additional				= optional_param('additional', PARAM_RAW);
+
+		if($_SESSION['user_type'] == 'staff')
+		{
+			$school_staff = get_field('school_staff_user','fe_school_id','fe_staff_id',$_SESSION['s4c_user_id']);
+
+			$student_additional_data = get_record_sql('Select * from '.$CFG->prefix.'schools_additional where school_id = '.$school_staff.' and status = "active"');
+		}
+		else
+		{
+			$student_additional_data = get_record_sql('Select * from '.$CFG->prefix.'schools_additional where school_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+		}
+		
+	
+		if(!empty($student_additional_data)){
+			$update_info						= new object();	
+			$update_info->department			= $department;
+			$update_info->department_head		= $department_head;	
+			$update_info->department_email		= $department_email;
+			$update_info->profile  				= $profile ;	
+			$update_info->board_members 		= $board_members;
+            $update_info->institution_type  	= $institution_type ; //FA	
+			$update_info->student_population  	= $student_population ;
+            $update_info->affiliations_id   	= $affiliations_id ;	//FA
+			$update_info->type_of_campus_area 	= $campus_type;	
+			$update_info->student_body 			= $student_body;
+			$update_info->location_google_map 	= $location_google_map;
+			$update_info->id 					= $student_additional_data->id;
+
+			//print_object($update_info);
+
+			if(!empty($update_info)){
+				$update = update_record('schools_additional', $update_info);
+			}
+		}
+		
+
+		$school_name		= optional_param('school_name', PARAM_RAW);
+		$seo_keyword		= optional_param('seo_keyword', PARAM_RAW);
+		$state 				= optional_param('state','', PARAM_RAW);		
+		$zip_code			= optional_param('zip_code','', PARAM_RAW);		
+		$city_string		= optional_param('city','', PARAM_RAW);	
+
+        $sql 				= ("SELECT * FROM {$CFG->prefix}city WHERE name LIKE '%$city_string%' and status = 'active'");
+		$city 				= get_record_sql($sql);
+		
+        if(!empty($city)){
+        	$city				= $city->id;
+            }else{
+				$rec  = execute_sql("INSERT INTO ".$CFG->prefix."city SET
+															state_id		= ".$state.", 	
+															pincode 		= '',
+															zipcode 		= '".$zip_code."',
+															code 			= '".$city_string."',
+															name 			= '".$city_string."',
+															added_date 		= ".time().",
+															status 			= 'active'",false);
+
+				if($rec){
+					 	$city = mysql_insert_id();
+                     }
+            }
+
+        $web_url 			= optional_param('web_url','', PARAM_RAW);
+		$phone 				= optional_param('phone','',PARAM_RAW);
+		
+		$target_path = $CFG->dataroot.'/schools/';
+		if(!file_exists($target_path)){
+			mkdir($CFG->dataroot.'/schools/',777);
+		}
+		$school_logo = '';
+
+		$update_school						= new object();	
+		if(isset($_FILES['logo']['name']) && !empty($_FILES['logo']['name'])){
+
+			$school_logo = upload_image('logo',$target_path);
+			
+			if($school_logo)
+				$update_school->logo = $school_logo;
+			else
+				$updateproduct->logo = '';
+		}
+		$logo = $school_logo;
+
+		
+		$update_school->id 			= $additional;
+		$update_school->school_name = $school_name;
+		$update_school->seo_keyword = $seo_keyword;
+		$update_school->state		= $state;
+		$update_school->city		= $city;
+		$update_school->zip_code	= $zip_code;
+		$update_school->phone		= $phone;
+		$update_school->web_url 	= $web_url;
+
+		if(!empty($update_school)){
+			$update = update_record('schools', $update_school);
+		}
+		
+
+	}
+
+
+		if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'staff')
+		{
+			$allowed = get_field('school_staff_user','allowed_sections','fe_staff_id',$_SESSION['s4c_user_id']);
+
+			if(!empty($allowed))
+			{
+				$alloweds = explode(",",$allowed);
+				if(in_array($page_name,$alloweds))
+				{
+					$staff_permission = 'yes';
+				}
+				else
+				{
+					$staff_permission = 'no';
+				}
+			}
+
+		}
+
+
+
+	if(isset($_SESSION['s4c_user_id']) && !isset($_GET['preview']) && ($staff_permission == 'yes' || $school_id == $_SESSION['s4c_user_id'])) {
+		
+			
+		if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'staff'){
+
+		$school_staff = get_field('school_staff_user','fe_school_id','fe_staff_id',$_SESSION['s4c_user_id']);	
+		
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$school_staff.' and status = "active"');
+
+				$student_additional = get_record_sql('Select * from '.$CFG->prefix.'schools_additional where school_id = '.$school_staff.' and status = "active"');
+
+				
+				
+				$state_data = get_records_sql('Select * from '.$CFG->prefix.'state where status = "active"');
+
+				
+				if(empty($student_additional)){
+						
+					$student_add_entry						= new object();	
+					$student_add_entry->school_id			= $school_staff;
+					$student_add_entry->status				= 'active';
+					$student_add_entry->added_date 			= time();	
+					$student_add_entry->profile 			= $profile; 
+					$student_add_entry->location_google_map = $location_google_map;
+					$student_add_entry->board_members 		= $board_members;
+					$student_add_entry->department			= $department;
+					$student_add_entry->department_head		= $department_head;	
+					$student_add_entry->department_email	= $department_email;
+					$student_add_entry->student_population  = $student_population ;
+                    $student_add_entry->affiliations_id		= $affiliations_id ; //FA
+                    $update_info->institution_type  		= $institution_type ; //FA		
+					$student_add_entry->type_of_campus_area = $campus_type;	
+					$student_add_entry->student_body 		= $student_body;
+					$student_add_entry->cultural_diversity 	= '';
+														
+					$school_insert =  insert_record('schools_additional',$student_add_entry);
+				}
+
+			}
+			elseif(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'school'){
+
+				
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+
+				$student_additional = get_record_sql('Select * from '.$CFG->prefix.'schools_additional where school_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+				
+				$state_data = get_records_sql('Select * from '.$CFG->prefix.'state where status = "active"');
+
+				if(empty($student_additional)){
+						
+					$student_add_entry				= new object();	
+					$student_add_entry->school_id			= $_SESSION['s4c_user_id'];
+					$student_add_entry->status				= 'active';
+					$student_add_entry->added_date 			= time();	
+					$student_add_entry->profile 			= $profile; 
+					$student_add_entry->location_google_map = $location_google_map;
+					$student_add_entry->board_members 		= $board_members;
+					$student_add_entry->department			= $department;
+					$student_add_entry->department_head		= $department_head;	
+					$student_add_entry->department_email	= $department_email;
+					$student_add_entry->student_population  = $student_population ;
+                    $student_add_entry->affiliations_id	    = $affiliations_id ; //FA
+                    $update_info->institution_type  		= $institution_type ; //FA		
+					$student_add_entry->type_of_campus_area = $campus_type;	
+					$student_add_entry->student_body 		= $student_body;
+					$student_add_entry->cultural_diversity 	= '';
+														
+					$school_insert =  insert_record('schools_additional',$student_add_entry);
+				}
+
+				//print_object($student_data);
+			}
+					
+				
+			$user_info = check_login();
+		?>
+	<script type="text/javascript" >
+		
+		function get_city(id,flag){
+				if(id != ''){
+					var req = new Request({
+					 method: 'get',
+					 url: 'ajax_handler.php',
+					 data: { 'id' : id,'flag' : 'city_from' },
+					 onRequest: function() { },
+					 onComplete: function(response) { 
+						$(flag).innerHTML = response;
+					}
+				 
+				}).send();	
+				}
+			}
+	</script>		
+		  <!-- content section >> -->
+		  <div id="content_sec">
+		  
+			<!-- << left content -->
+		   <?php require_once("includes/left_content.php"); 
+	   ?>
+		  <!-- left content >> -->
+			
+			<!-- << inner content -->
+			<div id="inner_content">
+			  <div class="inner_top">
+				<div class="inner_link">
+				  <ul>
+					<li><a href="index.html"><strong>Home</strong></a></li>                
+					<li class="in_aroow"><a><strong>Colleges</a></li>      	 
+					<li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+				  </ul>
+				</div>
+				<?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+						if(($expired == 0)){ 
+				?>
+					<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+				<?php }} ?>
+				<div class="clear"></div>
+				<h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+				
+				<div class="clear"></div>
+			  </div>
+			  <div class="banner"> <img src="<?php echo $CFG->siteroot;?>/file.php/schools/<?php if(!empty($student_data->logo)){ echo $student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner"  />
+				<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)) { echo get_field('city','name','status','active','id',$student_data->city).', '; }?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+			<?php 
+				$city	= cmi_genrate_url(get_data_frontend('city','name',$student_data->city));
+				$state	= cmi_genrate_url(get_data_frontend('state','name',$student_data->state));
+
+				$url  = get_s4c_seo($student_data->seo_keyword,$city,$state,$student_data->user_id);
+					  
+			    get_menu_college($student_data->user_id,"colleges_profile",$url); ?>
+			   <br />
+			
+
+			<form method="post" action="colleges_profile.html" id="profile_form" name="profile_form" enctype="multipart/form-data"/>
+			<div style="clear:both;float:right; margin-top:5px; margin-right:5px;"><a style="color:#000000;" target="_blank" href="colleges_profile.html?view=<?php if(isset($student_data->user_id)) echo $student_data->user_id; ?>&preview"><b>Preview</b></a></div>
+			<input type="hidden" name="view" value=<?php if(isset($student_data->user_id)) echo $student_data->user_id; ?> />
+			<input type="hidden" name="additional" value=<?php if(isset($student_data->id)) echo $student_data->id; ?> />
+		
+			<!-- School -->
+            <div class="schoolmain_box">
+			<table width="100%" border="0" cellpadding="5" cellspacing="0" >
+				<tr>
+					<td width="200" bgcolor="#f9f9f9" class="property_class">School/College :	</td>
+					<td bgcolor="#f9f9f9">
+						<span class="value_class">
+							<input class="validate['required'] profile_inputs" value="<?php echo isset($student_data->school_name) ? $student_data->school_name : '' ?>" type="text" name="school_name"/>
+						</span>
+					</td>
+				</tr>
+				<tr>
+					<td width="200" bgcolor="#f9f9f9" class="property_class">SEO  :	</td>
+					<td bgcolor="#f9f9f9">
+						<span class="value_class">
+							<input class="validate['required','seo'] profile_inputs" value="<?php echo isset($student_data->seo_keyword) ? $student_data->seo_keyword : '' ?>" type="text" name="seo_keyword"/>
+						</span>
+					</td>
+				</tr>
+			</table>	
+			</div>
+<!-- Logo -->
+				<br />
+                
+                <div class="Logo_main_box">
+				<table width="100%" border="0" cellpadding="5" cellspacing="0" >
+			  <tr>
+						<td width="200" bgcolor="#f9f9f9" class="property_class">Logo :</td>
+						<td width="32" bgcolor="#f9f9f9"><img src="file.php/schools/f1_<?php if(isset($student_data->logo)) echo $student_data->logo; ?>" alt="<?php echo isset($student_data->school_name) ? $student_data->school_name : '' ?>" title="<?php echo isset($student_data->school_name) ? $student_data->school_name : '' ?>"/></td>
+						<td bgcolor="#f9f9f9"> <input type="file" name="logo" class="profile_inputs_file" /></td>
+					</tr>
+				</table>
+				</div>
+			
+<!-- Address -->
+				
+                <div class="address_details_main">
+                
+				<div><h3>Address :</h3></div>
+				<table width="100%" border="0" cellpadding="5" cellspacing="0">
+					<tr>
+						<td width="200" bgcolor="#f9f9f9">State :</td>
+						<td bgcolor="#f9f9f9">
+							<select name="state" id="state" class="validate['required']" onchange="javascript:get_city(this.value,'city_from');">
+							<option value="">Select State</option>
+							<?php
+							foreach($state_data as $data)
+							{
+							?>
+								<option value="<?php echo $data->id; ?>" <?php if($student_data->state == $data->id) { ?> selected="selected" <?php } ?> ><?php echo $data->name; ?></option>
+							<?php
+							}
+							?>
+							</select>
+							
+						</td>
+					</tr>
+					<tr>
+						<td bgcolor="#f0f0f0">City :</td>
+						<td bgcolor="#f0f0f0">
+                            <input class="profile_inputs validate['required']" name="city" value="<?php $citty = get_field('city','name','id',$student_data->city);	echo isset($citty)? $citty : '' ?>" type="text" />
+							<!--<select id="city_from" name="city" class="validate['required'] txtBox">
+								<?php 
+								$sql = "SELECT * FROM ".$CFG->prefix."city WHERE status = 'active' AND state_id= ".$student_data->state." ORDER BY name ASC";
+		
+								$user_data = get_records_sql($sql);
+								
+								echo '<option value="0">Select city</option>';
+								
+								if(!empty($user_data))
+								{
+									foreach($user_data as $data)
+									{
+										if ($student_data->city = $data->id )
+										{
+											$selected  = 'selected' ;
+										}
+										else
+										{
+											$selected  = '' ;
+										}
+										echo '<option value="'.$data->id.'" '.$selected.'>'.$data->name.'</option>';
+									}
+								}
+								?>
+							</select>-->	
+						</td>
+					</tr>
+					<tr>
+						<td bgcolor="#f9f9f9">Zip code :</td>
+					  <td bgcolor="#f9f9f9"><input class="profile_inputs" name="zip_code" value="<?php echo isset($student_data->zip_code) ? $student_data->zip_code : '' ?>" type="text" /></td>
+					</tr>
+					<tr>
+						<td bgcolor="#f0f0f0">URL :</td>
+					  <td bgcolor="#f0f0f0"><input class="profile_inputs" name="web_url" value="<?php echo isset($student_data->web_url) ? $student_data->web_url : '' ?>" type="text" /></td>
+					</tr>
+				</table>
+                
+                </div>
+			
+<!-- Contact Detail -->
+				<div class="contact_details_main">
+				<div><h3>Contact Details :</h3></div>
+				<table width="100%" border="0" cellpadding="5" cellspacing="0">
+<tr>
+						<td width="200" bgcolor="#f9f9f9">Department :</td>
+	  <td bgcolor="#f9f9f9"><input name="department" class="profile_inputs" name="department" value="<?php echo isset($student_additional->department) ? $student_additional->department : '' ?>" type="text" /></td>
+				  </tr>
+					<tr>
+						<td bgcolor="#f0f0f0">Department Head :</td>
+					  <td bgcolor="#f0f0f0"><input name="department_head" class="profile_inputs" name="department_head" value="<?php echo isset($student_additional->department_head) ? $student_additional->department_head : '' ?>" type="text" /></td>
+				  </tr>
+					<tr>
+						<td bgcolor="#f9f9f9">Email id :</td>
+                      <td bgcolor="#f9f9f9"><input name="department_email" class="validate['email'] profile_inputs" class="profile_inputs"  value="<?php echo isset($student_additional->department_email) ? $student_additional->department_email : '' ?>" type="text" /></td>
+				  </tr>
+					<tr>
+						<td bgcolor="#f0f0f0">Phone No. :</td>
+                      <td bgcolor="#f0f0f0"><input class="validate['required'] profile_inputs" name="phone" value="<?php echo isset($student_data->phone) ? $student_data->phone : '' ?>" type="text" /></td>
+				  </tr>
+				</table>
+
+<!-- Location GOOGLE map -->
+				
+				<div class="google_map_view_box"><span class="property_class">Google map:</span>
+					<span class="value_class">
+						<?php if($student_additional->location_google_map!=''){ ?>	
+						<a target="_blank" href="<?php echo isset($student_additional->location_google_map) ? $student_additional->location_google_map : '' ?>"> View </a>
+						<?php }else{ echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ';}?>	
+					</span>
+					<span style="margin:5px" class="value_class">
+						<input class="profile_inputs" name="location_google_map" value="<?php echo isset($student_data->location_google_map) ? $student_data->location_google_map : '' ?>" type="text" /> (Short URL)
+					</span>
+				</div>
+				
+             </div>
+             
+			<!-- HIstory -->
+            <div class="history_main">
+				<div><h3>History :</h3></div>
+				<!-- <div><input value="<?php echo isset($student_data->school_name) ? $student_data->school_name : '' ?>" type="text" /></div>-->
+				
+				<textarea name="history" id="history" class="editor"><?php echo isset($student_additional->profile)?$student_additional->profile:'';?></textarea>
+				<script type="text/javascript">
+					init_ckfinder('history');
+				</script>
+			</div>
+
+			<!-- Board members -->
+            <div class="board_members_main">
+				<div><h3>Board members :</h3></div>
+				<!-- <div><input value="<?php echo isset($student_data->school_name) ? $student_data->school_name : '' ?>" type="text" /></div>-->
+				<textarea name="board_members" id="board_members" class="editor"><?php echo isset($student_additional->board_members)?$student_additional->board_members:'';?></textarea>
+				<script type="text/javascript">
+					init_ckfinder('board_members');
+				</script>
+			</div>
+			
+			<!-- Type of Campus area -->
+            <div class="college_box_main">
+				<div class="college_left1"><h3>Type of Campus area :</h3></div>
+				<div class="college_right1">
+			  <!--<select name="campus_type" class="profile_inputs_select">
+				  <option value="Rural" <?php if($student_additional->type_of_campus_area == 'Rural') echo "selected='selected'";?>>Rural</option>
+				  <option value="Urban" <?php if($student_additional->type_of_campus_area == 'Urban') echo "selected='selected'";?>>Urban</option>
+			  </select>-->
+              <?php 
+				$selectid  = isset($student_additional->type_of_campus_area)? $student_additional->type_of_campus_area : ""; ?>
+              <select name="campus_type" class="profile_inputs_select">
+				  <?php get_data('campus_type','type',$selectid);?>
+			  </select>
+				
+		      <!-- Institution Type -->
+		      </div>
+			  <div class="college_left2"><h3>Institution Type :</h3>
+			  </div>
+              <div class="college_right2">
+				<input class="profile_inputs" name="institution_type" value="<?php echo isset($student_additional->institution_type)? $student_additional->institution_type : '' ?>" type="text" />
+				</div>
+			  <div></div>
+			  <!-- Student Population -->
+		      <?php 
+				$selectid  = isset($student_additional->student_population)? $student_additional->student_population : ""; ?>
+			  <div class="college_left1"><h3>Student Population :</h3>
+			  </div>
+              <div class="college_right1">
+			  <!--<select name="population" class="profile_inputs_select">
+				  <?php get_data('school_student_population','title',$selectid);?>
+			  </select>-->
+              <input class="profile_inputs" name="population" value="<?php echo isset($student_additional->student_population)? $student_additional->student_population : '' ?>" type="text" />
+              </div>
+			  <div></div>
+			  <!-- Affiliations/ Accreditation -->
+		      <?php 
+				$selectid  = isset($student_additional->affiliations_id)? $student_additional->affiliations_id : ""; ?>
+			  <div class="college_left2"><h3>Affiliations/ Accreditation :</h3>
+			  </div>
+              	<div class="college_right2">
+				<select name="afiilation" class="profile_inputs_select">	
+				  <?php get_data('schools_affiliations_accreditation','title',$selectid);?>
+			  </select></div>
+			  <div></div>
+			  <!-- Student Body -->
+		      <?php 
+				$selectid  = isset($student_additional->student_body)? $student_additional->student_body : ""; ?> 
+			  <div class="college_left1"><h3>Student Body :</h3>
+			  </div>
+              <div class="college_right1">
+				<select name="student_body" class="profile_inputs_select">
+				  <?php get_data('school_student_body','title',$selectid) ?>
+			  </select></div>
+              </
+			  <div></div>
+			  <br />
+			    <div style="width:100%; float:left;"><input type="image" src="images/save_button.jpg" /></div>
+		      <div class="clear"></div>
+		      <div class="clear"></div>
+			<!-- << inner content>> -->
+		  </div>
+		  <!-- << content section -->
+		  <!-- footer section >> -->
+
+		  <?php 
+		
+	}
+	else{
+		//require_once("includes/left_content.php"); 
+		
+		if($school_id != ''){
+		
+			$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$school_id.' and status = "active"');
+
+			$student_additional = get_record_sql('Select * from '.$CFG->prefix.'schools_additional where school_id = '.$school_id.' and status = "active"');
+		}
+
+	?>
+	<!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+   <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>           
+			<?PHP
+			if(isset($_GET['preview']))
+			{
+			?>			
+				<li class="in_aroow"><a><strong>Colleges</strong></a></li>      				
+            <?php
+			}
+			else
+			{
+			?>
+				<li class="in_aroow"><a href="colleges.html"><strong>Colleges</strong></a></li>     
+			<?php
+			}
+			?>     			
+            <li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+          </ul>
+        </div>
+         <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){?>
+			<div class="in_Right_link"><a href="#"></a><a href="<?php echo $CFG->siteroot;?>/my_account.html">My Account</a></div>
+		<?php } ?>
+        <div class="clear"></div>
+        <h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+        
+        <div class="clear"></div>
+      </div>
+      <div class="banner"> <img src="<?php echo $CFG->siteroot;?>/file.php/schools/<?php if(!empty($student_data->logo)){ echo $student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner"  />
+				<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)){ echo get_field('city','name','status','active','id',$student_data->city).', '; }?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+	  <div style="clear:both;"></div>
+
+      <?php 
+				$city	= cmi_genrate_url(get_data_frontend('city','name',$student_data->city));
+				$state	= cmi_genrate_url(get_data_frontend('state','name',$student_data->state));
+
+				$url  = get_s4c_seo($student_data->seo_keyword,$city,$state,$student_data->user_id);
+				
+				if(isset($student_data->user_id)) get_menu_college($student_data->user_id,"colleges_profile",$url);
+	  ?>
+	
+    <div class="preview_profile_box">
+	<?php
+	if(!empty($student_additional->profile))
+	{		
+	?>
+		<div class="profile_big_text1">
+		  <div class="college_left1"><h4>Profile:</h4></div>
+		  <div class="college_right3"><?php echo $student_additional->profile; ?></div>
+		</div>
+	<?php
+	}	
+	if(!empty($student_additional->board_members))
+	{		
+	?>
+		<div class="profile_big_text2">
+			<div class="college_left2"><h4>Board Members:</h4></div>
+			<div class="college_right4"><?php echo $student_additional->board_members ; ?></div>
+		</div>
+	<?php
+	}
+	if(!empty($student_additional->student_population))
+	{		
+	?>
+	  <div class="college_left1"><h4>Student Population :</h4></div>
+	  <div class="college_right1"><?php  echo "<p>". $student_additional->student_population /*get_data_frontend('school_student_population','title',$student_additional->student_population)*/ ."</p>"; ?></div>
+	<?php
+	}
+	if(!empty($student_additional->type_of_campus_area))
+	{		
+	?>
+	  <div class="college_left2"><h4>Campus Type:</h4></div>
+		<div class="college_right2"><?php $campus_type = get_field('campus_type','type','id',$student_additional->type_of_campus_area); echo "<p>". $campus_type ."</p>"; ?></div>
+	<?php
+	}
+	if(!empty($student_additional->student_body))
+	{		
+	?>
+	  <div class="college_left1"><h4>Student Body:</h4></div>
+	  <div class="college_right1"><?php echo "<p>". get_data_frontend('school_student_body','title',$student_additional->student_body)."</p>"; ?></div>
+	</div>
+    <?php
+	}	
+	?>
+		
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+
+
+	<?php }
+
+		  ?>
+
+<?php 
+	require_once('includes/footer.php'); 
+?>

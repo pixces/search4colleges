@@ -1,0 +1,304 @@
+<?php
+	require_once("calendar/inc_calendar.class.php");
+	require_once("cmiadmin/config.php");
+	$month = date('n');
+	$year = date('o');
+	$oCalendar = new inc_calendar();
+	if(isset($_REQUEST['month']))
+		$month = $_REQUEST['month'];
+	if(isset($_REQUEST['year']))
+		$year = $_REQUEST['year'];
+	$oCalendar->dateNow($month,$year);
+
+	$m_type = 'Page';
+	$page_name = "events_calender";
+
+	
+?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<?php 
+if($m_type == 'Page'){
+	print_meta_data($m_type, $page_name);
+}
+else{
+	print_meta_data($m_type, '', $id);
+}
+?>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="Author" content="SEO, Mike Ashe, iFindable" />
+
+<link href="css/style.css" rel="stylesheet" type="text/css" />
+<link type="text/css" href="css/menu.css" rel="stylesheet" />
+<link href="css/calendar.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="js/jquery.js"></script>
+<script type="text/javascript" src="js/menu.js"></script>
+<script type="text/javascript" src="js/custom-form-elements.js"></script>
+ <!--[if IE 7]>
+                <link rel="stylesheet" type="text/css" href="css/ie7.css" />
+        <![endif]-->
+  <!--[if IE 6]>
+                <link rel="stylesheet" type="text/css" href="css/ie6.css" />
+        <![endif]-->
+<script type="text/javascript">
+function showPrevMonth()
+{
+	document.cform.mon.value="" + "<?php echo $month?>";
+	document.cform.yr.value="" + "<?php echo $year?>";
+	if(document.cform.mon.value == "")
+	{
+		getMonthYear();
+	}
+	m = eval(document.cform.mon.value + "-" + 1);
+  y = document.cform.yr.value;
+	if(m < 1)
+	{
+		m = 12;
+		y = eval(y + "-" + 1);
+	}
+	window.location.href="events_calender_"+m+'_'+y+".html";
+}
+function showNextMonth()
+{
+	document.cform.mon.value="" + "<?php echo $month?>";
+	document.cform.yr.value="" + "<?php echo $year?>";
+	if(document.cform.mon.value == "")
+	{
+		getMonthYear();
+	}
+	m = eval(document.cform.mon.value + "+" + 1);
+  y = document.cform.yr.value;
+	if(m > 12)
+	{
+		m = 1;
+		y = eval(y + "+" + 1);
+	}
+	window.location.href="events_calender_"+m+'_'+y+".html";
+}
+function getMonthYear()
+{
+		cdate = new Date();
+		mvalue = cdate.getMonth();
+		yvalue = cdate.getYear();
+		document.cform.mon.value = mvalue;
+		document.cform.yr.value = yvalue;
+}
+</script>
+</head>
+
+<body>
+<table width="973" border="0" align="center" cellpadding="0" cellspacing="0">
+    <tr>
+      <td>
+        <table width="973" border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td width="758" height="145" align="right" valign="middle"><img src=
+            "images/logo.gif" alt="" width="549" height="130" /></td>
+
+            <td width="217" valign="top">
+              <div class="cmi_email_text1">
+                <img src="images/email_icon.gif" alt="" width="14" height="14" />
+                <a href="mailto:info@cafefirenze.net">info@cafefirenze.net</a>
+              </div>
+
+              <div class="cmi_email_text2">
+                563 W. Los Angeles Ave Moorpark CA. 93021
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr>
+      <td valign="top">
+        <!-- Menu Start Here -->
+        <div id="menu">
+    <ul class="menu parent1">
+        <li><a href="index.htm" class="parent"><span class="cmi_leftcorner">Home</span></a>
+        
+      </li>
+        <li><a href="about_us.htm"><span>about
+      us</span></a>
+            
+      </li>
+        <li><a href="reservations.htm"><span>reservations</span></a></li>
+        <li><a href="chefs_table.htm"><span>chefs
+      table</span></a></li>
+      <li><a href="join_firenze_vip.htm"><span>join
+      firenze vip</span></a></li>
+      <li><a href="menu.htm"><span>Menu</span></a>
+		<div>
+			<ul>
+				<li><a href="martini_menu.htm"><span>Martini Menu</span></a></li>
+				<li><a href="kids_menu.htm"><span>Kids Menu</span></a></li>
+				<li><a href="dessert_menu.htm"><span>Dessert Menu</span></a></li>
+				<li><a href="dinner_menu.htm"><span>Dinner Menu</span></a></li>
+				<li><a href="lunch_menu.htm"><span>Lunch Menu</span></a></li>
+				<li><a href="group_menu.htm"><span>Group Menu</span></a></li>
+			</ul>
+		</div>
+      </li>
+      <li><a href="hours_directions.htm"><span>directions</span></a></li>
+      <li><a href="contact_us.htm"><span>contact
+      us</span></a></li>
+    </ul>
+</div>
+        <!-- Menu Ends Here --></td>
+    </tr>
+
+    <tr>
+      <td height="7"></td>
+    </tr>
+
+    <tr>
+      <td><img src="images/about_us_banner.jpg" alt="" /></td>
+  </tr>
+
+    <tr>
+      <td>
+        <table width="973" border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td width="198" valign="top">
+            
+             <div class="cmi_phone_bg1 clearfix">
+                  <span><img src="images/phone_icon.gif" alt="" class=
+                  "cmi_phone_icon" /></span> <span>805-532-0048</span>                </div>
+            <!-- Left Menu Starts Here-->
+              <div class="cmi_menu_bg">
+                <ul>
+
+                  <li><a href="wine_list.htm">Wine List</a></li>
+
+                  <li><a href="private_parties.htm">Private Parties</a></li>
+
+                  <li><a href="giftcards.htm">Gift Cards</a></li>
+
+                  <li><a href="special_events.htm">Special Events</a></li>
+                  
+                  <li><a href="wine_tasting_event.htm">Wine Tasting Event</a></li>
+                  
+                  <li><a href="cooking_classes.htm">Cooking Classes</a></li>
+
+                  <li><a href="community.htm">Community</a></li>
+
+                  <li><a href="our_blog.htm">Blog</a></li>
+
+                  <li><a href="hours_directions.htm">Hours &amp; Direction</a></li>
+
+                  <li class="cmi_bottom_line"><a href="reservations.htm">Reservations</a></li>
+                </ul>
+              </div>
+				<!-- Left Menu Ends Here-->
+               
+               
+                
+                
+             </td>
+
+            <td valign="top"><table width="775" border="0" cellspacing="0" cellpadding="0">
+              <tr>
+                <td height="20" colspan="2"><div class="cmi_breadcrum"><a href="index.htm">Home</a> > <span>Events</span></div></td>
+              </tr>
+              <tr>
+                <td width="585" valign="top" >
+					<div class="cmi_title_icon">
+						<img src="images/title_icon.gif" alt="" width="37" height="46" />
+					</div>
+                
+					<div class="cmi_about_us_title"><img src="images/events_heading.png" width="70" height="21" /></div>
+					<!-- CAlndar module -->
+					<form name="cform" action="events_calender.html" method="post">
+					<input type="hidden" name="mon" value=""><input type="hidden" name="yr" value="">
+					</form>
+					<?php
+						$oCalendar->showThisMonth();
+					?>
+					
+					<!-- CAlndar module -->
+				</td>
+                <td valign="top"> <!-- Reservation Box Starts Here -->
+                
+              <div class="cmi_reservation_bg">
+                <div class="cmi_reservation_img"><img src="images/reservation_img.gif"
+                alt="" /></div>
+                <!-- Open Table script -->
+				<script type="text/JavaScript" src="http://www.opentable.com/ism/?rid=28264"></script>
+                              </div>
+				<!-- Reservation Box Ends Here -->
+                
+                <!-- Gift card Starts Here -->
+                 <div class="cmi_gift_card1">
+                <div><img src="images/gift_card_title.gif" alt="" /></div>
+
+                <div class="cmi_gift_text">
+                  Cafe Firenze Gift Cards make the perfact gift for any occasion                </div>
+
+                <div><a href="giftcards.htm"><img src="images/buy.gif" alt="" /></a></div>
+              </div> 
+              <!-- Gift Card Ends Here --> 
+              
+              <div class="cmi_calender_bg1">
+                  <div class="cmi_event_title"><img src="images/events_title.gif" alt=
+                  "" /></div>
+
+                  <div class="cmi_event_text">
+					<?php require_once("cmiadmin/config.php");
+							$record  = get_record('events','featured',1);
+							if(!empty($record)){
+								echo '<b><a class="eventlinks" href="event_'.$record->name.'_'.$record->id.'.html">'.$record->name.'</a></b><br />';
+								echo date('l, F j, Y',$record->date);
+							}
+					?>
+                 </div>
+                  <div><a href="events_calender.html"><img src="images/view_events.gif" alt="" /></a></div>
+                </div>                </td>
+              </tr>
+            </table>
+            <div class="cmi_border"></div>            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        <div class="cmi_bottom_text">
+
+<div style="float:left;">
+
+		<!-- SocialList.org BEGIN -->
+<script type="text/javascript">
+sociallist_url = location.href;
+sociallist_title = document.title;
+sociallist_text = '';
+sociallist_tags = '';
+</script><script type="text/javascript" src="http://sociallist.org/widget.js?type=1&cols=3&rows=5&button_dx=160&button_dy=24&lang=en"></script>
+  <noscript>
+<a href="http://sociallist.org/submit.php?type=1&lang=en&url=refpage&title=refpage&tag=refpage&text=refpage" target="_blank" title="Bookmark this Website"><img src="http://sociallist.org/buttons/en160x24.gif" border="0" width="160" height="24" alt="Bookmark" /></a>
+</noscript>
+<!-- SocialList.org END -->	
+</div>
+<img src="images/camera.gif" alt="Photos by Isaac Hsieh" width="16" height="16" align="absbottom" /> Photos by Isaac Hsieh<br />
+          Café Firenze Italian Restaurant &amp; Martini Bar in Moorpark | <a href="sitemap.htm">Sitemap</a>
+        </div>
+
+        <div class="cmi_bottom_text">
+          563 W. Los Angeles Ave, Moorpark CA. 93021 Café Firenze INC.
+          Copyright 2010 | All rights reserved | <a href="http://www.ifindable.com/" target="_blank">website Design</a> | <a href="http://www.ifindable.com/search_engine_optimization.htm" target="_blank">SEO</a>  | <a href="http://www.ifindable.com/" target="_blank">iFindable.com</a> </div>
+        <p></p>
+      </td>
+    </tr>
+  </table>
+  <script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-15861552-1");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+</body>
+</html>

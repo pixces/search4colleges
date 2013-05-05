@@ -1,0 +1,136 @@
+<?php 
+	include_once("cmiadmin/config.php");
+	require_once('includes/checkExpire.php');
+	$user_info = check_login();
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	if(isset($_SESSION['user_type'])){
+		if(isset($_GET['edit']) && isset($_GET['view'])){
+
+			if($_SESSION['user_type'] == 'staff')
+			{
+				$school_staff = get_field('school_staff_user','fe_school_id','fe_staff_id',$_SESSION['s4c_user_id']);
+
+				$scholorship_data = get_record_sql('Select * from '.$CFG->prefix.'school_scholarship where status = "active" and school_id = '.$school_staff.' and id= '.$_GET['edit'].' order by added_date ');
+
+			}
+			else
+			{
+				$scholorship_data = get_record_sql('Select * from '.$CFG->prefix.'school_scholarship where status = "active" and school_id = '.$_SESSION['s4c_user_id'].' and id= '.$_GET['edit'].' order by added_date ');
+
+				//print_object($scholorship_data);
+
+			}
+		}
+	}
+	if($_POST){
+				
+		$title				= optional_param('title', PARAM_RAW);
+		$duration			= optional_param('duration', PARAM_RAW);		
+		$criteria			= optional_param('criteria', PARAM_RAW);		
+		$amount 			= optional_param('amount', PARAM_RAW);
+        $link	 			= optional_param('link', PARAM_RAW);		
+		$hiddenid			= optional_param('view', PARAM_RAW);
+		$scho_id			= optional_param('scho_id', PARAM_RAW);
+
+		$update_mode				= new object();	
+		$update_mode->school_id		= $hiddenid;
+		$update_mode->title			= $title;
+		$update_mode->duration		= $duration;
+		$update_mode->criteria		= $criteria;
+		$update_mode->amount		= $amount;
+        $update_mode->link			= $link;
+		$update_mode->id			= $scho_id;
+				
+		if(!empty($update_mode)){
+			
+			$update = update_record('school_scholarship', $update_mode);
+
+
+			if($update){
+?>
+				<script  type="text/javascript">	
+					parent.window.location = 'colleges_scholarships.html?view=<?php echo $hiddenid;?>';
+					parent.Mediabox.close();			
+				</script>
+<?php
+			}
+		}	
+
+	}
+	
+
+include_once("includes/header.php");
+?>
+
+<script type="text/javascript" >
+	window.addEvent('domready', function(){
+		new FormCheck('edit_form',{display:{showErrors:1}});
+	});	
+	
+</script>
+<?php
+
+
+?>
+</head>
+
+
+	
+	 <center>  <h4>Edit Scholorship:</h4>
+	  <form method="post" action="scholarships_edit.html" id="edit_form" name="profile_form" enctype="multipart/form-data"/>
+	  <?php
+	  if($_SESSION['user_type'] == 'staff')
+	  {
+	  ?>
+		 <input type="hidden" name="view" value=<?php if(isset($school_staff)) echo $school_staff; ?> />
+		<?php
+		}else
+		{
+		?>
+		<input type="hidden" name="view" value=<?php if(isset($_SESSION['s4c_user_id'])) echo $_SESSION['s4c_user_id']; ?> />
+	<?php
+	}
+	?>
+	  <input type="hidden" name="scho_id" value=<?php if(isset($_GET['edit'])) echo $_GET['edit']; ?> />
+
+	  <table>
+		<tr>
+			<td>Title</td>
+			<td>:</td>
+			<td><input type="text" name="title" id="title" class="validate['required']" value="<?php if(isset($scholorship_data->title)) echo $scholorship_data->title; ?>"/></td>
+		</tr>
+		<tr>
+			<td>Duration</td>
+			<td>:</td>
+			<td><input type="text" name="duration" id="duration" class="validate['required']" value="<?php if(isset($scholorship_data->duration)) echo $scholorship_data->duration; ?>"/></td>
+		</tr>
+		<tr>
+			<td>Criteria</td>
+			<td>:</td>
+			<td><textarea name="criteria" id="criteria" class="validate['required']"/><?php if(isset($scholorship_data->criteria)) echo $scholorship_data->criteria; ?></textarea></td>
+		</tr>
+		<tr>
+			<td>Amount</td>
+			<td>:</td>
+			<td><input type="text" name="amount" id="amount" class="validate['required']" value="<?php if(isset($scholorship_data->amount)) echo $scholorship_data->amount; ?>"/></td>
+		</tr>
+        <tr>
+			<td>URL</td>
+			<td>:</td>
+			<td><input type="text" name="link" id="link" class="validate['required']" value="<?php if(isset($scholorship_data->link)) echo $scholorship_data->link; ?>"/></td>
+		</tr>
+		<tr>
+			<td colspan="3" style="text-align:center"><input type="image" src="images/save_button.jpg" /></td>
+		</tr>
+	  </table>
+	  </form>
+	  </center>
+     </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+  

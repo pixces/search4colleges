@@ -1,0 +1,66 @@
+<?php
+	
+	require_once('cmiadmin/config.php'); 
+	require_once('includes/header.php');
+	$id = required_param('id',PARAM_INT);
+	$sent_flag = optional_param('sent_flag',PARAM_INT);
+	$flag = required_param('flag',PARAM_TEXT);
+
+	$mesg_info = get_record('messages','id',$id);
+
+	if($mesg_info){		
+		switch($flag){
+			case 'inbox':
+				$sender_info = get_user_info($mesg_info->sender_id);
+                if($sent_flag==1){				
+				echo "<div class='top' align='center' style='color:#C7200F'>Message sent successfully</div>";
+				}
+				echo "<div class='message'>";
+				echo " <div class='top' >";
+						echo"<div style='float:left;padding-left:20px;'>Messages</div>";
+						echo "<div style='float:right;padding-right:20px;'>";
+							echo "From : ".$sender_info->name.' &nbsp;&nbsp;( '.date(' m:d:Y h:i:s ',$mesg_info->added_date).' ) ';
+						echo"</div>";
+					echo"</div>";
+					echo"<div>";
+						if($mesg_info->is_query == 'no'){
+							echo "<p>".$mesg_info->message."</p>";
+						}else{
+						    if($_SESSION['user_type']=='counselor' || $_SESSION['user_type']=='teacher'){
+						    if(isset($mesg_info->subject)) echo "<br /><b>Topic</b> : ".$mesg_info->subject."<br />";
+							if(isset($mesg_info->subject)) echo "<br /><b>Question :</b>".$mesg_info->message."<br />";
+							}else{
+						    $parent_info = get_record('messages','parent_id',$mesg_info->id);
+							if(isset($parent_info->subject)) echo "<br /><b>Topic</b> : ".$parent_info->subject."<br />";
+							if(isset($parent_info->subject)) echo "<br /><b>Question :</b>".$parent_info->message."<br />";							
+							echo "<br /><b>Reply ( ".date('m-d-Y',$mesg_info->added_date)." ):</b>".$mesg_info->message."<br />";
+						   
+						   }
+							
+						}
+					echo "<div align='right'><a href='new_messagesp.html?id=$mesg_info->receiver_id&friend_id=$mesg_info->sender_id&msg_id=$id' rel =\"lightbox[msg_$record->id 300 200]\" >Reply</a></div>"; 
+					echo"</div>";
+				echo "</div>";
+				break;
+			case 'sentbox':
+				$receiver_info = get_user_info($mesg_info->receiver_id); 
+				echo "<div class='message'>";
+					echo " <div class='top' >";
+						echo"<div style='float:left;padding-left:20px;'>Messages</div>";
+						echo "<div style='float:right;padding-right:20px;'>";
+							echo "To : ".$receiver_info->name.' &nbsp;&nbsp;( '.date(' m:d:Y h:i:s ',$mesg_info->added_date).' ) ';
+						echo"</div>";
+					echo"</div>";
+					echo"<div>";
+						if($mesg_info->is_query == 'no'){
+							echo "<p>".$mesg_info->message."</p>";
+						}else{							
+							echo "<br /><b>Topic</b> : ".$mesg_info->subject."<br />";
+							echo "<br /><b>Question :</b>".$mesg_info->message."<br />";
+						}
+					echo"</div>";
+				echo "</div>";
+				break;
+		}
+	}
+?>

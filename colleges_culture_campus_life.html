@@ -1,0 +1,638 @@
+<?php 
+	
+	require_once('includes/checkExpire.php');
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 
+	$school_id	= optional_param('view','', PARAM_RAW);
+
+
+	$seo_keyword	= optional_param('seo_keyword', '', PARAM_RAW);
+	if($seo_keyword != '')
+	{
+		$sqldata  = get_record('schools','seo_keyword',$seo_keyword,'status','active');
+		if(isset($sqldata->user_id))
+				$school_id = $sqldata->user_id;
+	}
+	$preview	= optional_param('preview','', PARAM_RAW);
+	$staff_permission = '';
+	?>
+
+	<script  type="text/javascript">
+
+	function delete_sports(id){			
+		var req = new Request({
+			 method: 'post',
+			 url: 'ajax_handler.php',
+			 data: {'id' : id,						
+					'flag' : 'delete_school_sports'	
+				 },
+			 onRequest: function() {},
+			 onComplete: function(response) { 
+				window.location.reload();
+			}
+		}).send();	
+	}
+	
+
+	function update_sports(id){	
+
+		var team = id+'_teamname';
+		var description = id+'_description';
+		
+		if(team){
+			var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {'teamname' :$(team).value,
+						'id':id,
+						'description' : $(description).value,
+						'flag' : 'update_school_sports'	
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+					window.location.reload();
+				}
+		}).send();
+
+		}
+	}
+
+	function add_sports(id){
+			
+		var req = new Request({
+			 method: 'post',
+			 url: 'ajax_handler.php',
+			 data: {'teamname' :$('add_teamname').value,
+					'id':id,
+					'description' : $('add_team_description').value,
+					'team_type' : $('add_team_type').value,
+					'flag' : 'add_school_sports'	
+				 },
+			 onRequest: function() {},
+			 onComplete: function(response) { 
+				window.location.reload();
+			}
+		}).send();
+	
+	}
+	
+	</script>
+
+<?php
+	if($_POST){
+		//print_object($_POST);
+
+		$added_date				= time();			
+		$clubs					= optional_param('clubs','', PARAM_RAW);
+		$hiddenid				= optional_param('view', PARAM_RAW);
+		
+		$selectivity			= optional_param('selectivity','', PARAM_RAW);
+		$going_greek			= optional_param('going_greek','', PARAM_RAW);
+		$dorm_sweet_dorm		= optional_param('dorm_sweet_dorm','', PARAM_RAW);
+		$gpa					= optional_param('gpa','', PARAM_RAW);
+		      
+		execute_sql('Delete from '.$CFG->prefix.'school_club_mm where school_id = '.$hiddenid,
+			false);
+
+		if(!empty($clubs)){
+			$club_string = implode(',',$clubs);
+			
+		}
+				
+		if(!empty($clubs)){
+			foreach($clubs as $club){
+
+				$insert_club				= new object();
+				$insert_club->school_id		= $hiddenid;
+				$insert_club->club_id		= $club;
+				$insert_club->added_date	= $added_date;
+				$insert_club->status		= 'active';
+
+				if(!empty($insert_club)){
+					$insert = insert_record('school_club_mm', $insert_club);
+				}
+			}
+		}
+
+		execute_sql('Delete from '.$CFG->prefix.'school_culture_campus_life where school_id = '.$hiddenid,
+			false);
+
+		$insert_campus_life											= new object();
+		$insert_campus_life->school_id								= $hiddenid;
+		$insert_campus_life->going_greek							= $going_greek;
+		$insert_campus_life->dorm_sweet_dorm						= $dorm_sweet_dorm;
+		$insert_campus_life->selectivity							= $selectivity;
+		$insert_campus_life->schoolculture_campuslife_gpa_id		= $gpa;
+		$insert_campus_life->added_date								= $added_date;
+		$insert_campus_life->status									= 'active';
+		
+		if(!empty($insert_campus_life)){
+			$insert = insert_record('school_culture_campus_life', $insert_campus_life);
+		}
+	}
+
+		if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'staff')
+		{
+			$allowed = get_field('school_staff_user','allowed_sections','fe_staff_id',$_SESSION['s4c_user_id']);
+
+			if(!empty($allowed))
+			{
+				$alloweds = explode(",",$allowed);
+				if(in_array($page_name,$alloweds))
+				{
+					$staff_permission = 'yes';
+				}
+				else
+				{
+					$staff_permission = 'no';
+				}
+			}
+
+		}
+
+
+	if(isset($_SESSION['s4c_user_id']) && !isset($_GET['preview']) && ($staff_permission == 'yes' || $school_id == $_SESSION['s4c_user_id'])) {
+
+			if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'staff'){
+				
+				$school_staff = get_field('school_staff_user','fe_school_id','fe_staff_id',$_SESSION['s4c_user_id']);
+
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+
+				$sports_data = get_records_sql('Select * from '.$CFG->prefix.'school_culture_campus_life_sports where status = "active" and school_id = '.$_SESSION['s4c_user_id'].' order by team_name ');
+
+				$school_campus_data = get_record_sql('Select * from '.$CFG->prefix.'school_culture_campus_life where status = "active" and school_id = '.$_SESSION['s4c_user_id'].' order by added_date ');
+				
+				$school_clubs = get_records_sql('Select * from '.$CFG->prefix.'school_culture_campuslife_clubs where status = "active"  order by club_title');
+				$school_clubs_data = get_records_sql('Select * from '.$CFG->prefix.'school_club_mm where school_id = '.$school_staff.' and status = "active"  order by added_date ');
+				$club_data = array();
+				if(!empty($school_clubs_data)){
+					foreach($school_clubs_data as $school_club_data){
+						$club_data[$school_club_data->club_id] = $school_club_data->club_id;
+					}
+				}
+
+			}
+
+			elseif(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'school'){
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+
+				$sports_data = get_records_sql('Select * from '.$CFG->prefix.'school_culture_campus_life_sports where status = "active" and school_id = '.$_SESSION['s4c_user_id'].' order by team_name ');
+
+				$school_campus_data = get_record_sql('Select * from '.$CFG->prefix.'school_culture_campus_life where status = "active" and school_id = '.$_SESSION['s4c_user_id'].' order by added_date ');
+				
+				$school_clubs = get_records_sql('Select * from '.$CFG->prefix.'school_culture_campuslife_clubs where status = "active"  order by club_title');
+
+				$school_clubs_data = get_records_sql('Select * from '.$CFG->prefix.'school_club_mm where school_id = '.$_SESSION['s4c_user_id'].' and status = "active"  order by added_date ');
+
+
+
+				$club_data = array();
+
+				if(!empty($school_clubs_data)){
+					foreach($school_clubs_data as $school_club_data){
+						$club_data[$school_club_data->club_id] = $school_club_data->club_id;
+					}
+				}
+			}
+			$user_info = check_login();
+		?>
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); 
+
+  ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+				  <ul>
+					<li><a href="index.html"><strong>Home</strong></a></li>       
+					<li class="in_aroow"><a><strong>Colleges</strong></a></li>      						
+					<li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+				  </ul>
+		</div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+				<div class="clear"></div>
+				<h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+				
+				<div class="clear"></div>
+			  </div>
+			 <div class="banner"> <img src="<?php echo $CFG->siteroot;?>/file.php/schools/<?php if(!empty($student_data->logo)){ echo 'f6_'.$student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner"  />
+				<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)) { echo get_field('city','name','status','active','id',$student_data->city).', '; }?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+			 <?php 
+
+					$city	= cmi_genrate_url(get_data_frontend('city','name',$student_data->city));
+					$state	= cmi_genrate_url(get_data_frontend('state','name',$student_data->state));
+
+					$url  = get_s4c_seo($student_data->seo_keyword,$city,$state,$student_data->user_id);
+
+					get_menu_college($student_data->user_id,"colleges_culture_campus_life",$url);
+
+			 ?>    
+	
+			<form method="post" action="colleges_culture_campus_life.html" id="profile_form" name="profile_form" enctype="multipart/form-data"/>
+				<br />
+				<div style="clear:both;float:right; margin-top:18px;"><a style="text-decoration:underline; color:#000000;" target="_blank" href="colleges_culture_campus_life.html?view=<?php if(isset($student_data->user_id)) echo $student_data->user_id; ?>&preview"><b>Preview</b></a></div>
+				<input type="hidden" name="view" value=<?php if(isset($student_data->user_id)) echo $student_data->user_id; ?> />
+				<?php 
+
+					$sports_data_men = get_records_sql('Select * from '.$CFG->prefix.'school_culture_campus_life_sports where status = "active" and school_id = '.$_SESSION['s4c_user_id'].' and team_type = "men" order by team_name ');
+
+					$sports_data_women = get_records_sql('Select * from '.$CFG->prefix.'school_culture_campus_life_sports where status = "active" and school_id = '.$_SESSION['s4c_user_id'].' and  team_type = "women" order by team_name ');
+								
+					?>
+					<?php 
+
+					echo '<h3><span style="vertical-align:super">Sports :</span><img style="cursor:pointer" src ="images/add.png" width="30" height="30" alt="Add" title="Add More" onclick="$(\'add_table\').style.display=\'inline\'" ></h3>';
+					?>
+					
+					
+					<table cellspacing='0' cellpadding='8' id="add_table" style="display:none" class="sports_main_box" width="100%" >
+                        <tr>
+							<td valign="top" width="100" bgcolor="#F9F9F9">Team name</td>
+							<td valign="top" bgcolor="#F9F9F9">:</td>
+							<td bgcolor="#F9F9F9" width="560"><input id="add_teamname" value='' type='text' size="26" /></td>
+						</tr>
+						<tr>
+							<td valign="top" bgcolor="#F0F0F0">Team Type</td>
+							<td valign="top" bgcolor="#F0F0F0">:</td>
+							<td bgcolor="#F0F0F0">
+								<select id="add_team_type" name="add_team_type">
+									<option value="men">Men</option>
+									<option value="women">Women</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td valign="top" bgcolor="#F9F9F9">Team Description</td>
+							<td valign="top" bgcolor="#F9F9F9">:</td>
+							<td bgcolor="#F9F9F9"><textarea id="add_team_description" name="add_team_description"></textarea></td>
+						</tr>
+						<tr>
+							<td colspan="3" align="center" bgcolor="#F0F0F0">
+							<img src="images/save_button.jpg" 
+							onclick="add_sports(<?php echo $_SESSION['s4c_user_id']; ?>)"/>
+							<img src="images/cancel_bottom.jpg" 
+							onclick="$('add_table').style.display='none'"/>
+							</td>
+						</tr>
+					</table>
+                    
+                    
+					<?php
+					if(!empty($sports_data_men)){ ?>
+						<div><b>Men Team :</b></div>
+						<?php 
+							echo "<table cellspacing='0' cellpadding='8' class='sports_team_box' >";
+							foreach($sports_data_men as $data){ ?>
+								<tr>
+									<td valign="top" bgcolor="#F9F9F9" >Name<br /><input id="<?php echo $data->id; ?>_teamname" value='<?php echo $data->team_name; ?>'type='text' /></td>
+									
+									<td valign="top" bgcolor="#F9F9F9">Description<br /><textarea rows="0" cols="50" id="<?php echo $data->id; ?>_description"><?php echo $data->team_description; ?></textarea></td>
+									<td bgcolor="#F9F9F9"><span onclick="update_sports(<?php echo $data->id; ?>)" ><img src="images/save.jpg" style="cursor:pointer;" /></span></a></td>
+									<td bgcolor="#F9F9F9"><img src='images/delete.png' style='cursor:pointer;' alt='Delete' onclick="delete_sports(<?php echo $data->id; ?>)"></td>
+								</tr>
+							<?php 
+							}
+							echo "</table>";
+					}
+					else{
+						//echo '<input style="float:right" type="button" value="+" name="add" title="Add More" onclick="add_sports('.$student_data->user_id.')">';
+					}
+
+					if(!empty($sports_data_women)){ ?>
+						<div><B>Women Team :</b></div>
+						<?php 
+							echo "<table cellspacing='0' cellpadding='8' class='sports_team_box' >";
+							foreach($sports_data_women as $data){ ?>
+								<tr>
+									<td valign="top" bgcolor="#F9F9F9" >Name<br /><input id="<?php echo $data->id; ?>_teamname" value='<?php echo $data->team_name; ?>'type='text' /></td>
+									
+									<td valign="top" bgcolor="#F9F9F9">Description<br /><textarea rows="0" cols="50" id="<?php echo $data->id; ?>_description"><?php echo $data->team_description; ?></textarea></td>
+									<td bgcolor="#F9F9F9"><span onclick="update_sports(<?php echo $data->id; ?>)"><img src="images/save.jpg" style="cursor:pointer;" /></span></a></td>
+									<td bgcolor="#F9F9F9"><img src='images/delete.png' style='cursor:pointer;' alt='Delete' onclick="delete_sports(<?php echo $data->id; ?>)"></td>
+								</tr>
+							<?php 
+							}
+							echo "</table>";
+					}
+					
+                    ?>
+                    <div class="club_box">
+                    <?php
+					echo "<div><h3>Clubs :</h3></div>";
+
+					if(!empty($school_clubs)){ 
+						$checked = '';
+						foreach($school_clubs as $data){
+							if(in_array($data->id,$club_data))
+                            {
+								$checked = "checked='checked'";
+							}
+							else{
+								$checked = "";
+							}
+							echo  "<input name=\"clubs[]\" type='checkbox' ".$checked." value=".$data->id." />".$data->club_title."";
+						}
+					}
+					?>
+                    </div>
+                    
+					<div class="college_details_box">
+                    
+					<div class="college_details_left1">
+                    <div><h3>Going Greek :</h3></div></div>
+                    
+                    <div class="college_details_right1">
+					<select name="going_greek">
+                    <option value="">None</option>
+						<option value="sororities" <?php if(isset($school_campus_data->going_greek) && $school_campus_data->going_greek  == 'sororities') echo "selected='selected'";?>>Sororities</option>
+						<option value="fraternities" <?php if(isset($school_campus_data->going_greek) && $school_campus_data->going_greek  == 'fraternities') echo "selected='selected'";?>>Fraternities</option>
+					</select>
+                    </div>
+                    
+									
+					<div class="college_details_left2">
+					<div><h3>Dorm, Sweet Dorm? :</h3></div></div>
+					
+                    <div class="college_details_right2">
+					<select name="dorm_sweet_dorm">
+                    <option value="">None</option>
+						<option value="freshmen" <?php if(isset($school_campus_data->dorm_sweet_dorm) && $school_campus_data->dorm_sweet_dorm == 'freshmen')echo "selected='selected'";?>>Yes-at least for freshmen</option>
+						<option value="undergrads" <?php if(isset($school_campus_data->dorm_sweet_dorm) && $school_campus_data->dorm_sweet_dorm == 'undergrads')echo "selected='selected'";?>>Yes-for all undergrads</option>
+					</select>
+                    </div>
+                    
+                    
+					<div class="college_details_left1">
+					<div><h3>Selectivity :</h3></div></div>
+                    
+                    <div class="college_details_right1">
+					<select name="selectivity">
+						<option value="Very_difficult" <?php if(isset($school_campus_data->selectivity) && $school_campus_data->selectivity  == 'Very_difficult')echo "selected='selected'";?>>Very difficult</option>
+						<option value="Moderately_difficult" <?php if(isset($school_campus_data->selectivity) && $school_campus_data->selectivity  == 'Moderately_difficult')echo "selected='selected'";?>>Moderately difficult</option>
+						<option value="Minimally_difficult" <?php if(isset($school_campus_data->selectivity) && $school_campus_data->selectivity  == 'Minimally_difficult')echo "selected='selected'";?>>Minimally difficult</option>
+					</select>
+					
+					<?php 
+						$selectid  = isset($school_campus_data->schoolculture_campuslife_gpa_id) ? $school_campus_data->schoolculture_campuslife_gpa_id : ""; 
+					?>
+                    </div>
+                    
+                    
+                    <div class="college_details_left2">
+					<div><h3>GPA :</h3></div></div>
+                    
+                    <div class="college_details_right2">
+					<select name="gpa">
+                    	<?php get_data('school_culture_campuslife_gpa','gpa',$selectid);?>
+					</select>
+                    </div>
+                    
+                    	</div>
+					<center><div style="float:left; height:24px; text-align:center;"><input type="image" src="<?php echo $CFG->siteroot;?>/images/save_button.jpg" /></div></center>
+			</form>
+
+    
+    </div>
+    
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+		
+}
+else{ 
+		if($school_id != ''){
+
+			$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$school_id.' and status = "active"');
+
+			$sports_data = get_records_sql('Select * from '.$CFG->prefix.'school_culture_campus_life_sports where status = "active" and school_id = '.$school_id.' order by team_name ');
+
+			$school_campus_data = get_record_sql('Select * from '.$CFG->prefix.'school_culture_campus_life where status = "active" and school_id = '.$school_id.' order by added_date ');
+			
+			$school_clubs = get_records_sql('Select * from '.$CFG->prefix.'school_culture_campuslife_clubs where status = "active"  order by club_title');
+
+			$school_clubs_data = get_records_sql('Select * from '.$CFG->prefix.'school_club_mm where school_id = '.$school_id.' and status = "active"  order by added_date ');
+
+
+
+			$club_data = array();
+
+			if(!empty($school_clubs_data)){
+				foreach($school_clubs_data as $school_club_data){
+					$club_data[$school_club_data->club_id] = $school_club_data->club_id;
+				}
+			}
+		}
+		?>
+	<!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+       <div class="inner_link">
+			  <ul>
+				<li><a href="index.html"><strong>Home</strong></a></li>        
+				<?PHP
+				if(isset($_GET['preview']))
+				{
+				?>			
+					<li class="in_aroow"><a><strong>Colleges</strong></a></li>      				
+				<?php
+				}
+				else
+				{
+				?>
+					<li class="in_aroow"><a href="<?php echo $CFG->siteroot;?>/colleges.html"><strong>Colleges</strong></a></li>     
+				<?php
+				}
+				?>
+				<li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+			  </ul>
+		</div>
+      	<div class="clear"></div>
+			<h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+				
+		<div class="clear"></div>
+	  </div>
+	  <div class="banner"> <img src="<?php echo $CFG->siteroot;?>/file.php/schools/<?php if(!empty($student_data->logo)) { echo 'f6_'.$student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner"  />
+	  <div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)){ echo get_field('city','name','status','active','id',$student_data->city).', '; }?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+	<?php 
+		$city	= cmi_genrate_url(get_data_frontend('city','name',$student_data->city));
+		$state	= cmi_genrate_url(get_data_frontend('state','name',$student_data->state));
+
+		$url  = get_s4c_seo($student_data->seo_keyword,$city,$state,$student_data->user_id);
+
+		 get_menu_college($student_data->user_id,"colleges_culture_campus_life",$url);
+
+	?> 
+
+			<form method="post" action="colleges_culture_campus_life.html" id="profile_form" name="profile_form" enctype="multipart/form-data"/>
+				
+				<input type="hidden" name="view" value=<?php if(isset($student_data->user_id)) echo $student_data->user_id; ?> />
+				<?php                     
+					$sports_data_men = get_records_sql('Select * from '.$CFG->prefix.'school_culture_campus_life_sports where status = "active" and school_id = '.$school_id.' and team_type = "men" order by team_name ');
+
+					$sports_data_women = get_records_sql('Select * from '.$CFG->prefix.'school_culture_campus_life_sports where status = "active" and school_id = '.$school_id.' and  team_type = "women" order by team_name ');
+
+					if($sports_data_men!= '' || $sports_data_women != '')
+					{
+					?> 
+						<div class="sports_preview_box" style="width:700px;">
+						<?php
+                    		echo "<div><h3>Sports :</h3></div>";	
+					}
+									
+					if(!empty($sports_data_men))
+					{ 
+					?>
+						<div class="heading_preview" ><B>Men Team :</b></div>
+					<?php 
+						foreach($sports_data_men as $data)
+						{
+					?>
+							<div>
+					<?php
+								echo  "".$data->team_name."<br />";
+								//echo  " --> <i>".$data->team_description."</i><br />";
+					?>
+							</div>
+					<?php
+						}
+					}
+
+					if(!empty($sports_data_women)){ ?>
+						<div class="heading_preview"><B>Women Team :</b></div>
+					<?php 
+							foreach($sports_data_women as $data)
+							{
+					?>			
+								<div> 
+									<?php echo  "".$data->team_name."<br />"; ?>
+								</div>
+					<?php
+							}
+					?>
+						</div>	
+					<?php		
+					} 
+                    ?> 
+                    <?php
+						if(!empty($club_data))
+						{
+					?> 
+							<div class="sports_preview_box">
+					<?php 
+							echo "<div><h3>Clubs :</h3></div>";
+							foreach($club_data as $data)
+							{
+								$club_data_preview = get_record_sql('Select club_title from '.$CFG->prefix.'school_culture_campuslife_clubs where status = "active" and id = '.$data.' order by club_title');
+															
+								if(!empty($club_data_preview->club_title))
+								{
+					?>
+									<div>
+										<?php 
+											echo $club_data_preview->club_title."<br />";
+										?>
+									</div>
+					<?php                                
+								}
+							}
+					?>	
+							</div>
+					<?php 
+						}
+					?>
+					
+					<?php
+						if(isset($school_campus_data->going_greek))
+						{
+					?>
+							<div class="sports_preview_box">
+								<div><h3>Going Greek :</h3></div>					
+
+								<?php if($school_campus_data->going_greek) ?> <div ><?php echo $school_campus_data->going_greek;?>
+							</div>
+            	        </div>
+					<?php
+						} 
+					?>
+					
+					<?php
+						if(isset($school_campus_data->dorm_sweet_dorm))
+						{
+					?> 
+						<div class="sports_preview_box">
+							<div><h3>Dorm, Sweet Dorm? :</h3></div>
+							<?php if($school_campus_data->dorm_sweet_dorm) ?> <div > <?php echo $school_campus_data->dorm_sweet_dorm;?> </div>
+						</div>						
+					<?php
+						} ?>
+            	    
+						
+					<?php
+						if(isset($school_campus_data->selectivity))
+						{
+					?> 
+							<div class="sports_preview_box">
+								<div><h3>Selectivity :</h3></div>
+								<?php if($school_campus_data->selectivity) ?> <div > <?php echo $school_campus_data->selectivity;?>
+								</div>
+							</div>
+              	 	<?php
+						} 
+					?>
+
+					<?php
+						if(isset($school_campus_data->schoolculture_campuslife_gpa_id))
+						{ 
+					?> 
+							<div class="sports_preview_box">
+							<div><h3>GPA :</h3></div>
+							<div > <?php echo get_data_frontend('school_culture_campuslife_gpa','gpa',$school_campus_data->schoolculture_campuslife_gpa_id);?> </div>
+							</div>
+              	 	<?php
+						}
+					?>
+					</div>
+				</form>
+	<!--		</div>
+		</div>
+	</div>-->
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+
+<?php }
+
+	require_once('includes/footer.php'); 
+?>

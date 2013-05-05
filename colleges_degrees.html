@@ -1,0 +1,539 @@
+<?php 
+	
+require_once('includes/checkExpire.php');
+	
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 
+	$school_id	= optional_param('view','', PARAM_RAW);
+	$preview	= optional_param('preview','', PARAM_RAW);
+	$staff_permission 		 = '';
+	$majors					 = Array();
+	$degree					 = '';
+	$tution					 = '';
+	$duration				 = '';
+	$last_date_admission	 = '';
+	$last_date_entrance		 = '';
+	$how_to_apply			 = '';
+	$brochures_and_prospectus = '';
+
+	$seo_keyword	= optional_param('seo_keyword', '', PARAM_RAW);
+	if($seo_keyword != '')
+	{
+		$sqldata  = get_record('schools','seo_keyword',$seo_keyword,'status','active');
+		if(isset($sqldata->user_id))
+				$school_id = $sqldata->user_id;
+	}
+	if($_POST){
+		//print_object($_POST);
+
+		$added_date			= time();			
+		$majors				= optional_param('major_categories','', PARAM_RAW);
+		$degrees			= optional_param('degrees','', PARAM_RAW);
+		$hiddenid			= optional_param('view','', PARAM_RAW);
+		
+		$tution				= optional_param('tution','', PARAM_RAW);
+		$duration			= optional_param('duration','', PARAM_RAW);
+		$last_date_admission= optional_param('last_date_admission','', PARAM_RAW);
+		$last_date_entrance	= optional_param('last_date_entrance','', PARAM_RAW);
+		$how_to_apply		= optional_param('how_to_apply','', PARAM_RAW);
+		$brochures_and_prospectus	= optional_param('brochures_and_prospectus','', PARAM_RAW);
+		
+		$target_path = $CFG->dataroot.'/brochures_and_prospectus/';
+		if(!file_exists($target_path)){
+			mkdir($CFG->dataroot.'/brochures_and_prospectus/',777);
+		}
+		
+		if(isset($_FILES['brochures_and_prospectus']['name']) && !empty($_FILES['brochures_and_prospectus']['name'])){
+			$brochures = upload_image('brochures_and_prospectus',$target_path);
+		}
+
+		execute_sql('Delete from '.$CFG->prefix.'school_major where school_id = '.$hiddenid,false);
+
+		execute_sql('Delete from '.$CFG->prefix.'school_exam where school_id = '.$hiddenid,false);
+
+		//execute_sql('Delete from '.$CFG->prefix.'school_admission_details where school_id = '.$hiddenid,false);
+
+		if(!empty($majors)){
+			$major_string = implode(',',$majors);
+			
+		}
+		if(!empty($degrees)){
+			$degree_string = implode(',',$degrees);
+		}
+				
+		if(!empty($majors)){
+			foreach($majors as $major){
+				$insert_majors					= new object();
+				$insert_majors->school_id		= $hiddenid;
+				$insert_majors->major_id		= $major;
+				
+				
+
+				$get_parent = get_record_sql('SELECT majors.name, majors_1.parent_id
+					FROM    '.$CFG->prefix.'majors majors_1
+					INNER JOIN
+					 '.$CFG->prefix.'.majors majors
+					ON (majors_1.parent_id = majors.id)
+						where majors_1.id = '.$major.' and majors_1.status = "active"');
+
+
+
+				$insert_majors_school_exam						= new object();
+				$insert_majors_school_exam->school_id			= $hiddenid;
+				$insert_majors_school_exam->major_category_id   = $get_parent->parent_id;
+				$insert_majors_school_exam->degree_id			= $major;
+				$insert_majors_school_exam->exam_date			= '';
+				$insert_majors_school_exam->download_schedule	= '';
+				$insert_majors_school_exam->result_status		= '';
+				$insert_majors_school_exam->result_on_date		= '';
+				$insert_majors_school_exam->result_web_url		= '';
+				$insert_majors_school_exam->added_date 			= time();
+				$insert_majors_school_exam->status				= "active";
+
+
+
+				if(!empty($insert_majors)){
+					$insert = insert_record('school_major', $insert_majors);
+					$insert_school_exam = insert_record('school_exam', $insert_majors_school_exam);
+				}
+			}
+		}
+	}
+
+
+		if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'staff')
+		{
+			$allowed = get_field('school_staff_user','allowed_sections','fe_staff_id',$_SESSION['s4c_user_id']);
+
+			if(!empty($allowed))
+			{
+				$alloweds = explode(",",$allowed);
+				if(in_array($page_name,$alloweds))
+				{
+					$staff_permission = 'yes';
+				}
+				else
+				{
+					$staff_permission = 'no';
+				}
+			}
+
+		}
+
+
+
+	if(isset($_SESSION['s4c_user_id']) && !isset($_GET['preview']) && ($staff_permission == 'yes' || $school_id == $_SESSION['s4c_user_id'])) {
+
+			if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'staff'){
+
+			    $school_staff = get_field('school_staff_user','fe_school_id','fe_staff_id',$_SESSION['s4c_user_id']);
+			
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$school_staff.' and status = "active"');
+
+				$student_majors = get_records_sql('Select * from '.$CFG->prefix.'majors where status = "active" order by name');
+				$major_data = array();
+
+				$student_degrees = get_records_sql('Select * from '.$CFG->prefix.'school_degrees_offered where status = "active" order by degree ');
+				$major_data = array();
+
+				$student_degrees_data = get_records_sql('Select * from '.$CFG->prefix.'school_admission_details where school_id = '.$school_staff);
+
+				$student_majors_data = get_records_sql('Select * from '.$CFG->prefix.'school_major where school_id = '.$school_staff);
+				$major_data = array();
+
+				if(!empty($student_majors_data)){
+					foreach($student_majors_data as $school_majors){
+
+						$major_data[$school_majors->major_id] = $school_majors->major_id;
+					}
+				}
+
+				if(!empty($student_degrees_data)){
+					foreach($student_degrees_data as $degrees_data){
+
+						$degree_data[$degrees_data->degree_id] = $degrees_data->degree_id;
+					}
+				}
+
+
+			}
+			elseif(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'school'){
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+
+				$student_majors = get_records_sql('Select * from '.$CFG->prefix.'majors where status = "active" order by name');
+				$major_data = array();
+
+				$student_degrees = get_records_sql('Select * from '.$CFG->prefix.'school_degrees_offered where status = "active" order by degree ');
+				$major_data = array();
+
+				$student_degrees_data = get_records_sql('Select * from '.$CFG->prefix.'school_admission_details where school_id = '.$school_id);
+
+				$student_majors_data = get_records_sql('Select * from '.$CFG->prefix.'school_major where school_id = '.$school_id);
+				$major_data = array();
+
+				if(!empty($student_majors_data)){
+					foreach($student_majors_data as $school_majors){
+
+						$major_data[$school_majors->major_id] = $school_majors->major_id;
+					}
+				}
+				
+				if(!empty($student_degrees_data)){
+					foreach($student_degrees_data as $degrees_data)
+					{
+						$degree_data[$degrees_data->degree_id] = $degrees_data->degree_id;
+						
+						$degree_additional_data['tuition'] = $degrees_data->tuition_fees;
+						$degree_additional_data['duration'] = $degrees_data->duration;
+						$degree_additional_data['last_date_admission'] = $degrees_data->last_date_of_admission;
+						$degree_additional_data['last_date_entrance'] = $degrees_data->date_of_entrance_exam;
+						$degree_additional_data['how_to_apply'] = $degrees_data->how_to_apply;
+						$degree_additional_data['brochures_and_prospectus'] = $degrees_data->brochures_and_prospectus;
+					}
+				}
+			}
+			
+			$user_info = check_login();
+		?>
+
+<script type="text/javascript">
+function open_light_box(degree, school, checkboxValue){
+	var response='';
+	var linkid = 'link'+checkboxValue;
+	var nBox = document.getElementsByName('degrees_displayed');
+	var req = new Request({
+			 method: 'post',
+			 url: 'ajax_handler.php',
+			 data: {'flag' : 'majordegree',
+					'degree' :degree,
+					'school' : school,
+				 },
+			 onRequest: function() {},
+			 onComplete: function(response) {
+				if(response=='new'){
+					nBox[checkboxValue].checked=false;	
+					$(linkid).fireEvent('click');
+				}
+			}
+		}).send();	
+		
+	//
+}
+</script>
+		  <!-- content section >> -->
+		  <div id="content_sec">
+		  
+			<!-- << left content -->
+		   <?php require_once("includes/left_content.php"); 
+
+		   ?>
+		  <!-- left content >> -->
+			
+			<!-- << inner content -->
+			<div id="inner_content">
+			  <div class="inner_top">
+				<div class="inner_link">
+				  <ul>
+					<li><a href="index.html"><strong>Home</strong></a></li>  
+					<li class="in_aroow"><a><strong>Colleges</strong></a></li>      						
+					<li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+				  </ul>
+				</div>
+				 <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="<?php echo $CFG->siteroot;?>/my_account.html">My Account</a></div>
+		<?php }} ?>
+				<div class="clear"></div>
+				<h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+				
+				<div class="clear"></div>
+			  </div>
+			  <div class="banner"> <img src="<?php echo $CFG->siteroot;?>/file.php/schools/<?php if(!empty($student_data->logo)){ echo 'f6_'.$student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner" border="0" />
+				<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)){ echo get_field('city','name','status','active','id',$student_data->city).', '; }?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+			 <?php 
+				$city	= cmi_genrate_url(get_data_frontend('city','name',$student_data->city));
+				$state	= cmi_genrate_url(get_data_frontend('state','name',$student_data->state));
+
+				$url  = get_s4c_seo($student_data->seo_keyword,$city,$state,$student_data->user_id);
+
+				get_menu_college($student_data->user_id,"colleges_degrees",$url);
+
+			 ?>
+			   <br />
+			
+
+			<form method="post" action="colleges_degrees.html" id="profile_form" name="profile_form" enctype="multipart/form-data"/>
+			
+			<input type="hidden" name="view" value=<?php if(isset($student_data->user_id)) echo $student_data->user_id; ?> />
+			<div style="clear:both;float:right; margin-bottom:18px;"><a style="text-decoration:underline; color:#000000;" target="_blank" href="colleges_degrees.html?view=<?php if(isset($student_data->user_id)) echo $student_data->user_id; ?>&preview"><b>Preview</b></a></div>
+			<br />
+            
+			<table border="0" width="100%" style="border:none!important;">
+				<tr>
+				  <td valign="top" style="border:none!important;">
+                  <div><h3>Majors :</h3></div>
+
+                  <?php 
+								
+							if(!empty($student_majors)){
+								foreach($student_majors as $majors){
+									if(isset($majors->parent_id) && $majors->parent_id == '0' ){
+										echo "<ul class='ul_degrees'><li ><b>".$majors->name."</b><ul>";
+										foreach($student_majors as $major_cat){
+
+											if(in_array($major_cat->id,$major_data)){
+												$checked = "checked='checked'";
+											}
+											else{
+												$checked = "";
+											}
+											if($major_cat->parent_id == $majors->id){
+												echo  "<li><input name=\"major_categories[]\" type='checkbox' ".$checked." value=".$major_cat->id." />".$major_cat->name."</li>";
+											}
+										}
+										echo "</ul></li></ul>";
+									}
+								}	
+							}
+
+							?>                  </td>
+			  <tr>
+				  <td valign="top" style="border:none!important;">			
+					  <!-- Majors -->
+							
+						  <!--<div><h3>Majors :</h3></div>-->
+							
+						  <!--<?php 
+								
+							if(!empty($student_majors)){
+								foreach($student_majors as $majors){
+									if(isset($majors->parent_id) && $majors->parent_id == '0' ){
+										echo "<ul class='ul_degrees'><li >".$majors->name."<ul>";
+										foreach($student_majors as $major_cat){
+
+											if(in_array($major_cat->id,$major_data)){
+												$checked = "checked='checked'";
+											}
+											else{
+												$checked = "";
+											}
+											if($major_cat->parent_id == $majors->id){
+												echo  "<li><input name=\"major_categories[]\" type='checkbox' ".$checked." value=".$major_cat->id." />".$major_cat->name."</li>";
+											}
+										}
+										echo "</ul></li></ul>";
+									}
+								}	
+							}
+
+							?>		-->			  			
+				    <!-- Majors -->
+					
+					
+					<center><div><input type="image" src="images/save_button.jpg" name="submit" id="submit" value='save' /></div></center>
+					</form>
+					
+                     <div class="degrees_main_box">   
+                        	
+				    <div><h3>Degrees :</h3></div>
+					  <?php 								
+							if(!empty($student_degrees)){
+								$checkboxValue = 0;
+								foreach($student_degrees as $degrees){
+
+									if(!empty($degree_data)){
+										if(in_array($degrees->id,$degree_data)){
+											$checked = "checked='checked'";
+										}
+										else{
+											$checked = "";
+										}
+									}
+									else{
+										$checked = "";
+									}
+									echo  "<div><input name=\"degrees_displayed\"  id='degree_id[]' type='checkbox' value=".$degrees->id." ".$checked." onclick='open_light_box(".$degrees->id.", $school_id, $checkboxValue)' rel='lightbox[external 50% 50% ]';/><a href='school_additional_details.html?degree_id=".$degrees->id."&school_id=".$school_id."' id='link$checkboxValue' rel='lightbox[college".$degrees->id." 90% 90%]' />".$degrees->degree."</a></div>";
+									
+									//echo  "<div><a href='school_additional_details.html?degree_id=".$degrees->id."&school_id=".$school_id."' rel='lightbox[college".$degrees->id." 90% 90%]' ;/>".$degrees->degree."</a></div>";
+									$checkboxValue++;
+								}	
+							}
+						?>
+					  </td>
+				    </table>
+			  <br />
+			</div>
+			<div class="clear"></div>
+			<!-- << inner content>> -->
+		  </div>
+		  <!-- << content section -->
+		  <!-- footer section >> -->
+
+		  <?php 
+		
+	}
+	else{
+		//require_once("includes/left_content.php"); 
+		
+		if($school_id != ''){
+		
+			$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$school_id.' and status = "active"');
+
+			$student_majors = get_records_sql('Select * from '.$CFG->prefix.'majors where status = "active" order by name');
+			$major_data = array();
+
+			$student_majors_data = get_records_sql('Select * from '.$CFG->prefix.'school_major where status = "active" AND school_id = '.$school_id);
+			$major_data = array();
+
+			$student_degrees_data = get_records_sql('Select * from '.$CFG->prefix.'school_admission_details where school_id = '.$school_id);
+			
+			if(!empty($student_majors_data)){
+				foreach($student_majors_data as $school_majors){
+					$major_data[$school_majors->major_id] = $school_majors->major_id;
+				}
+			}
+		}
+
+	?>
+	<!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+   <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>   
+			<?PHP
+			if(isset($_GET['preview']))
+			{
+			?>			
+				<li class="in_aroow"><a><strong>Colleges</strong></a></li>      				
+            <?php
+			}
+			else
+			{
+			?>
+				<li class="in_aroow"><a href="<?php echo $CFG->siteroot;?>/colleges.html"><strong>Colleges</strong></a></li>     
+			<?php
+			}
+			?>
+			<li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+          </ul>
+        </div>
+         <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){?>
+			<div class="in_Right_link"><a href="#"></a><a href="<?php echo $CFG->siteroot;?>/my_account.html">My Account</a></div>
+		<?php } ?>
+        <div class="clear"></div>
+        <h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+        
+        <div class="clear"></div>
+      </div>
+      <div class="banner"> <img src="<?php echo $CFG->siteroot;?>/file.php/schools/<?php if(!empty($student_data->logo)){ echo 'f6_'.$student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner"   />
+		<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)){ echo get_field('city','name','status','active','id',$student_data->city).', '; }?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+			<?php 
+				$city	= cmi_genrate_url(get_data_frontend('city','name',$student_data->city));
+				$state	= cmi_genrate_url(get_data_frontend('state','name',$student_data->state));
+
+				$url  = get_s4c_seo($student_data->seo_keyword,$city,$state,$student_data->user_id);
+
+				if(isset($student_data->user_id)) get_menu_college($student_data->user_id,"colleges_degrees",$url);
+			  ?>
+		<br />
+           <?php  if(!empty($major_data) && !empty($student_degrees_data)){ ?>
+		<table width="75%" border="0" cellpadding="8" cellspacing="10">
+			<tr>
+			  <td valign="top" bgcolor="#F8F8F8" class="table_font5"><b>Majors :</b></td>
+			  <td valign="top" bgcolor="#F8F8F8" class="table_font5"><b>Degrees :</b></td>
+			</tr>
+        
+			<tr>
+				<td valign="top" width="50%" class="table_font5">			
+					<!-- Majors -->
+					<?php 								
+						$majors_degrees = array();
+						if(!empty($major_data)){
+							
+							$student_majors = get_records_sql('Select * from '.$CFG->prefix.'majors where status = "active" AND parent_id != "0" order by name');
+							
+							$sql = "Select Distinct tuition_fees,duration,last_date_of_admission,date_of_entrance_exam,how_to_apply,brochures_and_prospectus from {$CFG->prefix}school_admission_details  where status = 'active' AND school_id = $school_id" ;
+							$degree_additional_data = get_records_sql($sql);
+							//print_object($student_majors);
+							if(!empty($student_majors)){
+
+								foreach($student_majors as $data){
+										if(in_array($data->id,$major_data)){
+											echo $data->name;
+											echo "<br />";
+										}
+								}
+                                
+							}
+											
+							/*if(in_array($majors->id,$major_data)){
+								$student_majors_data = get_record_sql('Select name from '.$CFG->prefix.'majors where status = "active" and id='.$majors->parent_id);
+								if(!empty($student_majors_data)){
+									$majors_degrees[$student_majors_data->name] = $majors->name;
+								}
+								
+							} */										
+						}else
+                        {
+                            echo "No Majors Found.";
+                        }	
+					?>						
+				</td>
+				<td valign="top" width="50%" class="table_font5">			
+					<!-- Majors -->				
+					<?php 
+						if(!empty($student_degrees_data)){
+							
+							foreach($student_degrees_data as $degrees){
+								echo  "<div class='degree_heading'>".get_data_frontend('school_degrees_offered','degree',$degrees->degree_id)."</div>";
+								echo  (!empty($degrees->tuition_fees))?"<div class='degree_details'><b>Tuition Fees : </b>".$degrees->tuition_fees."</div>":'';
+								echo  (!empty($degrees->duration))?"<div class='degree_details'><b>Duration : </b>".$degrees->duration."</div>":'';
+								echo  (!empty($degrees->last_date_of_admission))?"<div class='degree_details'><b>Last Date Of Admission : </b>".date('M/d/Y',$degrees->last_date_of_admission)."</div>":'';
+								echo  (!empty($degrees->date_of_entrance_exam))?"<div class='degree_details'><b>Date Of Entrance Exam : </b>".date('M/d/Y',$degrees->date_of_entrance_exam)."</div>":'';
+								echo  (!empty($degrees->how_to_apply))?"<div class='degree_details'><b>How To Apply : </b>".$degrees->how_to_apply."</div>":'';
+								echo  (!empty($degrees->brochures_and_prospectus))?"<div class='degree_details'><b>Brochures And Prospectus : </b> <a href='".$CFG->siteroot."/file.php/brochures_and_prospectus/".$degrees->brochures_and_prospectus."' rel='lightbox[news 85% 85%]' border='0'>".$degrees->brochures_and_prospectus."</a> </div>":'';
+								echo '<div class="degree_block"></div>';
+							}
+						}else
+                        {
+                            echo " No Degrees Found.";
+                        }
+
+					?>
+				</td>
+			</tr>
+		</table>
+          <?php }else{ echo "<center><div align=\"center\" style=\"float:none!important;\"> No Majors and Degrees Found.</div></center>"; }?>
+	</div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+
+
+	<?php }
+
+		  ?>
+
+<?php 
+	require_once('includes/footer.php'); 
+?>

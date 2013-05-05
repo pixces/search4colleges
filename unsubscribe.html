@@ -1,0 +1,292 @@
+<?php 
+	require_once('cmiadmin/config.php');
+	//print_object($_SESSION);
+	require_once('includes/index_header.php'); 
+
+	print_r($_POST);
+
+?>
+<script type="text/javascript">
+function nope()
+{
+	window.location.href='index.html';
+}
+</script>
+  <!-- banner section >> -->
+  <div id="banner_sec">
+    <div class="left"><img src="images/banner.gif" alt="Banner" /></div>
+    <div class="center">
+      <div class="banner_txt">
+	  <h1>
+         <b>Our college search engine finds colleges and universities in the United States that will fulfill your academic needs.  Quickly search for a college by location, major, type, financial aid, and student reviews.</b>
+	  </h1>
+      </div>
+      <div class="banner_fields">
+        <div><img src="images/arrow.gif" alt="arrow" /> Find your School, College and Institute </div>
+        <a class="adv_search" href="advanced_search.html">Advanced Search</a>
+        <form method="post" action="colleges.html">
+          <div class="Category">Major
+            <select name="search_major[]" >
+			<option>Select Major</option>
+					<?php 
+						$main_majors = get_records('majors','parent_id','0'); 
+						if($main_majors)
+						{
+							foreach($main_majors as $main)
+							{					
+					?>			<option disabled value="0"><?php echo $main->name; ?></option>
+								<?php
+									$major_data = get_records('majors','parent_id',$main->id);
+									if($major_data)
+									{
+										foreach($major_data as $data)
+										{
+											if(is_array($major)&&in_array($data->id,$major))
+											{
+								?>				<option selected="selected" value="<?php echo $data->id; ?>">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $data->name; ?></option>
+								<?php		}
+											else
+											{
+								?>				<option value="<?php echo $data->id; ?>">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $data->name; ?></option>
+								<?php		}
+										}
+									}					
+							}
+						}							
+					?>				
+				</select>				
+          </div>
+          <div class="city">State
+			<select name="search_state">
+				<option value="">Select State</option>
+				<?php 
+					$state_data = get_records('state','status','active');
+					if($state_data)
+					{
+						foreach($state_data as $state)
+						{
+						?>	
+						<option value="<?php echo $state->name; ?>"><?php echo $state->name; ?></option>
+				<?php	}
+					}
+					
+				?>
+				</select>
+			</select>
+          </div>
+          <div class="zipcode">Zipcode
+            <input type="text" name="search_zip" class="validate['required']" />
+            <input type="hidden" name="submit" />
+          </div>
+          <div class="go-button">
+            <input type="image" src="images/go_btn.gif" alt="go" value="submit"/>
+          </div>
+        </form>
+      </div>
+    </div>
+	
+    <div class="right">
+	<?php if(!isset($_SESSION['user_type']) && !isset($_SESSION['user_type'])){ ?>
+      <h2> <b>REGISTER NOW <p>Join our site to be a member of the Education Community</p> </b> </h2>
+      <ul>
+        <li><a href="student_form.html">Student</a></li>
+        <li><a href="parent_form.html">Parent</a></li>
+        <li><a href="school_form.html">School / High School / College / Institute</a></li>
+        <li><a href="teacher_professor_form.html">Teacher / Professor / Educational Professional</a></li>
+        <li><a href="counselor_form.html">Counselor</a></li>
+      </ul>
+	  <?php } ?>
+    </div>
+	
+    <div class="clear"></div>
+  </div>
+  <!-- << banner section -->
+  <!-- content section >> -->
+  <div id="content_sec">
+    <div class="left">
+      <div class="login">        
+		 <?php  include_once("includes/login.php"); ?>        
+      </div>
+      <div class="box_a">
+        <div class="box">
+          <h3><b>Get it from States</b></h3>
+			<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/
+				cabs/flash/swflash.cab#version=6,0,40,0" width="260" height="200" id="mymoviename"> 
+				<param name="wmode" value="transparent">
+				<param name="movie" value="images/usaMap.swf" /> 		 
+				<param name="quality" value="high" />
+				<param name="bgcolor" value="#ffffff" />
+				<embed src="images/usaMap.swf" quality="high" bgcolor="#ffffff" width="260" height="200" name="mymoviename" align="" wmode="transparent" type="application/x-shockwave-flash" 
+				pluginspage="http://www.macromedia.com/go/getflashplayer"> 
+				</embed> 
+			</object> 
+	</div>
+      </div>
+    </div>
+    <div class="center">
+      <div class="content">
+        <!-- Start of Unsubscribe Newsletter  -->
+
+<?php
+
+$subscriber_email=optional_param('email','',PARAM_RAW);
+$hash = optional_param('hash','',PARAM_RAW); 
+
+if($subscriber_email!=''&&$hash!='')
+{
+	$sql="SELECT * FROM {$CFG->prefix}fe_users WHERE email='$subscriber_email'";
+	$subscriber = get_record_sql($sql);
+	if($subscriber)
+	{
+		$id=$subscriber->id;
+		$email=$subscriber->email;
+		$check=md5($email.$id);
+		if($hash==$check)
+		{
+			$verify='ok';
+		}
+		else
+		{
+			$verify='cancel';
+		}
+	}
+	else
+	{
+		$verify='cancel';
+	}
+}
+else
+{
+	$verify='cancel';
+}
+
+if($_POST)
+{
+	$chk_id = optional_param('chk_id','',PARAM_RAW);
+	$chk_email = optional_param('chk_email','',PARAM_RAW);
+	
+	$qry="SELECT * FROM {$CFG->prefix}fe_users WHERE id=$chk_id AND email='$chk_email'";
+	$chk_data=get_record_sql($qry);
+	
+	if($chk_data)
+	{
+		$unsubscribe = new object();
+		$unsubscribe->id = $chk_id;
+		$unsubscribe->newsletter = 'no';
+		if(update_record('fe_users',$unsubscribe))
+		{
+			$msg="Newsletter Un-Subscribed Successfully !!!";
+		}
+		else
+		{
+			$msg="Newsletter Un-Subscription Failed !!!";
+		}
+	}
+	else
+	{
+		$msg="Newsletter Un-Subscription Failed !!!";
+	}	
+	
+?>		
+	<div align="center" style="margin-top:50px;">
+		<b> <?php echo $msg; ?> </b>
+	</div>
+<?php
+}
+else
+{
+	if($verify=='ok')
+	{
+?>
+	<div align="center" style="margin-top:50px;">
+		<form method="post" action="">
+			<b>ARE YOU SURE WANT TO UNSUBSCRIBE THE NEWSLETTER...?</b><br/>
+			<input type="hidden" name="chk_id" value="<?php echo $id; ?>" />
+			<input type="hidden" name="chk_email" value="<?php echo $email; ?>" />
+			<input type="image" src="images/yes.jpg" value="YES" style="width:43px; height:19px; ">
+			<input type="button" src="images/no.jpg" value="" style="width:43px; height:19px; background:url('images/no.jpg'); border:none; cursor:pointer" onclick="nope();">
+		</form>
+	</div>
+<?php
+	}
+	else
+	{
+
+?>
+		<div align="center" style="margin-top:50px;">
+			<b>INVALID DATA</b>
+		</div>
+<?php
+	}
+}  
+?>
+
+
+<!-- End of Unsubscribe Newsletter  -->
+      </div>
+    </div>
+    <div class="right">
+      <div class="box_c">
+	  <?php
+		$school='';
+		$sql="select * from `{$CFG->prefix}schools` where  status='active' and featured='featured'";
+		$schools=get_records_sql($sql);
+		if(isset($schools))
+		{
+			foreach($schools as $school)
+			{
+	  ?>
+			<h3><b>We recommend</b></h3>
+			<a href="colleges_profile.html?view=<?php if(isset($school->user_id)) echo $school->user_id; ?>"><img src="file.php/schools/f5_<?php if(isset($school->logo)) echo $school->logo; ?>"/></a>
+			 <p> <a href="colleges_profile.html?view=<?php if(isset($school->user_id)) echo $school->user_id; ?>">
+						<?php  if(isset($school->school_name)) echo $school->school_name; ?>
+					</a> <br/>
+						<?php if(isset($school->city)) echo $school->city.',' .$school->state; ?>	  
+			 </p>
+		<?php		 
+			}
+		}
+		else
+		{
+		?>
+		<h3><b>We recommend</b></h3>
+        <a href="colleges_profile.html"><img src="images/pic_1.gif" alt="home" /></a>
+		<p><a href="colleges_profile.html">Brooklyn College </a> <br/>
+			Brooklyn,New York </p>
+		<?php }?>
+      </div>
+      <div class="box_b">
+	   <h3><b>Articles</b></h3>
+ <?php
+	$time = time();
+	$sql="select * from {$CFG->prefix}articles where status='active' ORDER BY `added_date` DESC LIMIT 2 ";
+	$articles=get_records_sql($sql);
+		if($articles!='')
+		{
+			foreach($articles as $value)
+			{
+					$description=strip_tags($value->long_description);
+					$description_new=wrap_string($description, $width=50);
+					
+			?>  		
+			<p>
+				<!--<span><?php   echo date('d F Y',$value->article_date); ?></span>-->
+				<b align="justify"><a href="articles_details.html?id=<?php echo $value->id; ?>"><?php echo $value->name; ?> </a></b><br/>
+				<?php   echo $description_new; ?> 
+			</p>
+			<?php
+			}
+			?><span class="in_Right_link"><a href="articles.html">Read More</a></span>
+		<?php
+		}
+		?>       
+      </div>
+    </div>
+    <div class="clear"></div>
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+	require_once('includes/footer.php'); 
+?>
+

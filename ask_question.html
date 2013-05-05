@@ -1,0 +1,118 @@
+<?php
+	require_once("cmiadmin/lib/phpmailer/class.phpmailer.php");
+	require_once('cmiadmin/config.php'); 
+	
+	require_once('includes/checkExpire.php');
+	
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php');
+	$user_info = check_login();
+	if(isset($_POST['add_mode']) && $_POST['add_mode'] =='add_mode')
+	{
+		$sender_id=optional_param('sender_id','',PARAM_INT);
+		$counsoler_id=optional_param('counsoler_id','',PARAM_INT);
+		$subject=optional_param('subject','',PARAM_TEXT);
+		$question=optional_param('question','',PARAM_TEXT);
+		$counsoler_info=get_user_info($counsoler_id);
+		$sender_info=get_user_info($_SESSION['s4c_user_id']);
+
+		//$add				= new object();
+		//$add->user_id		= $sender_id;
+		//$add->counselor_id	= $counsoler_id;
+		//$add->topic			= $topic;
+		//$add->question		= $question;
+		//$add->added_date	= time();
+
+		$to_email=$counsoler_info->email;
+		$from_email=$sender_info->email;
+		$from_name=$sender_info->first_name;
+		$sub_ject="Search 4 Colleges Ask Question $from_name";
+		$msg = "<br /><a href='".$CFG->siteroot."'><img src='".$CFG->siteroot."/cmiadmin/theme/cmi/images/cmi_logo.png' alt='Logo' border='0' /></a><br /><br />"; 
+		$msg .='<b>Hello ' .$counsoler_info->name.',<br/>Subject: </b>'.$subject.' <br/><b>Your query :</b>'.$question;
+		$msg .= <<<OP
+				<div style="background-color:#FFFFFF;">
+					  <br /><b>Thanks,</b><br />
+						<b>S4c </b>
+				</div>
+OP;
+
+		global $CFG;
+		$mail				= new PHPMailer();
+		$mail->IsHTML(true);
+		$mail->From			= $from_email;
+		$mail->FromName		= $from_name;
+		$mail->Subject		= $sub_ject;
+		$mail->Body			= $msg;
+		$mail->AddAddress($to_email);
+
+		if($mail->send())
+		{			
+			$message = new object();
+			$message->sender_id		= $sender_id;
+			$message->receiver_id	= $counsoler_id;			
+			$message->is_query		= 'yes';
+			$message->subject		= $subject;
+			$message->message		= $question;
+			$message->added_date	= time();
+			insert_record('messages',$message);
+			?>
+			<script  type="text/javascript">
+				parent.window.location = 'counselor_search.html?query=success';
+				parent.Mediabox.close();			
+			</script>
+			<?php 
+		}
+		else
+		{
+			?>
+			<script  type="text/javascript">
+				parent.window.location = 'counselor_search.html?query=fail';
+				parent.Mediabox.close();			
+			</script>
+			<?php 
+		}
+	}
+	$user_id = required_param('id',PARAM_INT);	
+	$flag = required_param('flag',PARAM_TEXT);	
+	$counsoler_info=get_user_info($user_id);
+	$sender_info=get_user_info($_SESSION['s4c_user_id']);
+	
+
+?>
+<script type="text/javascript" >
+	window.addEvent('domready', function(){
+		new FormCheck('askquestion',{display:{showErrors:1}});
+	});	
+	
+</script>
+<form method="post" action="ask_question.html" id="askquestion" name="askquestion">
+<br/><br/><br/>
+<table border="0" width="100%">
+
+<tr>
+	<td>To</td>
+	<td><input type="textbox" name="from" value="<?php echo $counsoler_info->name;  ?>" readonly/></td>
+</tr>
+<tr>
+	<td>Subject</td>
+	<td><input type="textbox" name="subject" class="input_text validate['required']" /></td>		
+</tr>
+<tr>
+	<td>Question</td>
+	<td><textarea name="question" id="question" class="text_area_box validate['required']" rows="2" cols="40"></textarea></td>
+</tr>
+<tr>
+	<td>&nbsp;&nbsp;</td>
+	<td>
+		<input type="hidden" name="counsoler_id" value="<?php echo $counsoler_info->user_id;   ?>"/>
+		<input type="hidden" name="sender_id" value="<?php echo $sender_info->user_id;   ?>"/>
+		<input type="hidden" name="add_mode" value="add_mode"/>
+		<input type="image" name="submit" src="images/submit.jpg"/>
+	</td>
+</tr>
+</table>
+</form>
+
+

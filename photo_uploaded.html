@@ -1,0 +1,157 @@
+<?php 
+	
+	require_once('includes/checkExpire.php');
+	
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php');
+	$user_info = check_login();
+	$target_path = $CFG->dataroot."/gallery/";	
+
+	if(!file_exists($target_path)){
+		mkdir($CFG->dataroot."/gallery/",777);
+	}
+
+	$msg = '';
+	$msg_err = 0;
+	$msg_suc = 0;
+	//$uploaded_image = '';
+	//for($i = 1;$i<=$CFG->image_limit;$i++){
+		if(isset($_FILES["photo"]['name']) && !empty($_FILES["photo"]['name'])){
+			$file_size = ($_FILES["photo"]['size'])/1000000;
+			if($file_size < 1){
+				$add_mode_image = upload_image("photo",$target_path);			
+				if($add_mode_image)
+					$photo = $add_mode_image;
+				else
+					$photo = '';			
+				if($photo){
+					$comment	= optional_param("comment",'', PARAM_TEXT);
+					$add_mode = new object();
+					$add_mode->comment = $comment;
+					$add_mode->name = $photo;
+					$add_mode->type = 'image';
+					$add_mode->added_date = time();
+					$add_mode->user_id = $_SESSION['s4c_user_id'];
+					if($new =insert_record('gallery', $add_mode)){
+						$msg_suc++;
+						$uploaded_image = '<img src="file.php/gallery/f5_'.$photo	.'" alt="gggg" >';
+					}else{
+						$msg_err++;
+						
+					}
+				}
+			}else{
+				$msg_err++;
+				
+			}
+		}
+	//}
+		//echo $uploaded_image;
+		
+	if($msg_suc != 0){
+		$msg_suc = '<br/>'.$msg_suc.'&nbsp; File Successfully Loaded <br />Your files will be moderated and will be published online within 24 hours <br/>'.$uploaded_image.'<br />';
+	}
+	if($msg_err != 0){
+		$msg_err = '<br/>&nbsp; Unable to upload : </b>'.$msg_err.' File<br /> <br/>';
+	}
+		if(!empty($msg_suc))
+		$msg .= $msg_suc;
+	if(!empty($msg_err))
+		$msg .= $msg_err;
+
+
+	$user_id = $_SESSION['s4c_user_id'];
+	$photo_uploaded = get_records_select('gallery'," type='image' AND approved != 'declined' AND user_id=$user_id AND status ='active' ");
+
+	if($photo_uploaded)
+		$photo_uploaded_count = count($photo_uploaded);
+	else
+		$photo_uploaded_count = 0;	
+?>
+  <!-- << header section -->
+  <!-- content section >> -->
+  <div id="content_sec">
+    <!-- << left content -->
+		<?php include_once('includes/left_content.php'); 		
+		?>
+    <!-- left content >> -->
+    <!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><a href="pictures_and_videos.html">Pictures & Videos</a></li>
+            <li class="in_aroow"><span>Upload Pictures</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+        <div class="clear"></div>
+        <h1> <span>Upload Pictures</span></h1>
+        <div class="clear"></div>
+      </div>
+      <div class="clear"></div>
+
+	  <form id="gallery" name="gallery"  method="post" action="photo_uploaded.html" enctype="multipart/form-data">
+     <?php if($photo_uploaded_count < $CFG->image_limit){ ?>
+	  <div id="upload_form">
+        <div class="rgs_heading">
+          <div class="req2">Photos: You can uploaded, Jpg, GIF or PNG files.</div>
+          <h3>Upload Photos</h3>
+          <div class="clear"></div>
+		  <br />
+		  <h2><?php echo $msg ;?></h2>
+        </div>
+		<div id="upload_div>" >
+		<?php
+		//$CFG->image_limit = 5;
+		/*for($i =($photo_uploaded_count+1) ;$i<= $CFG->image_limit;$i++){
+			if($i == ($photo_uploaded_count+1)){
+				$chek = "'required',";
+			}else{
+				$chek = '';
+			}*/
+		
+			echo "
+				<div class='rgs_heading3'>
+				<div class='rgs_input1' ><h4>Select Image</h4>
+				  <input name='photo' id='photo' type='file' class=\"input_file validate['image']\"/>
+				</div>
+				<div class='rgs_textarea1' ><h4>Write Comment</h4>
+					<textarea name='comment' id='comment' cols='20' rows='' class='text_box' ></textarea><div class='courve'>(max. 100 characters)</div><div class='clear'>
+				</div>
+				</div><div class='clear'></div>
+				</div>";
+				?>
+		</div>
+			<?php 
+			}
+		?>
+        <?php if($photo_uploaded_count <$CFG->image_limit ){ ?>
+		
+        <div class="wraper5">
+          <input type="image" src="images/save.jpg" style="width:84px; height:24px;" />
+          <img src="images/cancel_bottom.jpg" style="width:84px; height:24px;cursor:pointer" onclick="javascript:history.go(-1);"/>
+        </div>
+		<div align="center">The file limit 1MB, If your upload doest not work, try uploading a smaller picture. </div>
+		<?php }else{ ?>
+			<div align="center">Maximum Photo upload Limit Exceeded </div>
+		<?php } ?>
+      </div>
+      <div id="upload_form_btm"></div>
+    </div>
+	</form>
+    <div class="clear"></div>
+    <!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+	require_once('includes/footer.php'); 
+?>

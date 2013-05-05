@@ -1,0 +1,84 @@
+<?php 
+	require_once('includes/header.php'); 
+?>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+   <?php require_once("includes/left_content.php"); ?>
+	?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>            
+            <li class="in_aroow"><span>Completing the FAFSA</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+        <div class="clear"></div>
+        <h1>Completing the FAFSA</h1>
+       
+        <div class="clear"></div>
+      </div>
+		<p>FAFSA is the acronym for Federal Application for Student Aid.  You may complete the FAFSA application in one of three ways: online, which is highly recommended, by signing a PDF application, or calling an 800 number and receiving a paper FAFSA hard copy in the mail.</p>
+		<p>Before explaining how to use each of these options stated above, we will provide a list of the documents you will need before starting your application. Build your own check list so you will not forget any of the items outlined below.</p>
+		<p><strong>Documents list</strong></p>
+		<ol>
+		  <li>Your social Security card.</li>
+	      <li>Drivers license or State identification</li>
+	      <li>permanent resident receipt card if applicable</li>
+	      <li>W2 forms or records of money earned during the past 12 months</li>
+	      <li>2010 income tax return, if you do not have this document please view the instructions on the FAFSA.</li>
+	      <li>Records of child support paid if this applies to you.</li>
+	      <li>Your records of taxable earnings from student based work.  For example if you are  in a work study program.</li>
+	      <li>Records of student grants, scholarships, and Fellowship aid including AmeriCorps Awards, which you may have received.</li>
+	      <li>Current stock, bond, or other investment records.</li>
+	      <li>Current business and farm records if applicable.</li>
+	      <li>Current bank statements</li>
+	      <li>If you are a dependent student, your parent’s bank statements will be needed.</li>
+	      <li>Read through the privacy act regarding use of your social security number.</li>
+      </ol>
+	    <p><strong>FAFSA completion methods</strong></p>
+        <p>If you plan to complete your FAFSA on the web, please visit: www.fafsa.gov.  Click on the link marked start here.  You will be asked to provide the following information.</p>
+        <ul style="list-style-type: upper alpha;">
+          <li type="A">your Name, first, middle, and last</li>
+          <li type="A">date of Birth</li>
+          <li type="A">Social Security Number</li>
+          <li type="A">Apply for a Federal student aid PIN if you do not have one.  The Pin will save you time.</li>
+          <li type="A">Parents of dependent students need to apply for a PIN if they do not have one.</li>
+          <li type="A">Plan how you are going to sign your FAFSA using a PIN or signature page.</li>
+          <li type="A">read through eligibility requirements.  If you have questions E-mail them to cpascal@search4college.com</li>
+          <li type="A">pay special attention to all important application deadline dates, you can refer to www.fafsa.gov for reference.</li>
+          <li type="A">If you do not sign your FAFSA online, you will need to print out a hard copy of the application and mail it to the address stated on the document. You have 14 days to submit your hard copy. Submitting a signature will increase the process time for your application.</li>
+          <li type="A">When filing electronically or online, your application can be submitted to the schools you listed on your FAFSA.</li>
+          <li type="A">Read through your completed FAFSA form at least twice to ensure no information has been left out.</li>
+          <li type="A">Blank boxes are a time killer, avoid them at all times.</li>
+        </ul>
+        <p><strong>PDF FAFSA</strong></p>
+        <p>Please visit: www.studentaid.ed.gov/PDFfafsa</p>
+        <p>You may type in your responses on the form and print it, or you may print out the form and fill in your answers.  The PDF FAFSA requires a signature page and will take longer to process. </p>
+        <p>Paper FAFSA</p>
+        <p>If you want to complete a paper FAFSA, call the Federal Student aid information center at 1-800-4-333-333. <br />
+            <br />
+          A FAFSA form will be mailed directly to you.  Please fill out the form using a black pen, no other colors will be accepted. <br />
+          When reporting dates, numbers below ten should have a 0 in front of the number.  For example February is written 02 and May is expressed as 05.  When rounding dollar amounts, please round to the highest dollar.  For example $9.99 will be rounded to $10. <br />
+          Please do not leave any questions blank in your electronic or paper forms unless specifically told to do so.  Blank boxes will slow down your application. </p>
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+	require_once('includes/footer.php'); 
+?>

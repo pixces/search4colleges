@@ -1,0 +1,1233 @@
+<?php 
+	require_once('includes/header.php');
+	
+	$perpage			= '10';
+	$page				= optional_param('page', '0', PARAM_TEXT); 
+	$start				= ($page) * $perpage;	
+	$baseurl			= 'advanced_search.html?page';
+	$msg				= optional_param('msg', '', PARAM_TEXT); 
+	$qstr='';
+	$campus_area = "";
+	$only_for_locals = "";
+	$state = "";
+	$population = "";
+	$majors = "";
+	$student_body = "";
+	$cultural_diversity = "";
+	$going_greek = "";
+	$dorm_sweet_dorm = "";
+	$selectivity = "";
+	$gpa = "";
+	$club = "";
+	$sports = "";
+	$degree = "";
+	$affiliations_accreditation = "";
+	$school_type = "";
+	$tution_fees = "";
+	$school_name = "";
+	
+	$extraselect = "";
+	// filter expired college from feuser
+	    $currentDate = time();
+	    $dateData = get_records_sql("SELECT id,added_date FROM fe_users WHERE status='active' and id NOT IN (SELECT school_id FROM school_membership WHERE status='active' and expiryon> ".time().")");
+		$exp_date = array();
+		foreach($dateData as $dateDataval)
+		{
+			$login30Day = strtotime('+30days', $dateDataval->added_date);
+			if($currentDate > $login30Day){
+			$exp_date[$dateDataval->id] = $dateDataval->id;
+			}
+		}
+		
+	// filter end 
+	if(isset($_REQUEST['submit']))
+	{	
+		$campus_area = optional_param('campus_area','',PARAM_RAW);
+		$only_for_locals = optional_param('only_for_locals','',PARAM_RAW);
+		$state = optional_param('state','', PARAM_RAW);
+		$school_name = optional_param('school_name','', PARAM_RAW);
+		$population = optional_param('population','', PARAM_RAW);
+		$majors = optional_param('majors','', PARAM_RAW);		
+		$student_body = optional_param('student_body','', PARAM_RAW);
+		$cultural_diversity = optional_param('cultural_diversity','', PARAM_RAW);
+		$going_greek = optional_param('going_greek','', PARAM_RAW);
+		$dorm_sweet_dorm = optional_param('dorm_sweet_dorm','', PARAM_RAW);
+		$selectivity = optional_param('selectivity','', PARAM_RAW);
+		$gpa = optional_param('gpa','', PARAM_RAW);
+		$club = optional_param('club','', PARAM_RAW);
+		$degree = optional_param('degree','', PARAM_RAW);
+		$affiliations_accreditation = optional_param('affiliations_accreditation','', PARAM_RAW);
+		$school_type = optional_param('school_type','', PARAM_RAW);
+		$tution_fees = optional_param('tution_fees','', PARAM_RAW);
+		$sports = optional_param('sports','', PARAM_RAW);
+		if(isset($campus_area) && !empty($campus_area))
+		{
+			if(is_array($campus_area))
+			{
+			  $campus_area = implode("-",$campus_area);
+			}
+			$qstr .= "&campus_area=".$campus_area;
+		}
+		if($only_for_locals!='')
+		{
+			$qstr .= "&only_for_locals=".$only_for_locals;
+		}
+		if($state!='')
+		{
+			$qstr .= "&state=".$state;
+		}
+		if($population!='')
+		{
+			$qstr .= "&population=".$population;
+		}
+		if(isset($majors) && !empty($majors))
+		{
+			if(is_array($majors))
+			{
+				$majors = implode("-",$majors);
+			}
+			$qstr .= "&majors=".$majors;
+		}
+		if($student_body!='')
+		{
+			$qstr .= "&student_body=".$student_body;
+		}
+		if($cultural_diversity!='')
+		{
+			$qstr .= "&cultural_diversity=".$cultural_diversity;
+		}
+		if($going_greek!='')
+		{
+			$qstr .= "&going_greek=".$going_greek;
+		}
+		if($going_greek!='')
+		{
+			$qstr .= "&going_greek=".$going_greek;
+		}
+		if($dorm_sweet_dorm!='')
+		{
+			$qstr .= "&dorm_sweet_dorm=".$dorm_sweet_dorm;
+		}
+		if($selectivity!='')
+		{
+			$qstr .= "&selectivity=".$selectivity;
+		}
+		if($gpa!='')
+		{
+			$qstr .= "&gpa=".$gpa;
+		}
+		if($club!='')
+		{
+			$qstr .= "&club=".$club;
+		}
+		if($degree!='')
+		{
+			$qstr .= "&degree=".$degree;
+		}
+		if($affiliations_accreditation!='')
+		{
+			$qstr .= "&affiliations_accreditation=".$affiliations_accreditation;
+		}
+		if($school_type!='')
+		{
+			$qstr .= "&school_type=".$school_type;
+		}
+		if($tution_fees!='')
+		{
+			$qstr .= "&tution_fees=".$tution_fees;
+		}
+		if($sports!='')
+		{
+			$qstr .= "&sports=".$sports;
+		}
+		if($school_name!='')
+		{
+			$qstr .= "&school_name=".$school_name;
+		}
+		$qstr .= "&submit=y";
+		if(!empty($majors) && !is_array($majors))
+		{
+			$majors=explode("-",$majors);
+		}
+		if(!empty($campus_area) && !is_array($campus_area))
+		{
+			$campus_area=explode("-",$campus_area);
+		}
+		
+		if(is_array($campus_area))
+		{
+			$c_area = implode(',',$campus_area);
+			$campus_area_ids = implode("','",$campus_area);
+			
+            if(in_array('Any',$campus_area))
+			{
+			  $campus_area_ids1="'Rural','Urban'";
+			  $sql = "SELECT * FROM {$CFG->prefix}schools_additional WHERE type_of_campus_area IN (".$campus_area_ids1.")";
+			}else{
+			  $sql = "SELECT * FROM {$CFG->prefix}schools_additional WHERE type_of_campus_area IN ('".$campus_area_ids."')";
+			}
+			$campus_data = get_records_sql($sql);
+			if($campus_data)
+			{			
+				$campus_ids[] = 0;
+				foreach($campus_data as $campus)
+				{
+					if(in_array($campus->school_id,$campus_ids))
+					{
+						//continue
+					}
+					else
+					{
+						$campus_ids[] = $campus->school_id;					
+					}					
+				}				
+				
+				$c_ids = implode(',',$campus_ids);							
+				$extraselect .= " AND user_id IN (".$c_ids.")";
+			}	
+			else
+			{
+				//$extraselect .= " AND user_id='0'";
+			}				
+		}
+		else
+		{
+			$c_area = "";
+		}	
+
+		if($only_for_locals!='')
+		{
+			if($only_for_locals=="Any")
+			{
+			    $only_for_locals1="'Mostly in-state','Mostly out-of-state','Balanced'";
+			    $sql = "SELECT * FROM {$CFG->prefix}schools_additional WHERE only_for_local IN (".$only_for_locals1.")";
+						$locals_data = get_records_sql($sql);
+						if($locals_data)
+						{			
+							$local_ids[] = 0;
+							foreach($locals_data as $local)
+							{
+								if(in_array($local->school_id,$locals_data))
+								{
+									//continue
+								}
+								else
+								{
+									$local_ids[] = $local->school_id;					
+								}					
+						    }				
+				
+								$l_ids = implode(',',$local_ids);							
+								$extraselect .= " AND user_id IN (".$l_ids.")";
+						}
+			}	
+		
+			else
+			{
+				$locals_data = get_records('schools_additional','only_for_local',$only_for_locals);
+				if($locals_data)
+				{			
+					$local_ids[] = 0;
+					foreach($locals_data as $local)
+					{
+						$local_ids[] = $local->school_id;
+					}				
+					$l_ids = implode(',',$local_ids);							
+					$extraselect .= " AND user_id IN (".$l_ids.")";
+				}	
+				else
+				{
+					//$extraselect .= " AND user_id='0'";
+				}
+					
+			}
+		}	
+		
+		
+		
+		if(!empty($state))
+		{
+			if(preg_match('/\d$/', $state))
+			{  
+				$get_state = get_field('state','id','id',$state,'status','active'); 
+			} 
+			else
+			{  
+				$get_state = get_data_frontend('state','id',$state,'name'); 
+			} 	
+				
+			$extraselect .= " AND state = ".$get_state ; 
+		}
+		if(!empty($school_name))
+		{
+		    $extraselect .= " AND s.school_name like '%".$school_name."%'" ;
+		}
+		
+		if($population!='')
+		{
+            if($population!='' && $population <= '15000'){ 
+            $sql = "SELECT school_id FROM {$CFG->prefix}schools_additional WHERE student_population <= ".$population." AND status='active' "; 
+			$population_data = get_records_sql($sql);
+            
+            }else{
+            
+            $population =	str_replace('+','',$population);
+            $sql = "SELECT school_id FROM {$CFG->prefix}schools_additional WHERE student_population > ".$population." AND status='active' "; 
+			$population_data = get_records_sql($sql);
+            }
+            			
+			if($population_data)
+			{	
+				$population_ids[] = 0;
+				foreach($population_data as $p_data)
+				{
+					$population_ids[]=$p_data->school_id;
+				}				
+				$p_ids = implode(',',$population_ids);				
+				$extraselect .= " AND user_id IN (".$p_ids.")";				
+			}
+			else
+			{
+				//$extraselect .= " AND user_id='0'";
+			}			
+		}		
+		
+		if(is_array($majors))
+		{
+			$major_ids = implode(',',$majors);
+			$sql = "SELECT * FROM {$CFG->prefix}school_major WHERE major_id IN (".$major_ids.")";
+			$major_data = get_records_sql($sql);		
+			
+			if($major_data)
+			{
+				$major_values[]=0;
+				foreach($major_data as $major)
+				{	
+					if(in_array($major->school_id,$major_values))
+					{
+						//continue
+					}
+					else
+					{
+						$major_values[] = $major->school_id;					
+					}
+				}
+				$m_ids = implode(',',$major_values);						
+				$extraselect .= " AND user_id IN(".$m_ids.")"; 
+			}
+			else
+			{
+				//$extraselect .= " AND user_id='0'";
+			}		
+		}	
+		else
+		{
+			$major_ids = "";
+		}
+
+		if($student_body!='')
+		{
+			$body_data = get_records('schools_additional','student_body',$student_body);
+			if($body_data)
+			{			
+				$body_ids[] = 0;
+				foreach($body_data as $body)
+				{
+					$body_ids[] = $body->school_id;
+				}				
+				$b_ids = implode(',',$body_ids);							
+				$extraselect .= " AND user_id IN (".$b_ids.")";
+			}	
+			else
+			{
+				//$extraselect .= " AND user_id='0'";
+			}			
+		}
+
+		if($sports!='')
+		{
+			$body_data = get_records('school_culture_campus_life_sports ','team_type',$sports);
+			
+			if($body_data)
+			{			
+				$body_ids[] = 0;
+				foreach($body_data as $body)
+				{
+					$body_ids[] = $body->school_id;
+				}				
+				$b_ids = implode(',',$body_ids);							
+				$extraselect .= " AND user_id IN (".$b_ids.")";
+			}	
+			else
+			{
+				//$extraselect .= " AND user_id='0'";
+			}			
+		}
+		
+		if($cultural_diversity!='')
+		{			
+			$cultural_data = get_records('schools_additional','cultural_diversity',$cultural_diversity);
+			if($cultural_data)
+			{			
+				$cultural_ids[] = 0;
+				foreach($cultural_data as $cultural)
+				{
+					$cultural_ids[] = $cultural->school_id;
+				}				
+				$cd_ids = implode(',',$cultural_ids);							
+				$extraselect .= " AND user_id IN (".$cd_ids.")";
+			}	
+			else
+			{
+				//$extraselect .= " AND user_id='0'";
+			}			
+		}	
+		
+		if($going_greek!='')
+		{			
+			
+			if($going_greek=="Any")
+			{
+			    $going_greek1="'Fraternities','Sororities'";
+			    $sql = "SELECT * FROM {$CFG->prefix}school_culture_campus_life WHERE going_greek IN (".$going_greek1.")";
+						$greek_data = get_records_sql($sql);
+						if($greek_data)
+						{			
+							$greek_ids[] = 0;
+							foreach($greek_data as $g_data)
+							{
+								if(in_array($g_data->school_id,$greek_ids))
+								{
+									//continue
+								}
+								else
+								{
+									$greek_ids[] = $g_data->school_id;					
+								}					
+						    }				
+				
+								$g_ids = implode(',',$greek_ids);							
+								$extraselect .= " AND user_id IN (".$g_ids.")";
+						}
+			}	
+		
+			else
+			{
+				$greek_data = get_records('school_culture_campus_life','going_greek',$going_greek);
+				if($greek_data)
+				{			
+					$greek_ids[] = 0;
+					foreach($greek_data as $g_data)
+					{
+						$greek_ids[] = $g_data->school_id;
+					}				
+					$g_ids = implode(',',$greek_ids);							
+					$extraselect .= " AND user_id IN (".$g_ids.")";
+				}	
+				else
+				{
+					//$extraselect .= " AND user_id='0'";
+				}
+            }				
+		}
+		
+		if($dorm_sweet_dorm!='')
+		{			
+        	if($dorm_sweet_dorm == 'Yes-for all undergrads'){
+            	$k_dorm_sweet_dorm = 'undergrads';
+            }else{
+            	$k_dorm_sweet_dorm = 'freshmen';
+            }
+
+            $sql = "SELECT * FROM {$CFG->prefix}school_culture_campus_life WHERE dorm_sweet_dorm = '".$k_dorm_sweet_dorm."'";
+			$dorm_data = get_records_sql($sql);
+			if($dorm_data)
+			{			
+				$dorm_ids[] = 0;
+				foreach($dorm_data as $d_data)
+				{
+					$dorm_ids[] = $d_data->school_id;
+				}				
+				$d_ids = implode(',',$dorm_ids);							
+				$extraselect .= " AND user_id IN (".$d_ids.")";
+			}	
+			else
+			{
+				//$extraselect .= " AND user_id='0'";
+			}			
+		}
+		
+		if($selectivity!='')
+		{			
+        	$selectivity = str_replace(' ','_',$selectivity);		
+            $selectivity_data = get_records('school_culture_campus_life','selectivity',$selectivity);
+			if($selectivity_data)
+			{			
+				$selectivity_ids[] = 0;
+				foreach($selectivity_data as $select_data)
+				{
+					$selectivity_ids[] = $select_data->school_id;
+				}				
+				$select_ids = implode(',',$selectivity_ids);							
+				$extraselect .= " AND user_id IN (".$select_ids.")";
+			}	
+			else
+			{
+				//$extraselect .= " AND user_id='0'";
+			}			
+		}
+		
+		
+		
+		if($gpa!='')
+		{					
+			$gpa_data = get_records('school_culture_campus_life','schoolculture_campuslife_gpa_id',$gpa);
+			if($gpa_data)
+			{			
+				$gpa_ids[] = 0;
+				foreach($gpa_data as $gdata)
+				{
+					$gpa_ids[] = $gdata->school_id;
+				}				
+				$gpaids = implode(',',$gpa_ids);							
+				$extraselect .= " AND user_id IN (".$gpaids.")";
+			}	
+			else
+			{
+				//$extraselect .= " AND user_id='0'";
+			}			
+		}
+		
+		if($club!='')
+		{					
+			$club_data = get_records('school_club_mm','club_id',$club);
+			if($club_data)
+			{			
+				$club_ids[] = 0;
+				foreach($club_data as $cbdata)
+				{
+					$club_ids[] = $cbdata->school_id;
+				}				
+				$clubids = implode(',',$club_ids);							
+				$extraselect .= " AND user_id IN (".$clubids.")";
+			}	
+			else
+			{
+				//$extraselect .= " AND user_id='0'";
+			}			
+		}
+		
+		if($degree!='')
+		{					
+			$degree_data = get_records('school_admission_details ','degree_id',$degree);
+			if($degree_data)
+			{			
+				$degree_ids[] = 0;
+				foreach($degree_data as $dgdata)
+				{
+					$degree_ids[] = $dgdata->school_id;
+				}				
+				$degreeids = implode(',',$degree_ids);							
+				$extraselect .= " AND user_id IN (".$degreeids.")";
+			}	
+			else
+			{
+				//$extraselect .= " AND user_id='0'";
+			}			
+		}	
+		
+		
+		if($affiliations_accreditation!='')
+		{					
+			$accreditation_data = get_records('schools_additional','affiliations_id',$affiliations_accreditation);
+			if($accreditation_data)
+			{			
+				$accreditation_ids[] = 0;
+				foreach($accreditation_data as $a_data)
+				{
+					$accreditation_ids[] = $a_data->school_id;
+				}				
+				$accids = implode(',',$accreditation_ids);							
+				$extraselect .= " AND user_id IN (".$accids.")";
+			}	
+			else
+			{
+				//$extraselect .= " AND user_id='0'";
+			}			
+		}
+			
+		if($school_type!='')
+		{					
+			$s_type_data = get_records('schools_additional','institution_type',$school_type);
+			if($s_type_data)
+			{			
+				$type_ids[] = 0;
+				foreach($s_type_data as $typedata)
+				{
+					$type_ids[] = $typedata->school_id;
+				}				
+				$stids = implode(',',$type_ids);							
+				$extraselect .= " AND user_id IN (".$stids.")";
+			}	
+			else
+			{
+				//$extraselect .= " AND user_id='0'";
+			}			
+		}
+
+		if($tution_fees!='')
+		{					
+			$tution_fees_data = get_records('schools_additional','tution_fees',$tution_fees);
+			if($tution_fees_data)
+			{			
+				$fees_ids[] = 0;
+				foreach($tution_fees_data as $fees_data)
+				{
+					$fees_ids[] = $fees_data->school_id;
+				}				
+				$fids = implode(',',$fees_ids);							
+				$extraselect .= " AND user_id IN (".$fids.")";
+			}	
+			else
+			{
+				//$extraselect .= " AND user_id='0'";
+			}			
+		}
+		
+							
+		//$qry = "SELECT count(id) as max_count FROM ".$CFG->prefix."schools WHERE status = 'active'".$extraselect;
+		if(!empty($extraselect))
+		{
+		$qry = "SELECT count(s.id) as max_count FROM ".$CFG->prefix."schools s,".$CFG->prefix."fe_users f WHERE s.status = 'active'".$extraselect." AND f.id NOT IN (".implode(",",$exp_date).") AND user_id=f.id";
+		$data = get_record_sql($qry);
+		$totalcount = $data->max_count;
+		}
+         
+	    if(!empty($extraselect))
+		{
+$student_data2 = get_records_sql('SELECT * FROM '.$CFG->prefix.'schools s, '.$CFG->prefix.'fe_users f WHERE s.status = "active" '.$extraselect.' AND f.id NOT IN ('.implode(",",$exp_date).') AND user_id=f.id ORDER BY school_name LIMIT '.$start.', '.$perpage);
+        }
+		//$student_data2 = get_records_sql('SELECT * FROM '.$CFG->prefix.'schools WHERE status = "active" '.$extraselect.' ORDER BY school_name LIMIT '.$start.', '.$perpage);
+ 
+		
+		//$qry = "SELECT * FROM ".$CFG->prefix."schools WHERE status = 'active' ".$extraselect." ORDER BY school_name";
+		if(!empty($extraselect))
+		{
+		$qry = 'SELECT * FROM '.$CFG->prefix.'schools s, '.$CFG->prefix.'fe_users f WHERE s.status = "active" '.$extraselect.' AND f.id NOT IN ('.implode(",",$exp_date).') AND user_id=f.id ORDER BY school_name';
+		$query = urlencode($qry);
+		}
+
+	}
+	/*else
+	{
+		$qry = "SELECT count(id) as max_count FROM ".$CFG->prefix."schools WHERE status = 'active'";
+		$data = get_record_sql($qry);
+		$totalcount = $data->max_count;
+	}*/
+	if(isset($qstr) && !empty($qstr))
+	{
+		$qstr=substr($qstr,1);
+		$baseurl = "advanced_search.html?".$qstr."&page";
+	}
+	
+?>
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  <script language="JavaScript">
+  function show_search()
+  {
+            var title_id = document.getElementById("title_id").style.display;
+            if (title_id == 'block') {
+                document.getElementById("title_id").style.display = 'none';
+            } else {
+                document.getElementById("title_id").style.display = 'block';
+            }
+			var accr_id = document.getElementById("accr_id").style.display;
+            if (accr_id == 'block') {
+                document.getElementById("accr_id").style.display = 'none';
+            } else {
+                document.getElementById("accr_id").style.display = 'block';
+            }
+			var search_id = document.getElementById("search_id").style.display;
+            if (search_id == 'block') {
+                document.getElementById("search_id").style.display = 'none';
+            } else {
+                document.getElementById("search_id").style.display = 'block';
+            }
+			var filter_id = document.getElementById("filter_id").style.display;
+            if (filter_id == 'block') {
+                document.getElementById("filter_id").style.display = 'none';
+            } else {
+                document.getElementById("filter_id").style.display = 'block';
+            }
+		
+  }
+  </script>
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><span>Search Colleges</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+
+        <div class="clear"></div>
+        <h1><span>Colleges</span></h1>       
+        <div class="clear"></div>
+      </div>
+	  
+	  
+      <div class="clear"></div>
+		<form method="post" action="">
+		<div id="upload_form">
+        <div class="rgs_heading"> 
+		<br />
+        <div <?php if(!empty($student_data2)) {?> style="display:none;" <?php } ?> id="title_id"><h2>Search Colleges by following criteria's</h2></div>		
+		
+		<?php if(isset($_REQUEST['submit'])) { ?>
+			<h2 align='center'><?php if($totalcount==0){ echo "No Records Found !!"; }else{ echo $totalcount." Record(s) Found !!"; } ?></h2>
+		<?php } elseif(isset($_GET['msg'])) { ?>
+			<h2 align='center'><?php echo $msg; ?></h2>
+		<?php } ?>		
+		
+		<!--<span style="cursor:pointer" onclick="window.location='advanced_search.html'">Reset</span>-->
+			
+		<dl class="accordion" <?php if(!empty($student_data2)) {?> style="display:none;" <?php } ?> id="accr_id">
+		
+		<dt class="accordion_toggler_1">BASIC</dt>
+			<dd class="accordion_content_1">	
+            	
+                <div style="border:1px solid #DCDCDC; background-color:#f4f4f4; margin:0px; padding-left: 20px;">
+				<br><b>SCHOOL NAME:</b>
+			
+				<input name="school_name" size="18" type="text" class="small_input1  input-text" value="<?php echo $school_name; ?>" />
+			<br>
+				<br><b>TYPE OF CAMPUS AREA</b><br>
+				Beyond geography, where do you want to be? Take your pick<br />
+				<?php
+					
+		        $sql 				= ("SELECT * FROM {$CFG->prefix}campus_type WHERE status = 'active'");
+				$campus_data		= get_records_sql($sql);
+                    
+				foreach($campus_data as $campus)
+					{
+						if(is_array($campus_area)&&in_array($campus->id,$campus_area))
+						{
+							if(!empty($campus->type))
+							{
+				?>			
+								<input type="checkbox" checked="checked" name="campus_area[]" value="<?php echo $campus->id; ?>" /><?php echo $campus->type; ?><br>
+							
+				<?php	
+							}
+						}
+						else
+						{
+				?>			<input type="checkbox" name="campus_area[]" value="<?php echo $campus->id; ?>" /><?php echo $campus->type; ?><br>
+				<?php	}
+					}
+				?>			
+				<br><b>STATE</b><br>
+				<select name="state">
+				<option value="">Select</option>
+				<?php 
+					$state_data = get_records('state','status','active');
+					if($state_data)
+					{
+						foreach($state_data as $svalue)
+						{
+							if($svalue->id==$state)	
+							{
+				?>				<option selected="selected" value="<?php echo $svalue->id; ?>"><?php echo $svalue->name; ?></option>
+				<?php 		}
+							else
+							{
+				?>				<option value="<?php echo $svalue->id; ?>"><?php echo $svalue->name; ?></option>
+				<?php		}
+						}
+					}
+				?>
+				</select>				
+				<br>
+				<?php 
+					//student population listing
+					$student_population = get_records('school_student_population','status','active'); 
+					if($student_population)
+					{
+						echo "<br><b>STUDENT POPULATION</b><br>";
+						echo "How many people do you want to school with?<br />";
+                                            
+                        $std_data = array();
+                        $std_data[1]='1000';
+                        $std_data[2]='2000';
+                        $std_data[3]='3000';
+                        $std_data[4]='5000';
+                        $std_data[5]='10000';
+                        $std_data[6]='15000';
+                        $std_data[7]='15000 +';
+                        
+
+						foreach($std_data as $data)
+						{
+							if($data==$population)
+							{
+				?>				<input type="radio" checked="checked" name="population" value="<?php echo $data; ?>" /><?php echo $data; ?><br>
+				<?php		}
+							else
+							{
+				?>				<input type="radio" name="population" value="<?php echo $data; ?>" /><?php echo $data; ?><br>
+				<?php		}
+						}
+					}
+				?>			
+				
+				<!--<br><b>TUTION FEES</b><br>
+				<?php
+					//$tution_data = array();
+					//$tution_data[0]='Upto $5000';
+					//$tution_data[1]='Upto $10000';
+					//$tution_data[3]='Upto $15000';
+					//$tution_data[4]='Upto $20000';
+					//$tution_data[5]='Upto $25000';
+					//$tution_data[6]='$25000 or more';
+					//$tution_data[7]='Any';
+					
+					//foreach($tution_data as $tution)
+					//{
+						//if($tution==$tution_fees)
+						//{
+				?>			<input type="radio" checked="checked" name="tution_fees" value="<?php //echo $tution; ?>" /><?php //echo $tution; ?><br>
+				<?php	//}
+						//else
+						//{
+				?>			<input type="radio" name="tution_fees" value="<?php //echo $tution; ?>" /><?php //echo $tution; ?><br>
+				<?php	//}
+					//}
+				?>-->
+				
+				
+				<?php
+					//school type listing	
+                    $sql = "SELECT * FROM {$CFG->prefix}schools_additional WHERE status = 'active' GROUP BY institution_type";				
+					$school_type_data = get_records_sql($sql); 
+					if($school_type_data)
+					{
+						echo "<br><b>COLLEGE TYPE</b><br>";
+						foreach($school_type_data as $type_data)
+						{
+							if($type_data->institution_type==$school_type)
+							{
+							   if(!empty($type_data->institution_type))
+							   {
+				?>
+				<input type="radio" checked="checked" name="school_type" value="<?php echo $type_data->institution_type; ?>" /><?php echo $type_data->institution_type; ?><br>
+				<?php            
+							   }
+						}
+							else
+							{
+								if(!empty($type_data->institution_type))
+							   {
+				?>				<input type="radio" name="school_type" value="<?php echo $type_data->institution_type; ?>" /><?php echo $type_data->institution_type; ?><br>
+				<?php		
+								}
+							}
+						}
+					} 
+				
+					//schools_affiliations_accreditation listing					
+					$affilliation = get_records('schools_affiliations_accreditation','status','active'); 
+					if($affilliation)
+					{
+						echo "<br><b>AFFILIATIONS/ ACCREDITATION</b><br>";
+						foreach($affilliation as $aff_acc)
+						{
+							if($aff_acc->id==$affiliations_accreditation)
+							{
+				?>				<input type="radio" checked="checked" name="affiliations_accreditation" value="<?php echo $aff_acc->id; ?>" /><?php echo $aff_acc->title; ?><br>
+				<?php		}
+							else
+							{
+				?>				<input type="radio" name="affiliations_accreditation" value="<?php echo $aff_acc->id; ?>" /><?php echo $aff_acc->title; ?><br>
+				<?php		}
+						}
+					} 
+				?><br>
+                </div>
+			</dd>			
+		
+		
+			<dt class="accordion_toggler_2">ACADEMICS</dt>
+			<dd class="accordion_content_2">				
+				<div style="border:1px solid #DCDCDC; background-color:#f4f4f4; margin:0px; padding-left: 20px;">
+                <?php 
+					//degrees offered listing
+					$degrees_offered = get_records('school_degrees_offered','status','active'); 
+					if($degrees_offered)
+					{
+						echo "<br><b>DEGREES OFFERED</b><br>";
+						foreach($degrees_offered as $doffer)
+						{
+							if($doffer->id==$degree)
+							{
+				?>				<input type="radio" checked="checked" name="degree" value="<?php echo $doffer->id; ?>" /><?php echo $doffer->degree; ?><br>
+				<?php		}
+							else
+							{
+				?>				<input type="radio" name="degree" value="<?php echo $doffer->id; ?>" /><?php echo $doffer->degree; ?><br>
+				<?php		}
+						}
+					} 
+				?>	
+					<br><b>MAJORS</b><br>	
+					<select multiple name="majors[]" size="10" style="padding:10px; border:1px solid #DCDCDC; background-color:#f4f4f4; margin-top:5px; margin-bottom:5px;">
+					<?php 
+						//$main_majors = get_records('majors','parent_id','0');
+						$qry = "SELECT * FROM {$CFG->prefix}majors WHERE parent_id='0' AND status='active'";
+						$main_majors = get_records_sql($qry);
+						if($main_majors)
+						{
+							foreach($main_majors as $main)
+							{					
+					?>			<option disabled value="0" style="font-size: 11px;"><?php echo $main->name; ?></option>
+								<?php
+									//$major_data = get_records('majors','parent_id',$main->id);
+									$qry = "SELECT * FROM {$CFG->prefix}majors WHERE parent_id=".$main->id." AND status='active'";
+									$major_data = get_records_sql($qry);
+									if($major_data)
+									{
+										foreach($major_data as $data)
+										{
+											if(is_array($majors)&&in_array($data->id,$majors))
+											{
+								?>				<option selected="selected" value="<?php echo $data->id; ?>">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $data->name; ?></option>
+								<?php		}
+											else
+											{
+								?>				<option style="font-size: 11px; margin:4px;" value="<?php echo $data->id; ?>">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $data->name; ?></option>
+								<?php		}
+										}
+									}					
+							}
+						}							
+					?>				
+				</select><br><br>
+                </div>
+			</dd>	
+
+			
+			<dt class="accordion_toggler_3">STUDENT BODY</dt>
+			<dd class="accordion_content_3">	
+            <div style="border:1px solid #DCDCDC; background-color:#f4f4f4; margin:0px; padding-left: 20px;">
+				<?php
+					//school student body listing					
+					$school_student_body = get_records('school_student_body','status','active'); 
+					if($school_student_body)
+					{
+						echo "<br><b>MALE/ FEMALE RATIO</b><br>";
+						foreach($school_student_body as $s_body)
+						{
+							if($s_body->id==$student_body)
+							{
+				?>				<input checked="checked" type="radio" name="student_body" value="<?php echo $s_body->id; ?>" /><?php echo $s_body->title; ?><br>
+				<?php		}
+							else
+							{
+				?>				<input type="radio" name="student_body" value="<?php echo $s_body->id; ?>" /><?php echo $s_body->title; ?><br>
+				<?php		}
+						}
+					} 
+				 
+					//cultural diversity listing
+					$c_diversity = get_records('school_cultural_diversity','status','active'); 
+					if($c_diversity)
+					{
+						echo "<br><b>CULTURAL DIVERSITY</b><br>";
+						foreach($c_diversity as $culture)
+						{
+							if($culture->id==$cultural_diversity)
+							{
+				?>				<input type="radio" checked="checked" name="cultural_diversity" value="<?php echo $culture->id; ?>" /><?php echo $culture->title; ?><br>
+				<?php		}
+							else
+							{
+				?>				<input type="radio" name="cultural_diversity" value="<?php echo $culture->id; ?>" /><?php echo $culture->title; ?><br>
+				<?php		}
+						}
+					} 				
+				?>				
+				
+				<br><b>ONLY FOR LOCALS</b><br>
+				<?php
+					$local_data = array();
+					$local_data[0]='Mostly in-state';
+					$local_data[1]='Mostly out-of-state';
+					$local_data[2]='Balanced';
+					$local_data[3]='Any';
+					
+					foreach($local_data as $ldata)
+					{
+						if($ldata==$only_for_locals)
+						{
+				?>			<input type="radio" checked="checked" name="only_for_locals" value="<?php echo $ldata; ?>" /><?php echo $ldata; ?><br>
+				<?php	}
+						else
+						{
+				?>			<input type="radio" name="only_for_locals" value="<?php echo $ldata; ?>" /><?php echo $ldata; ?><br>
+				<?php	}
+					}
+				?><br>	
+				</div>
+			</dd>
+			
+			
+			<dt class="accordion_toggler_4">CAMPUS LIFE</dt>
+			<dd class="accordion_content_4">	
+            <div style="border:1px solid #DCDCDC; background-color:#f4f4f4; margin:0px; padding-left: 20px;">
+				<br><b>SPORTS</b><br>
+				<?php if($sports=='men') { ?>
+					<input checked="checked" type="radio" name="sports" value="men" />Men<br>
+				<?php } else { ?>
+					<input type="radio" name="sports" value="men" />Men<br>
+				<?php } if($sports=='women') { ?>
+					<input checked="checked" type="radio" name="sports" value="women" />Women<br>
+				<?php } else { ?>
+					<input type="radio" name="sports" value="women" />Women<br>
+				<?php }
+				
+					//campus life clubs listing					
+					$campus_life_clubs = get_records('school_culture_campuslife_clubs','status','active'); 
+					if($campus_life_clubs)
+					{
+						echo "<br><b>CLUBS</b><br>";
+						foreach($campus_life_clubs as $life_club)
+						{
+							if($life_club->id==$club)
+							{
+				?>				<input type="radio" checked="checked" name="club" value="<?php echo $life_club->id; ?>" /><?php echo $life_club->club_title; ?><br>
+				<?php		}
+							else
+							{
+				?>				<input type="radio" name="club" value="<?php echo $life_club->id; ?>" /><?php echo $life_club->club_title; ?><br>
+				<?php		}							
+						}
+					} 							
+				?><br>	
+                </div>			
+			</dd>		
+			
+			
+			<dt class="accordion_toggler_5">GOING GREEK</dt>
+			<dd class="accordion_content_5">		
+            <div style="border:1px solid #DCDCDC; background-color:#f4f4f4; margin:0px; padding:10px 0px 10px 20px;">			
+			<?php
+				$going_data = array();
+				$going_data[0]='Sororities';
+				$going_data[1]='Fraternities';
+				$going_data[2]='Any';
+								
+				foreach($going_data as $going)
+				{
+					if($going==$going_greek)
+					{
+			?>			<input type="radio" checked="checked" name="going_greek" value="<?php echo $going; ?>" /><b><?php echo $going; ?></b><br>
+			<?php	}
+					else
+					{
+			?>			<input type="radio" name="going_greek" value="<?php echo $going; ?>" /><b><?php echo $going; ?></b><br>
+			<?php	}
+				}
+			?>
+            </div>			
+			</dd>
+						
+			<dt class="accordion_toggler_6">DORM, SWEET DORM?</dt>
+			<dd class="accordion_content_6">
+            <div style="border:1px solid #DCDCDC; background-color:#f4f4f4; margin:0px; padding:10px 0px 10px 20px;">					
+			<?php
+				$dorm_data = array();
+				$dorm_data[0]='Yes-at least for freshmen';
+				$dorm_data[1]='Yes-for all undergrads';
+											
+				foreach($dorm_data as $dorm)
+				{
+					if($dorm==$dorm_sweet_dorm)
+					{
+			?>			<input type="radio" checked="checked" name="dorm_sweet_dorm" value="<?php echo $dorm; ?>" /><b><?php echo $dorm; ?></b><br>
+			<?php	}
+					else
+					{
+			?>			<input type="radio" name="dorm_sweet_dorm" value="<?php echo $dorm; ?>" /><b><?php echo $dorm; ?></b><br>
+			<?php	}
+				}
+			?>		
+            </div>	
+			</dd>
+			
+			<dt class="accordion_toggler_7">GETTING IN</dt>
+			<dd class="accordion_content_7">
+            <div style="border:1px solid #DCDCDC; background-color:#f4f4f4; margin:0px; padding-left: 20px;">
+				<br><b>SELECTIVITY</b><br>
+				<?php
+					$select_data = array();
+					$select_data[0]='Very difficult';
+					$select_data[1]='Moderately difficult';
+					$select_data[2]='Minimally difficult';
+									
+					foreach($select_data as $select)
+					{
+						if($select==$selectivity)
+						{
+				?>			<input type="radio" checked="checked" name="selectivity" value="<?php echo $select; ?>" /><?php echo $select; ?><br>
+				<?php	}
+						else
+						{
+				?>			<input type="radio" name="selectivity" value="<?php echo $select; ?>" /><?php echo $select; ?><br>
+				<?php	}
+					}
+										
+					//GPA listing					
+					$campus_life_gpa = get_records('school_culture_campuslife_gpa','status','active'); 
+					if($campus_life_gpa)
+					{
+						echo "<br><b>GPA</b><br>";
+						foreach($campus_life_gpa as $life_gpa)
+						{							
+							if($life_gpa->id==$gpa)
+							{
+				?>				<input type="radio" checked="checked" name="gpa" value="<?php echo $life_gpa->id; ?>" /><?php echo $life_gpa->gpa; ?><br>
+				<?php		}
+							else
+							{
+				?>				<input type="radio" name="gpa" value="<?php echo $life_gpa->id; ?>" /><?php echo $life_gpa->gpa; ?><br>
+				<?php		}
+						}
+					} 							
+				?><br>	
+              </div>
+			</dd>			
+					
+		</dl>
+		
+        <div class="clear"> </div>
+		</div>
+		<div class="wraper6">
+			<input type="hidden" name="submit" value="submit" />
+			<div <?php if(!empty($student_data2)) {?> style="display:none;width:100px;float:left;" <?php }else{?> style="width:100px;float:left;"<?php } ?> id="search_id">
+			<input type="image" src="images/search_btn.jpg" style="width:84px; height:23px;" />
+			</div>
+			&nbsp;&nbsp;&nbsp;&nbsp;<span <?php if(!empty($student_data2)) {?> style="cursor:pointer;display:block;float:left;" <?php }else{?>style="cursor:pointer;display:none;float:left;" <?php } ?> onclick="show_search();" id="filter_id"><img src="images/refine-search.png" alt="" /></span>&nbsp;&nbsp;&nbsp;&nbsp; 
+			&nbsp;&nbsp;&nbsp;&nbsp;<span style="cursor:pointer;float:left;" onclick="window.location='advanced_search.html'"><img src="images/clear-search.png" alt="" /></span>&nbsp;&nbsp;&nbsp;&nbsp; 
+			&nbsp;&nbsp;&nbsp;&nbsp; 
+			&nbsp;&nbsp;&nbsp;&nbsp;<span style="cursor:pointer;float:left;" onclick="window.location='colleges.html'"><img src="images/basic-search.png" alt="" /></span>&nbsp;&nbsp;&nbsp;&nbsp; 
+			
+			<?php if(isset($_SESSION['s4c_user_id'])&&isset($_REQUEST['submit'])&&$totalcount!=0) { ?><a rel="lightbox['search' 45% 85%]" href="save_advanced_search.html?campus_area=<?php echo $c_area; ?>&state=<?php echo $state; ?>&population=<?php echo $population; ?>&school_type=<?php echo $school_type; ?>&affiliations_accreditation=<?php echo $affiliations_accreditation; ?>&degree=<?php echo $degree; ?>&mfratio=<?php echo $student_body; ?>&cultural_diversity=<?php echo $cultural_diversity; ?>&locals=<?php echo urlencode($only_for_locals); ?>&sports=<?php echo $sports; ?>&club=<?php echo $club; ?>&going_greek=<?php echo $going_greek; ?>&dorm_sweet_dorm=<?php echo urlencode($dorm_sweet_dorm); ?>&selectivity=<?php echo $selectivity; ?>&gpa=<?php echo $gpa; ?>&majors=<?php echo $major_ids; ?>&query=<?php echo $query; ?>">Save Search</a><?php } ?>
+			
+        </div>
+		</div>
+		</form>
+		<div id="upload_form_btm"></div>  
+
+	<?php 
+		if(!empty($student_data2))
+		{	 
+	?>	
+	
+	<!-- <div class="msg_lst">Your search returned: <span>59</span> matches</div>
+	<div class="list_page2">  </div>
+	<div class="inquiry2"><a href="#"><strong>wishlist</strong></a></div>
+	<div class="wishlist"><a href="#"><strong>wishlist</strong></a></div> -->
+	 
+	<!-- pagination block start -->
+		<?php echo print_paging($totalcount, $page, $perpage, $baseurl,'','','','','','');  ?>
+	<!-- pagination block end -->	
+	
+	<table width="100%" border="1" class="table_font">			
+			<tr bgcolor="#E9E9E9" style="color:#000">
+				<!--<td width="10%">Select </td>-->
+				<td width="38%">Name </td>
+				<td width="11%">Location </td>
+				<td width="10%">Student Population </td>
+			  <td width="12%">Entrance Difficulty</td>   
+			</tr>
+			<?php 
+				foreach($student_data2 as $data)
+				{ 		  
+					$student_data_selectivirty = get_record_sql('SELECT * FROM '.$CFG->prefix.'school_culture_campus_life WHERE status = "active" AND school_id='.$data->user_id);
+					$selectivity = '';
+					
+					if(!empty($student_data_selectivirty))
+					{
+						$selectivity = $student_data_selectivirty->selectivity;
+					}
+
+					$city	= cmi_genrate_url(get_data_frontend('city','name',$data->city));
+					$state	= cmi_genrate_url(get_data_frontend('state','name',$data->state));
+					if($data->seo_keyword){
+						if(isset($_SESSION['s4c_user_id'])){
+							if($_SESSION['s4c_user_id'] == $data->user_id)
+								$url	= "colleges_profile.html?view=".$data->user_id; 
+							else
+								$url	= $state."/".$city."/".$data->seo_keyword."/profile";
+						}
+						else
+							$url	= $state."/".$city."/".$data->seo_keyword."/profile";
+					}
+					else
+						$url	= "colleges_profile.html?view=".$data->user_id;
+			?>
+					<tr>
+						<!--<td><input type="checkbox" name="checkbox" value="checkbox" /></td>-->
+						<td>
+							<a href="<?php if(isset($url)) echo $url; ?>">
+							<?php echo $data->school_name; ?>
+							</a>
+						</td>
+						<td>
+							<?php $city = str_replace(array("_","/"),array(" ","-"), $city); if(!empty($city)){ echo ucwords($city).','; }?><br />
+							<?php $state = str_replace(array("_","/"),array(" ","-"), $state); if(!empty($state)){ echo ucwords($state); }?>
+						</td>
+						<td><?php $population = get_field('schools_additional','student_population','school_id',$data->user_id); if(!empty($population)){ echo $population; }else{ echo '-';}?> </td>
+						<td><?php if(!empty($selectivity)){ $entra = str_replace(array("_","/"),array(" ","-"), $selectivity); echo ucwords($entra);}else{ echo '-';}?></td>
+					</tr>
+			<?php 	
+				}	
+			?>
+		</table>
+	
+		<!-- pagination block start -->
+			<?php //echo print_paging($totalcount, $page, $perpage, $baseurl,'','','','','','');  ?>
+		<!-- pagination block end -->
+		
+		<!-- <div class="msg_lst">Your search returned: <span>59</span> matches</div>
+		<div class="list_page2">  </div>
+		<div class="inquiry2"><a href="#"><strong>wishlist</strong></a></div>
+		<div class="wishlist"><a href="#"><strong>wishlist</strong></a></div> -->
+		
+	<?php	
+		}	
+	?> 
+    </div>	
+	
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+
+  require_once('includes/footer.php'); 
+
+?>

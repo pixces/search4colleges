@@ -1,0 +1,227 @@
+<?php 
+	require_once('cmiadmin/config.php');
+	require_once('includes/index_header.php'); 
+
+?>
+  <!-- banner section >> -->
+  <div id="banner_sec">
+    <div class="left"><img src="images/banner.gif" alt="Banner" /></div>
+    <div class="center">
+      <div class="banner_txt">
+	  <h1>Find top colleges in USA and Get Best counseling to select courses to study...
+         <b>Our college search engine finds colleges and universities in the United States that will fulfill your academic needs.  Quickly search for a college by location, major, type, financial aid, and student reviews.</b>
+	  </h1>
+      </div>
+      <div class="banner_fields">
+        <div><img src="images/arrow.gif" alt="arrow" /> Find your School, College and Institute </div>
+        <a class="adv_search" href="advanced_search.html">Advanced Search</a>
+        <form method="post" id="form_school_colleges" name="form_school_colleges" action="colleges.html">
+          <div class="Category">Major
+            <select name="search_major[]" id="search_major">
+			<option value="">Select Major</option>
+					<?php 
+						$main_majors = get_records('majors','parent_id','0'); 
+						if($main_majors)
+						{
+							foreach($main_majors as $main)
+							{					
+					?>			<option disabled value="0"><?php echo $main->name; ?></option>
+								<?php
+									$major_data = get_records('majors','parent_id',$main->id);
+									if($major_data)
+									{
+										foreach($major_data as $data)
+										{
+											if(isset($major)){
+												if(is_array($major)&&in_array($data->id,$major))
+												{
+								?>				<option selected="selected" value="<?php echo $data->id; ?>">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $data->name; ?></option>
+								<?php		}
+										}
+											else
+											{
+								?>				<option value="<?php echo $data->id; ?>">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $data->name; ?></option>
+								<?php		}
+										}
+									}					
+							}
+						}							
+					?>				
+				</select>				
+          </div>
+          <div class="city">State
+			<select name="state" id="state"><!--class="validate['required']"-->
+				<option value="">Select State</option>
+				<?php 
+					$state_data = get_records('state','status','active');
+					if($state_data)
+					{
+						foreach($state_data as $state)
+						{
+						?>	
+						<option value="<?php echo $state->name; ?>"><?php echo $state->name; ?></option>
+				<?php	}
+					}
+					
+				?>
+				</select>
+			</select>
+          </div>
+          <div class="zipcode">Zipcode
+            <input type="text" id="search_zip" name="search_zip" maxlength="7"/>
+            <input type="hidden" name="submit" />
+          </div>
+          <div class="go-button">
+            <input type="image" src="images/go_btn.gif" alt="go" value="submit"/>
+          </div>
+        </form>
+      </div>
+    </div>
+	
+    <div class="right">
+	<?php if(!isset($_SESSION['user_type']) && !isset($_SESSION['user_type'])){ ?>
+      <h2> <b>REGISTER NOW <p>Join our site to be a member of the Education Community</p> </b> </h2>
+      <ul>
+        <li><a href="<?php echo $CFG->siteroot;?>/student_form.html">Student</a></li>
+        <li><a href="<?php echo $CFG->siteroot;?>/parent_form.html">Parent</a></li>
+        <li><a href="<?php echo $CFG->siteroot;?>/school_form.html">School / High School / College / Institute</a></li>
+        <li><a href="<?php echo $CFG->siteroot;?>/teacher_professor_form.html">Teacher / Professor / Educational Professional</a></li>
+        <li><a href="<?php echo $CFG->siteroot;?>/counselor_form.html">Counselor</a></li>
+      </ul>
+	  <?php } 
+		else{
+      
+        ?>
+			
+            <div class="right_new">
+            	<h1>Useful Links</h1>
+                <?php
+				$link_list = get_records_sql('SELECT * FROM '.$CFG->prefix.'usefull_link WHERE status ="active" ORDER BY added_date',null, 3);
+				if($link_list){				
+					foreach($link_list as $record){
+				?>
+						<b><a href='<?php echo $record->link;?>' target='_blank'><?php echo $record->title;?> </a></b>
+						<p><?php echo substr($record->description,0,30)?></p>
+				<?php
+					}
+				}
+			  ?>            	
+           </div>
+            
+            
+		<?php }?>
+    </div>
+	
+    <div class="clear"></div>
+  </div>
+  <!-- << banner section -->
+  <!-- content section >> -->
+  <div id="content_sec">
+    <?php
+	require_once('includes/checkExpire.php');
+	?>
+	
+	<div class="left">
+		<?php if($message){?>
+			<div class="login"><?php echo $message;?></div>
+		<?php }?>
+      <div class="login">        
+		 <?php  include_once("includes/login.php"); ?>        
+      </div>
+     <?php if($expired != 1){ ?>
+	  <div class="box_a">
+        <div class="box">
+          <h3><b>Get it from States</b></h3>
+			<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/
+				cabs/flash/swflash.cab#version=6,0,40,0" width="260" height="200" id="mymoviename"> 
+				<param name="wmode" value="transparent">
+				<param name="movie" value="images/usaMap.swf" /> 		 
+				<param name="quality" value="high" />
+				<param name="bgcolor" value="#ffffff" />
+				<embed src="images/usaMap.swf" quality="high" bgcolor="#ffffff" width="260" height="200" name="mymoviename" align="" wmode="transparent" type="application/x-shockwave-flash" 
+				pluginspage="http://www.macromedia.com/go/getflashplayer"> 
+				</embed> 
+			</object> 
+	</div>
+      </div>
+	  <?php }?>
+    </div>
+    <div class="center">
+      <div class="content">
+        <h3>Search for your college, vocational school, or graduate education</h3>
+        <p>Search4College is designed to help students find the right college.  Search4College will help you find your school by Location, Major, Area of Interest, Geography and Campus Lifestyle.</p>
+        <p>Free information about your future school will be found on Search4College. We encourage students, parents, teachers, educators and mentors to use this site as a tool to help students find the best college for them.<br />
+            <br />
+          Search4College will be posting the latest information about sources of obtaining Financial Aid consisting of grants, scholarships, loans and fellowships.  We would like to encourage visitors to participate in sharing their financial aid experiences so our students can benefits from this knowledge.</p>
+        <p>Please feel free to use the links on this site for your college search</p>
+      </div>
+    </div>
+    <div class="right">
+      <div class="box_c">
+	  <?php
+		$school='';
+		$sql="select * from `{$CFG->prefix}schools` where  status='active' and featured='featured'";
+		$schools=get_records_sql($sql);
+
+		if($schools)
+		{
+			foreach($schools as $school)
+			{
+	  ?>
+			<h3><b>We recommend</b></h3>
+			<a href="<?php echo $CFG->siteroot;?>/colleges_profile.html?view=<?php if(isset($school->user_id)) echo $school->user_id; ?>">
+				<center><img src="file.php/schools/f5_<?php if(isset($school->logo)) echo $school->logo; ?>" alt="<?php echo $school->school_name;?>" title="<?php echo $school->school_name;?>" /></center>
+			</a>
+			 <p>
+				<a href="<?php echo $CFG->siteroot;?>/colleges_profile.html?view=<?php if(isset($school->user_id)) echo $school->user_id; ?>">
+					<?php  if(isset($school->school_name)) echo $school->school_name; ?>
+				</a> 
+				<br/>
+				<?php if(isset($school->city)) echo get_data_frontend('city','name',$school->city).',' .get_data_frontend('state','name',$school->state); ?>	  
+			 </p>
+		<?php		 
+			}
+		}
+		else
+		{
+		?>
+		<h3><b>We recommend</b></h3>
+        <a href="<?php echo $CFG->siteroot;?>/colleges_profile.html"><img src="images/pic_1.gif" alt="home" /></a>
+		<p><a href="<?php echo $CFG->siteroot;?>/colleges_profile.html">Brooklyn College </a> <br/>
+			Brooklyn,New York </p>
+		<?php }?>
+      </div>
+      <div class="box_b">
+	   <h3><b>Articles</b></h3>
+ <?php
+	$time = time();
+	$sql="select * from {$CFG->prefix}articles where status='active' AND article_date <= $time ORDER BY `article_date` DESC LIMIT 2 ";
+	$articles=get_records_sql($sql);
+		if($articles!='')
+		{
+			foreach($articles as $value)
+			{
+					$description=strip_tags($value->long_description);
+					$description_new=wrap_string($description, $width=50);
+					
+			?>  		
+			<p>
+				<!--<span><?php   echo date('d F Y',$value->article_date); ?></span>-->
+				<b align="justify"><a href="<?php echo $CFG->siteroot;?>/articles_details_<?php echo $value->seo_keyword;?>.html"><?php echo $value->name; ?> </a></b><br/>
+				<?php   echo $description_new; ?> 
+			</p>
+			<?php
+			}
+			?><span class="in_Right_link"><a href="<?php echo $CFG->siteroot;?>/articles.html">Read More</a></span>
+		<?php
+		}
+		?>       
+      </div>
+    </div>
+    <div class="clear"></div>
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+	require_once('includes/footer.php'); 
+?>

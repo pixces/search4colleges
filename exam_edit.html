@@ -1,0 +1,182 @@
+<?php 
+	include_once("cmiadmin/config.php");
+	
+	$master_image_path = 'exam';
+	$user_info = check_login();
+	require_once('includes/checkExpire.php');
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	$date = '';
+	if(isset($_SESSION['user_type'])){
+		if(isset($_GET['edit']) && isset($_GET['view'])){
+			if($_SESSION['user_type'] == 'staff')
+			{
+				$school_staff = get_field('school_staff_user','fe_school_id','fe_staff_id',$_SESSION['s4c_user_id']);
+
+				$exam_data = get_record_sql('Select * from '.$CFG->prefix.'school_exam where status = "active" and school_id = '.$school_staff.' and id= '.$_GET['edit'].' order by added_date ');
+			}
+			else
+			{
+				$exam_data = get_record_sql('Select * from '.$CFG->prefix.'school_exam where status = "active" and school_id = '.$_SESSION['s4c_user_id'].' and id= '.$_GET['edit'].' order by added_date ');
+			}
+		
+		}
+	}
+	if(isset($_POST['date']) && $_POST['date']!=''){
+
+		//print_object($_POST);
+				
+		$exam_date			= optional_param('date', PARAM_RAW);
+		$result_status		= optional_param('result_status','', PARAM_RAW);		
+		$result_web_url 	= optional_param('result_link','', PARAM_RAW);
+		$exam_type 			= optional_param('exam_type', PARAM_RAW);
+		$hiddenid			= optional_param('view', PARAM_RAW);
+		$exam_id			= optional_param('exam_id', PARAM_RAW);
+		
+
+		$update_mode						= new object();	
+		$update_mode->result_status			= $result_status;
+		$update_mode->result_on_date		= '';
+		$update_mode->degree_type			= $exam_type;
+		$update_mode->result_web_url		= $result_web_url;
+		$update_mode->exam_date 			= $exam_date ;
+		$update_mode->id					= $exam_id;
+
+
+		$target_path = $CFG->dataroot.'/exam/';
+		if(!file_exists($target_path)){
+			mkdir($CFG->dataroot.'/exam/',777);
+		}
+		$school_logo = '';
+
+		
+		if(isset($_FILES['schedule_file']['name']) && !empty($_FILES['schedule_file']['name'])){
+
+			$school_logo = upload_files('schedule_file',$target_path);
+			
+			if($school_logo)
+				$update_mode->download_schedule = $school_logo;
+			else
+				$update_mode->download_schedule = '';
+		}
+		$logo = $school_logo;
+				
+		if(!empty($update_mode)){
+			
+			$update = update_record('school_exam', $update_mode);
+			if($update){
+?>
+				<script  type="text/javascript">	
+					parent.window.location = 'colleges_admissions.html?view=<?php echo $hiddenid;?>';
+					parent.Mediabox.close();			
+				</script>
+<?php
+			}
+		}	
+	}
+	
+
+include_once("includes/header.php");
+?>
+<script type="text/javascript" >
+	window.addEvent('domready', function(){
+		new FormCheck('edit_form',{display:{showErrors:1}});
+			
+		});
+</script>
+<?php
+
+
+?>
+</head>
+
+<div id="content_sec">
+	<br /><br />
+	 <center><div><h3>Edit Exam Schedule:</h3></div>
+	  <form method="post" action="exam_edit.html" id="edit_form" name="profile_form" enctype="multipart/form-data"/>
+	  <?php
+		if($_SESSION['user_type'] == 'staff')
+		{
+	  ?>
+			<input type="hidden" name="view" value=<?php if(isset($school_staff)) echo $school_staff; ?> />
+		<?php
+		}
+		else
+		{
+		?>
+			<input type="hidden" name="view" value=<?php if(isset($_SESSION['s4c_user_id'])) echo $_SESSION['s4c_user_id']; ?> />
+		<?php
+		}
+		?>
+	  <input type="hidden" name="exam_id" value=<?php if(isset($_GET['edit'])) echo $_GET['edit']; ?> />
+
+	  <table>
+		<tr>
+			<td>Exam Date</td>
+			<td>:</td>
+			<td>
+				<input readonly="true" name="date" maxlength="30" id="demo_vista1" style="width:150px;" type="text" class="demo_vista1 txtBox " value="<?php if($exam_data->exam_date !='') { echo $exam_data->exam_date; } ?>" />
+			</td>
+		</tr>
+		<tr>
+			<td>Exam Type</td>
+			<td>:</td>
+			<td>
+				<select name="exam_type" class="validate['required']">
+					<option >Select</option>
+					<option value="entrance" <?php if($exam_data->degree_type == 'entrance') { ?> selected="selected" <?php } ?>>Entrance</option>
+					<option value="term endexam" <?php if($exam_data->degree_type == 'term endexam') { ?> selected="selected" <?php } ?>>Term End Exam</option>
+					<option value="competitive exam" <?php if($exam_data->degree_type == 'competitive exam') { ?> selected="selected" <?php } ?>>Competitive Exam</option>
+				</select>
+			</td>
+		</tr>
+		<?php
+		if($exam_data->download_schedule != '')
+		{
+		?>
+		<tr>
+			<td>Preview of exam schedule</td>
+			<td>:</td>
+			<td>
+				<a href="<?php echo $CFG->siteroot?>/file.php/<?php echo $master_image_path;?>/<?php echo $exam_data->download_schedule ; ?>" rel="lightbox" title="<?php echo $exam_data->download_schedule ; ?>">
+				<img src="<?php echo $CFG->siteroot?>/images/pdf.png" alt="<?php echo $exam_data->download_schedule ; ?>" />
+				</a>
+			</td>
+		</tr>
+		<?php
+		}
+		?>
+		<tr>
+			<td>PDF file of exam schedule</td>
+			<td>:</td>
+			<td>
+				<input type="file" name="schedule_file" />
+			</td>
+		</tr>
+		<tr>
+			<td>Result status</td>
+			<td>:</td>
+			<td>
+				<input type="text" name="result_status" value="<?php if($exam_data->result_status !='') { echo $exam_data->result_status ; } ?>"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Result Link</td>
+			<td>:</td>
+			<td>
+				<input type="text" name="result_link" class="validate['url']" value="<?php if($exam_data->result_web_url !='') { echo $exam_data->result_web_url; } ?>" />
+			</td>
+		</tr>
+		<tr>
+			<td colspan="3" style="text-align:center"><input type="image" src="images/save_button.jpg" /></td>
+		</tr>
+	  </table>
+	  </form>
+	
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+  

@@ -1,0 +1,184 @@
+<?php 
+	require_once('includes/checkExpire.php');	
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 
+	$user_info = check_login();	
+	$target_path = $CFG->dataroot."/gallery/";	
+
+	if(!file_exists($target_path)){
+		mkdir($CFG->dataroot."/gallery/",777);
+	}
+
+	$msg = '';
+	$msg_err = 0;
+	$msg_suc = 0;
+	$user_id = $_SESSION['s4c_user_id'];
+	//for($i = 1;$i<=$CFG->video_limit;$i++){
+		$radio_link = 'radio';
+		//print_object($_FILES);
+		$radio_link_data = isset($_POST[$radio_link])?$_POST[$radio_link]:"";
+		if(!empty($radio_link_data)) {			
+			if($radio_link_data == 'link'){
+				$video_link = 'video_link';
+				$video_link_data = isset($_POST[$video_link])?$_POST[$video_link]:"";
+				if(!empty($video_link_data)) {
+					$comment	= optional_param("comment",'', PARAM_TEXT);
+					$add_mode = new object();
+					$add_mode->comment = $comment;
+					$add_mode->name = $video_link_data;
+					$add_mode->type = 'link';
+					$add_mode->added_date = time();
+					$add_mode->user_id = $user_id;
+					if($new =insert_record('gallery', $add_mode)) {							
+						$msg_suc++;
+					}else{
+						$msg_err++;
+					}
+				}
+			}elseif($radio_link_data == 'video'){
+				if(isset($_FILES["video"]['name']) && !empty($_FILES["video"]['name'])){
+					$file_size = ($_FILES["video"]['size'])/9002400000;
+					if($file_size<10){
+						$add_mode_image = upload_files("video",$target_path);			
+						if($add_mode_image)
+							$photo = $add_mode_image;
+						else
+							$photo = '';			
+						if($photo){
+							$comment	= optional_param("comment",'', PARAM_TEXT);
+							$add_mode = new object();
+							$add_mode->comment = $comment;
+							$add_mode->name = $photo;
+							$add_mode->type = 'video';
+							$add_mode->added_date = time();
+							$add_mode->user_id = $user_id;
+							if($new =insert_record('gallery', $add_mode)) {							
+								$msg_suc++;
+							}else{
+								$msg_err++;
+							}
+						}
+					}else{
+						$msg_err++;
+					}
+				}
+			}
+		}
+	//}
+
+	if($msg_suc != 0){
+		$msg_suc = '<br/>'.$msg_suc.'&nbsp; File Successfully Loaded <br />Your files will be moderated and will be published online within 24 hours <br/>';
+	}
+	if($msg_err != 0){
+		$msg_err = '<br/>&nbsp;Unable to upload : </b>'.$msg_err.' File <br /> <br/>';
+	}
+
+	if(!empty($msg_suc))
+		$msg .= $msg_suc;
+	if(!empty($msg_err))
+		$msg .= $msg_err;
+	
+	$video_uploaded = get_records_select('gallery'," (type='video' OR type='link') AND user_id=$user_id AND status ='active' ");
+
+	if($video_uploaded)
+		$video_uploaded_count = count($video_uploaded);
+	else
+		$video_uploaded_count = 0;	
+?>
+  <!-- << header section -->
+  <!-- content section >> -->
+  <script type="text/javascript">
+	window.addEvent('domready', function()
+	{		
+		$$("#video_link").addEvent('focus', function(event){			
+			$('youtubelink').set('checked',true);
+		});
+		$$("#video").addEvent('click', function(event){			
+			$('video_file').set('checked',true);
+		});
+	});
+	</script>
+  
+  <div id="content_sec">
+    <!-- << left content -->
+     <?php include_once('includes/left_content.php'); 
+	 
+	 ?>
+    <!-- left content >> -->
+    <!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><a href="pictures_and_videos.html">Pictures & Videos</a></li>
+            <li class="in_aroow"><span>Upload Video</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+        <div class="clear"></div>
+        <h1><span>Upload Video</span></h1>
+        <div class="clear"></div>
+      </div>
+      <div class="clear"></div>	  
+	  <form id="gallery" name="gallery"  method="post" action="video_uploaded.html" enctype="multipart/form-data">
+      <div id="upload_form">
+        <div class="rgs_heading">
+          <div class="req2">Video: You can uploaded, FLV, MP4 or 3GP files.</div>
+          <h3>Upload Video </h3>
+          <div class="clear"></div>
+		  <br />
+		  <h2><?php echo $msg ;?></h2>
+        </div>
+
+		<?php
+		if($video_uploaded_count != $CFG->video_limit){
+		
+			?>
+				<div class='rgs_heading3'>				
+				<div class='rgs_input1'><h4>Select Video</h4>
+				  <input type="radio" name="radio" id="video_file" value="video" class="validate['required','radio']">
+				  <input name='video' id='video' type='file' class='input_file validate["videos"]' 	/> ( Video File)<br/>OR<br />
+				  <input type="radio" name="radio"  value="link" id ="youtubelink" />
+				   <input name='video_link' id='video_link' type='text' class='input_file validate["url"]' /> ( Youtube Video Link )
+				</div>
+				<div class='rgs_textarea1'>
+					<h4>Write Comment</h4>
+					<textarea name='comment' id='comment' cols='20' rows='' class='text_box validate["required"]' ></textarea><br />(max. 100 characters)
+					<div class='clear'>
+				</div>
+				</div><div class='clear'></div>
+				</div>
+				<?php
+		}
+		?>	
+
+		
+		<?php if($video_uploaded_count <$CFG->video_limit){ ?>
+		
+        
+        <div class="wraper5">
+          <input type="image" src="images/save.jpg" style="width:84px; height:24px;" />
+          <img src="images/cancel_bottom.jpg" style="width:84px; height:24px;cursor:pointer" onclick="javascript:history.go(-1);"/>
+        </div>
+		<div align="center">The file limit 10 MB, If your upload doest not work, try uploading a smaller Video. </div>
+		<?php }else{ ?>
+			<div align="center">Maximum Limit Exceed </div>
+		<?php } ?>
+      </div>
+      <div id="upload_form_btm"></div>
+    </div>
+    <div class="clear"></div>
+    <!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+	require_once('includes/footer.php'); 
+?>

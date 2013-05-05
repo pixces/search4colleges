@@ -1,0 +1,48 @@
+<?php
+	require_once('cmiadmin/config.php'); 
+	
+	require_once('includes/checkExpire.php');
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}	
+	require_once('includes/header.php');
+	$user_info = check_login();
+	$meassage_id=optional_param('id','',PARAM_INT);
+	$sql="select *  from messages where id = $meassage_id";
+	$get_msg=get_record_sql($sql);
+	$sender_id=$get_msg->sender_id;
+	$sender_info=get_user_info($sender_id);
+	
+		
+?>
+
+<table width='100%' border='0' class='table_font'>
+<tr bgcolor='#7E7D7D' style='color:#FFFFFF'>
+	<td colspan="2">Query Details</td>
+</tr>
+<tr>
+	<td><b>From:</b></td>
+	<td><?php echo $sender_info->name; echo " &nbsp;&nbsp;( ".date('d F Y',$get_msg->added_date)." ) "; ?></td>
+</tr>
+<tr>
+	<td><b>Topic</b></td>
+	<td><?php echo $get_msg->subject; ?></td>
+</tr>
+<tr>
+	<td><b>Question:</b></td>
+	<td><?php echo $get_msg->message; ?></td>
+</tr>
+<?php  
+if($get_msg->	is_replied ==1){
+	$reply = get_field('messages','message','id',$get_msg->parent_id);
+?>
+	<tr>
+		<td><b>Reply</b></td>
+		<td><?php echo $reply; ?></td>	
+	</tr>
+<?php }else{
+	//echo"Reply";
+}
+?>
+</table>
+

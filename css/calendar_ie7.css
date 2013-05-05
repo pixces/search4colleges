@@ -1,0 +1,75 @@
+
+.calendar_ul_main li{
+padding-top:30px;
+}
+.month_name{
+	height:0px;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-weight: bold;
+	background-image: url(../images/Calendar_name_main_bg.jpg);
+	background-repeat: repeat-x;
+	width: 575px;
+	}
+.month_name_main {
+	position: absolute;
+	width: 200px;
+	padding-bottom:20px;
+	margin-top:-32px;
+	margin-left:-100px
+}
+.callendar_dates {
+	background-image: url(../images/Calendar_days_main_bg.jpg);
+	background-repeat: no-repeat;
+	margin-top:20px;
+	background-position: 0px 5px;
+	height:32px;
+}
+.sunday {
+	width:60px; 
+	float:left; 
+	padding-left:12px; 
+	margin-top:1px;
+}
+.monday {
+	width:65px; 
+	float:left; 
+	padding-left:19px; 
+	margin-top:1px;
+}
+.tuesday {
+	width:82px; 
+	float:left; 
+	padding-left:10px; 
+	margin-top:1px;
+}
+.wednesday {
+	width:73px; 
+	float:left; 
+	padding-left:2px; 
+	margin-top:1px;
+}
+.thursday {
+	width:68px; 
+	float:left; 
+	padding-left:12px; 
+	margin-top:1px;
+}
+.friday {
+	width:58px; 
+	float:left; 
+	padding-left:18px; 
+	margin-top:1px;
+}
+.saturday {
+	width:68px; 
+	float:left; 
+	padding-left:18px; 
+	margin-top:1px;
+}
+.callender_past_event {
+	padding-left:0px;
+}
+.callender_current_event {
+	padding-left:0px;
+
+}

@@ -1,0 +1,176 @@
+<?php 
+	
+	require_once('includes/checkExpire.php');
+	
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 
+	$user_info = check_login();
+?>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+ <?php require_once("includes/left_content.php"); 
+ 
+ ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+
+            <li class="in_aroow"><span>Blog Topics & Comments</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+
+        <div class="clear"></div>
+        <h1><span>Blog Topics & Comments</span></h1>       
+        <div class="clear"></div>
+      </div>
+	  <div class="msg_lst"><strong>Posted Topics and comments</strong></div>
+	  
+	  
+	  <div class="clear"></div>
+	  <div id="wraper">
+	  <div class="news_wraper_left">Displaying <strong>1</strong> to <strong>5</strong> of <strong>50</strong></div>
+	  <div class="list_page"> Page: 1/5    </div>
+<div class="news_wraper_right">
+			<div class="jobs_pagination">Next</div>
+			<div class="jobs_pagination">5</div>
+			<div class="jobs_pagination">4</div>
+			<div class="jobs_pagination">3</div>
+			<div class="jobs_pagination">2</div>
+			<div class="jobs_pagination_current">1</div>
+			
+		
+</div>
+<div class="clear"></div>
+</div>
+<div class="clear"></div>
+  
+  	  <div class="Comments_top">
+	  <div class="massage_time">11:20 AM</div>
+	  <div class="massage_sub2">Lorem ipsum dolor sit amet, consectetuer adipiscing elit mus...</div>
+	  <div class="massage_date">17-06-2010</div>
+	  <div class="blog_button2"><a href="#"><img src="images/blog_btn.jpg" border="0" /></a></div>
+	  <div class="close_btn"></div>
+	  <div class="clear"></div>
+
+	  </div>
+	<div class="Comments">
+	  <div class="massage_time">11:20 AM</div>
+	  <div class="massage_sub2">Lorem ipsum dolor sit amet, consectetuer adipiscing elit mus...</div>
+	  <div class="massage_date">17-06-2010</div>
+	  <div class="blog_button2"><a href="#"><img src="images/blog_btn.jpg" border="0" /></a></div>
+	  <div class="close_btn"></div>
+	  <div class="clear"></div>
+
+	  </div>
+	<div class="Comments">
+	  <div class="massage_time">11:20 AM</div>
+	  <div class="massage_sub2">Lorem ipsum dolor sit amet, consectetuer adipiscing elit mus...</div>
+	  <div class="massage_date">17-06-2010</div>
+	  <div class="blog_button2"><a href="#"><img src="images/blog_btn.jpg" border="0" /></a></div>
+	  <div class="close_btn"></div>
+	  <div class="clear"></div>
+
+	  </div>
+	  <div class="Comments">
+	  <div class="massage_time">11:20 AM</div>
+	  <div class="massage_sub2">Lorem ipsum dolor sit amet, consectetuer adipiscing elit mus...</div>
+	  <div class="massage_date">17-06-2010</div>
+	  <div class="blog_button2"><a href="#"><img src="images/blog_btn.jpg" border="0" /></a></div>
+	  <div class="close_btn"></div>
+	  <div class="clear"></div>
+
+	  </div>
+	  <div class="Comments">
+	  <div class="massage_time">11:20 AM</div>
+	  <div class="massage_sub2">Lorem ipsum dolor sit amet, consectetuer adipiscing elit mus...</div>
+	  <div class="massage_date">17-06-2010</div>
+	  <div class="blog_button2"><a href="#"><img src="images/blog_btn.jpg" border="0" /></a></div>
+	  <div class="close_btn"></div>
+	  <div class="clear"></div>
+
+	  </div>
+	  
+  	  <div class="Comments">
+	  <div class="massage_time">11:20 AM</div>
+	  <div class="massage_sub2">Lorem ipsum dolor sit amet, consectetuer adipiscing elit mus...</div>
+	  <div class="massage_date">17-06-2010</div>
+	  <div class="blog_button2"><a href="#"><img src="images/blog_btn.jpg" border="0" /></a></div>
+	  <div class="close_btn"></div>
+	  <div class="clear"></div>
+
+	  </div>
+	<div class="Comments">
+	  <div class="massage_time">11:20 AM</div>
+	  <div class="massage_sub2">Lorem ipsum dolor sit amet, consectetuer adipiscing elit mus...</div>
+	  <div class="massage_date">17-06-2010</div>
+	  <div class="blog_button2"><a href="#"><img src="images/blog_btn.jpg" border="0" /></a></div>
+	  <div class="close_btn"></div>
+	  <div class="clear"></div>
+
+	  </div>
+	<div class="Comments">
+	  <div class="massage_time">11:20 AM</div>
+	  <div class="massage_sub2">Lorem ipsum dolor sit amet, consectetuer adipiscing elit mus...</div>
+	  <div class="massage_date">17-06-2010</div>
+	  <div class="blog_button2"><a href="#"><img src="images/blog_btn.jpg" border="0" /></a></div>
+	  <div class="close_btn"></div>
+	  <div class="clear"></div>
+
+	  </div>
+	  <div class="Comments">
+	  <div class="massage_time">11:20 AM</div>
+	  <div class="massage_sub2">Lorem ipsum dolor sit amet, consectetuer adipiscing elit mus...</div>
+	  <div class="massage_date">17-06-2010</div>
+	  <div class="blog_button2"><a href="#"><img src="images/blog_btn.jpg" border="0" /></a></div>
+	  <div class="close_btn"></div>
+	  <div class="clear"></div>
+
+	  </div>
+	  <div class="Comments">
+	  <div class="massage_time">11:20 AM</div>
+	  <div class="massage_sub2">Lorem ipsum dolor sit amet, consectetuer adipiscing elit mus...</div>
+	  <div class="massage_date">17-06-2010</div>
+	  <div class="blog_button2"><a href="#"><img src="images/blog_btn.jpg" border="0" /></a></div>
+	  <div class="close_btn"></div>
+	  <div class="clear"></div>
+
+	  </div>
+  <div class="clear"></div>
+  <div id="wraper">
+    <div class="news_wraper_left">Displaying <strong>1</strong> to <strong>5</strong> of <strong>50</strong></div>
+	<div class="list_page"> Page: 1/5    </div>
+<div class="news_wraper_right">
+			<div class="jobs_pagination">Next</div>
+			<div class="jobs_pagination">5</div>
+			<div class="jobs_pagination">4</div>
+			<div class="jobs_pagination">3</div>
+			<div class="jobs_pagination">2</div>
+			<div class="jobs_pagination_current">1</div>
+			
+		
+</div></div>
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+	require_once('includes/footer.php'); 
+?>

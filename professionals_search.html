@@ -1,0 +1,210 @@
+<?php
+	require_once('includes/header.php');
+	//print_r($_REQUEST);
+	$perpage			= '10';
+	$page				= optional_param('page', '0', PARAM_TEXT);
+    $keyword			= optional_param('keyword','',PARAM_TEXT);
+	$state 				= optional_param('state','',PARAM_INT);
+	$start				= ($page) * $perpage;
+	$page_arr		= array(
+							'keyword'		=> $keyword,
+							'state'			=> $state,
+							'perpage'		=> $perpage,
+							
+						  );	
+
+	$baseurl = http_build_query($page_arr,'','&amp;');	
+	$baseurl = $_SERVER['PHP_SELF'].'?'.$baseurl.'&page';
+	
+	
+	$keyword		= optional_param('keyword','',PARAM_TEXT);
+	$extra_select = '';
+	
+	
+	$sql = "select * from ".$CFG->prefix."teacher where status = 'active'";
+    if(!empty($keyword) && isset($keyword))
+    {
+       
+				// city 
+				$sql_city = "select id from ".$CFG->prefix."city where name like '%".$keyword."%'";
+				$get_city_data = get_records_sql($sql_city);
+				$city_arr = array();
+				foreach($get_city_data as $city_data)
+				{
+					$city_arr[] = $city_data->id;
+				}
+				if(!empty($city_arr))
+				{
+					$extra_select .= " || city in (".implode(",",$city_arr).")";
+				}
+				
+	   $sql .= " AND (first_name like '%".$keyword."%' || last_name like '%".$keyword."%' || zip_code like '%".$keyword."%')";
+    }
+	if(!empty($state))
+	{
+					$extra_select .= " AND state = $state";
+	}
+    $sql .= $extra_select." order by first_name ASC";
+    $sql .= " LIMIT ".$start.", ".$perpage  ;
+	$get_professional_provider_data = get_records_sql($sql);
+		
+	$sql_cnt = "select count(*) from ".$CFG->prefix."financial_provider where status = 'active'";
+    if(!empty($keyword) && isset($keyword))
+    {
+       $sql_cnt .= " AND (first_name like '%".$keyword."%' || last_name like '%".$keyword."%' || zip_code like '%".$keyword."%')";
+    }
+    if(!empty($state))
+	{
+					$extra_select .= " AND state = $state";
+	}
+    $sql_cnt .= $extra_select." order by first_name ASC";
+	$totalcount = count_records_sql($sql_cnt);
+?>
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><span>Search Educational Professionals</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+
+        <div class="clear"></div>
+        <h1><span>Educational Professionals </span></h1>       
+        <div class="clear"></div>
+      </div>
+
+	  <?php
+			$ask_query_response = optional_param('query','',PARAM_TEXT);
+			if($ask_query_response){
+				switch($ask_query_response){
+					case 'fail':
+						echo"<div style='width:100%;border:0px solid red;text-align:center;font-size:16px; font-weight:bold; color:red'>Unable to post your question ! Please Try Again</div>";break;
+					case 'success':
+						echo"<div style='width:100%;border:0px solid red;text-align:center;font-size:16px; font-weight:bold; color:red'>Question posted to educational professionals</div>";break;
+				}
+			}
+	  ?>
+	  
+      <div class="clear"></div>
+  
+      <div id="upload_form">
+        <div class="rgs_heading">
+        <h2>Search Educational Professionals by following criteria's</h2>
+        <form action="professionals_search.html" method="post" name="counselor_form" id="counselor_form">
+          <div class="text_name2">State</div>
+          <div class="text_input">
+								<?php
+									$getstate = get_records_sql('SELECT * FROM '.$CFG->prefix.'state WHERE status="active"');
+									echo '<select name="state" id="state">';
+									echo '<option value="">Select State</option>';
+									foreach($getstate as $data)
+									{
+										if($data->id == $state)
+										{
+											echo '<option value="'.$data->id.'" selected="selected" >'.$data->name.'</option>';
+										}
+										else
+										{
+											echo '<option value="'.$data->id.'">'.$data->name.'</option>';
+										}
+										
+									}
+								    echo '</select>';
+								?>
+          </div>
+		<div class="text_name2">Keyword</div>
+          <div class="text_input">
+            <input name="keyword" id="keyword" type="text" class="input-text" value="<?php echo $keyword; ?>" />
+          </div>		  
+        <div class="clear"> </div>
+      </div>	  
+        <div class="wraper6">     
+            <input type="image" src="images/search_btn.jpg" style="width:84px; height:23px;" />
+            <input type="image" src="images/cancel_bottom.jpg" style="width:84px; height:24px;" onclick="$('keyword').value=''" />         
+          </form>		 
+        </div>		
+      </div>	 
+	  <div id="upload_form_btm"> </div>
+	   <?php
+	   $msg  = '';
+		if(isset($get_name))
+		{
+			echo  "<table width='100%' border='0' class='table_font'>";
+			echo	"<tr bgcolor='#7E7D7D' style='color:#FFFFFF'>";
+			echo	"<td >Name </td>";
+			echo	"</tr>";			
+			foreach($get_name as $search_name)
+			{
+				echo	"<tr>";											
+				echo	"<td>$search_name->name </td>";
+				echo	"</tr>";
+			}
+			echo "</table>";
+		}
+		echo "<br /><b>$msg</b>";
+	?>
+   <?php if($get_professional_provider_data && ($keyword || $state)):?> 
+  <?php echo print_paging($totalcount, $page, $perpage, $baseurl,'','','','','','');  ?>
+  <?php ENDIF ?>
+	<div class="clear"></div>
+	<?php if($get_professional_provider_data && ($keyword || $state)):?>
+		     
+			<table width="100%" border="0" class="table_font">
+				<tr bgcolor="#7E7D7D" style="color:#FFFFFF">
+					<td width="35%" align="center">FirstName </td>
+					<td width="16%" align="center">LastName </td>
+					<td width="13%" align="center">Proffession</td>
+					<td width="17%" align="center">Address</td>
+					<td width="19%" align="center">Ask Questions<br />
+					From: To</td>
+				</tr>
+				<?php foreach($get_professional_provider_data as $professional_data):?>
+				<tr>
+					<td align="center"><a href="teacher.html?tid=<?php echo $professional_data->id ?>"><?php echo $professional_data->first_name ?></a></td>
+                    <td align="center"><?php echo $professional_data->last_name ?></td>
+					
+					<td align="center"><?php echo $professional_data->qualification ?></td>
+					<!-- <td align="center"><a href="mailto:<?php echo $provider_data->email_id ?>"><?php echo $provider_data->email_id ?></a></td> --><td align="center"><?php echo $professional_data->address ?></td>
+                    <?php
+                    if(isset($_SESSION['s4c_user_id']) && !empty($_SESSION['s4c_user_id'])) {
+                    ?>
+					<td align="center"><a href="ask_pf_question.html?flag=sentbox&id=<?php echo $professional_data->user_id?>" rel ="lightbox[sent_<?php echo $professional_data->user_id?> 500 300] " title="Ask query">Ask</a></td>
+                    <?php
+                    }else{
+                    ?>
+                    <td><a href="index.html">Please Login To Ask Question</a></td>
+                    <?php
+                    }
+                    ?>
+                   
+					
+				</tr>
+				<?php ENDforeach ?>
+			</table>
+		</div>	
+	<?php ENDIF ?>
+	<div class="clear"></div>
+	<!-- << inner content>> -->
+</div>
+ 
+  <!-- << content section -->
+  <!-- footer section >> -->
+
+<?php 
+	require_once('includes/footer.php'); 
+?>

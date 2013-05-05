@@ -1,0 +1,137 @@
+<?php 
+	
+	require_once('includes/checkExpire.php');	
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 
+	$user_info = check_login();	
+	$perpage			= '10';
+	$page				= optional_param('page', '0', PARAM_TEXT); 
+	$baseurl			= 'inbox_messages.html?page';
+	//$baseurl			= 'products.html?category='.$seo_keyword.'&';
+	$start				= ($page) * $perpage;	
+	
+?>
+<script type="text/javascript">
+	function delete_msg(id)
+	{
+		var movealert = new SexyAlertBox();
+		call_alert_delete_msg("Are you sure you want to Delete?",id);			
+	}
+	function check_delete_msg(id){
+		var req = new Request({
+		 method: 'post',
+		 url: 'ajax_handler.php',
+		 data: { 'id' : id,
+				 'msg' : 'inbox',
+				 'flag' : 'check_delete_msg'						
+			 },
+		 onRequest: function() {},
+		 onComplete: function(response) { 
+			window.location.reload(true);
+		 }
+		
+		}).send();	
+	}
+</script>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+ <?php require_once("includes/left_content.php"); 
+ ?>  
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+			<li class="in_aroow"><span>Messages</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+
+        <div class="clear"></div>
+        <h1><span>Messages</span></h1>        
+        <div class="clear"></div>
+      </div>
+
+	  <?php
+		$user_id = $_SESSION['s4c_user_id'] ;
+		//echo $user_id ;
+
+		if($_SESSION['user_type']=='counselor'){ //and is_query='no'
+			$sql = "select * from {$CFG->prefix}messages where receiver_id = $user_id and isdelete_receiver='no'  order by messages.added_date DESC LIMIT $start, $perpage ";
+		}else{
+			$sql = "select * from {$CFG->prefix}messages where receiver_id = $user_id and isdelete_receiver='no' and parent_id=0 order by messages.added_date DESC LIMIT $start, $perpage ";
+		}
+		$get_inbox_msg = get_records_sql($sql);
+
+		if($_SESSION['user_type']=='counselor'){
+			$sql = "select count(id) as count_id from {$CFG->prefix}messages where receiver_id = $user_id and isdelete_receiver='no'   "; //and is_query='no'
+		}else{
+			$sql = "select count(id) as count_id from {$CFG->prefix}messages where receiver_id = $user_id and isdelete_receiver='no' and parent_id=0 ";
+		}
+		$get_inbox_msg_count_object = get_record_sql($sql); 
+		$get_inbox_msg_count = (empty($get_inbox_msg_count_object))?'':$get_inbox_msg_count_object->count_id;
+
+		if($get_inbox_msg_count)
+			echo '<div class="msg_lst"><span>'.$get_inbox_msg_count.'</span> messages</div><br /><br />';
+		else
+			echo '<div class="msg_lst"><span>No</span> messages</div><br /><br />';
+	  ?>  
+	  <div class="clear"></div>
+	 <?php echo print_paging($get_inbox_msg_count,$page, $perpage, $baseurl,'','','','',$start,''); ?>
+	<div class="clear"></div>
+	<?php
+	if($get_inbox_msg){
+		$i=0;
+		foreach($get_inbox_msg as $record){
+			$isread = ($record->isread_receiver == 'no')?' notread ':' read ';
+			$sender_info = get_user_info($record->sender_id);
+			$name = ($sender_info->user_type == 'school')?$sender_info->school_name:$sender_info->first_name;
+			//$reply = ($record->is_query  == 'yes')?'Reply From : ':'';
+			$reply='';
+			$message = substr(trim($record->message),0,50);
+			$length = strlen($record->message);
+			$added_date = date("d F Y",$record->added_date);
+			if($i==0){  
+				$i=1;
+				echo  "<div class='massage_list'>";
+			}
+			else{
+				$i=0;
+				echo  "<div class='massage_list2'>";
+			}
+			echo "<div class='massage_title'> $reply $name </div>";
+			echo "<div class='massage_sub $isread'> ";
+			echo '<a href="message.html?flag=inbox&id='.$record->id.'" rel ="lightbox[inbox_'.$record->id.' 500 300]">'.$message.'</a>';
+			if($length > 50)
+				echo "...";
+			echo "</div>";
+			echo "<div class='massage_date'> $added_date  </div>";
+			echo "<div class='close_msg_btn'><img src='images/close_icon.jpg' onclick='delete_msg($record->id)'/></div>";
+			echo "</div>";
+		}
+	}
+	?>
+  <div class="clear"></div>  
+    <?php echo print_paging($get_inbox_msg_count,$page, $perpage, $baseurl,'','','','',$start,''); ?>
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+	require_once('includes/footer.php'); 
+?>

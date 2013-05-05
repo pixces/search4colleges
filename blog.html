@@ -1,0 +1,161 @@
+<?php 
+	require_once('includes/header.php');
+	$perpage			= '3';
+	$page				= optional_param('page', '0', PARAM_TEXT); 
+	$baseurl			= 'blog.html?page';
+	//$baseurl			= 'products.html?category='.$seo_keyword.'&';
+	$start				= ($page) * $perpage;	
+
+	//$sql = "SELECT DISTINCT blog.category_id FROM {$CFG->prefix}blog_category blog_category INNER JOIN {$CFG->prefix}blog blog ON (blog_category.id = blog.category_id) ORDER BY blog_category.sort_order ASC";
+
+	$sql = "SELECT DISTINCT blog.category_id, blog_category.title FROM {$CFG->prefix}blog_category blog_category INNER JOIN {$CFG->prefix}blog blog ON (blog_category.id = blog.category_id) where blog.isapproved=1 AND blog.status='active' ORDER BY blog_category.sort_order ASC";
+	$blog_category_info = get_records_sql($sql);
+
+	$sql = "SELECT rand(),blog.id,blog.category_id,blog_category.title AS  category_name, blog_category.sort_order, blog.title, blog.description, blog.story, blog.added_date FROM {$CFG->prefix}blog_category blog_category INNER JOIN {$CFG->prefix}blog blog ON (blog_category.id = blog.category_id) where blog.isapproved=1 AND blog.status='active' ORDER BY blog_category.sort_order ASC, blog.added_date DESC";	
+	$blog_info = get_records_sql($sql);
+
+	//print_object($blog_category_info);
+	//print_object($blog_info);
+	
+	
+?>
+<script type="text/javascript" >
+	window.addEvent('domready', function(){
+		new FormCheck('add_blog_frm',{display:{showErrors:1}},{submitByAjax:true});		
+	});	
+	function save_post(){
+		if($('title').value == '' || $('description').value == '' || $('story').value == ''  ){
+			return false;
+		}else{
+			var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {'category_id' : $('category_id').value,
+						'title' : $('title').value,
+						'description' : $('description').value,
+						'story' : $('story').value,
+						'flag' : 'save_post'
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+					 $('add_post').innerHTML = response;
+					 //$('personal_msg').innerHTML = '';
+				}
+			}).send();
+		}
+	}
+
+	function add_post(){		
+			var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {'flag' : 'add_post'
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+					 $('add_post').innerHTML = response;					 
+					 window.addEvent('domready', function(){
+						new FormCheck('add_post_form',{display:{showErrors:1}});
+					});
+					 //$('personal_msg').innerHTML = '';
+				}
+			}).send();	
+			//return false;
+	}
+	
+</script>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><span>Blog</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+
+        <div class="clear"></div>
+        <h1><span>Blog</span></h1>        
+        <div class="clear"></div>
+      </div>
+
+	  <div class="clear"></div>
+	  
+<?php //echo print_paging($get_sent_msg_count,$page, $perpage, $baseurl,'','','','',$start,''); ?>
+
+<div class="clear"></div>
+
+<?php
+	echo "<table border='0' id='blog_forum' cellspacing='0' cellpadding='8' >";
+	if(isset($_SESSION['user_login']) && isset($_SESSION['user_type'])) {
+		$login_text ="<tr><td colspan='4' align='left'>
+		<div id='add_post'><a onclick='add_post()' class='anchor_dec'>
+			<img src='images/add.png' width='30' height='30' alt='Add Nes Blog' title='Add Nes Blog' ></a>
+         </div>
+         </td></tr>";		
+	}else{
+		$login_text = '';
+		//$login_text = "<b><a href='index.html' class='anchor_dec'> Login to Post Blog</b></a>";
+	}
+	
+	echo "<tr><td align='right'  colspan='4'>".$login_text."</td></tr>";
+	if($blog_category_info){
+		
+
+		echo "<tr> <th colspan='2' class='td_color1'>Blog</th> <th class='td_color1'>Posted Date</th>  </tr>";
+		foreach($blog_category_info as $category_info){	
+			echo"<tr>";
+				echo"<td colspan='4' class='td_color_blank' >&nbsp;</td>";
+			echo"</tr>";		
+			echo"<tr>";
+				echo"<td colspan='4' class='td_color2' ><b>".ucwords($category_info->title)." &nbsp; &nbsp;</b></td>";
+			echo"</tr>";
+			foreach($blog_info as $record){
+				if($category_info->category_id == $record->category_id){
+					echo"<tr>";
+						echo"<td class='td_color'><img  src='images/forum.gif' /></td>";
+						echo"<td class='td_color'>"."<a href='$CFG->siteroot/blog_details.html?id=$record->id' class='anchor_dec'> ".ucfirst($record->title)."</a>"."</td>";
+						echo"<td class='td_color'>".date("d:m:Y  g:h:i a",$record->added_date)."</td>";
+						
+					echo"</tr>";
+				}
+			}
+		}
+		echo "<tr><td align='right' colspan='4'>&nbsp;</td></tr>";
+		//echo "<tr><td align='right'  colspan='4'>".$login_text."</td></tr>";
+		
+	}
+	echo"</table>";
+
+
+?>
+
+ <div class="clear"></div>
+	
+	<?php //echo print_paging($get_sent_msg_count,$page, $perpage, $baseurl,'','','','',$start,''); ?>
+
+    </div>
+  <div class="clear"></div>  
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+
+
+<?php 
+	require_once('includes/footer.php'); 
+?>

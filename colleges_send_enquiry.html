@@ -1,0 +1,280 @@
+<?php 
+	
+	require_once('includes/checkExpire.php');
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 
+	$school_id	= optional_param('view','', PARAM_RAW);
+	$preview	= optional_param('preview','', PARAM_RAW);
+
+	$seo_keyword	= optional_param('seo_keyword', '', PARAM_RAW);
+	if($seo_keyword != '')
+	{
+		$sqldata  = get_record('schools','seo_keyword',$seo_keyword,'status','active');
+		if(isset($sqldata->user_id))
+				$school_id = $sqldata->user_id;
+	}
+	$contact  = get_record('schools_additional','school_id',$school_id,'status','active');
+	$user_email  = get_record('fe_users','id',$school_id,'status','active');
+	if(isset($contact->department_email) && !empty($contact->department_email))
+	{
+				$to_email_id=$contact->department_email;
+	}else{
+				$to_email_id=$user_email->email;
+	}
+	$profile = $board_members = $department = $department_head = $department_email = $student_population = $campus_type = $student_body = $location_google_map = '';
+
+	if(isset($_SESSION['s4c_user_id']) && $school_id != '' && !isset($_GET['preview']) && $school_id == $_SESSION['s4c_user_id']){
+		
+			if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'school'){
+				
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+
+			}
+						
+			$user_info = check_login();
+		?>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  <script language="javascript" type="text/javascript">
+	function limitText(limitField, limitCount, limitNum) {
+		if (limitField.value.length > limitNum) {
+			limitField.value = limitField.value.substring(0, limitNum);
+		} else {
+			limitCount.value = limitNum - limitField.value.length;
+		}
+	}
+</script>
+    <!-- << left content -->
+ <?php require_once("includes/left_content.php"); 
+ ?>
+  <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>       
+			<li class="in_aroow"><a href="colleges.html"><strong>Colleges</strong></a></li>      	     	        
+            <li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+          </ul>
+        </div>
+         <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="<?php echo $CFG->siteroot;?>/my_account.html">My Account</a></div>
+		<?php }} ?>
+        <div class="clear"></div>
+        <h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+        
+        <div class="clear"></div>
+      </div>
+      <div class="banner"> <img src="<?php echo $CFG->siteroot;?>/file.php/schools/<?php if(!empty($student_data->logo)) { echo $student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner"  />
+				<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)){ echo get_field('city','name','status','active','id',$student_data->city).', '; }?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+	  <div style="clear:both;"></div>
+      <?php 
+
+			$city	= cmi_genrate_url(get_data_frontend('city','name',$student_data->city));
+			$state	= cmi_genrate_url(get_data_frontend('state','name',$student_data->state));
+
+			$url  = get_s4c_seo($student_data->seo_keyword,$city,$state,$student_data->user_id);
+
+			get_menu_college($student_data->user_id,"colleges_send_enquiry",$url);
+			
+	  ?>
+
+	<h4>Send Enquiry</h4>
+        <form id="contactForm" method="post" action="cmi_emailer/email.php" name="contactForm" enctype="multipart/form-data">
+		<input type="hidden" name="config" value="colleges_enquiry" />
+		<input type="hidden" name="to_email_id" value="<?php echo $to_email_id;?>" />
+			<p>
+				<span>Name</span>
+				<input type="text" name="Fullname" class="input_text validate['required']"/>
+			</p>
+			<p>
+				<span>Email</span>
+				<input type="text" name="Email" class="input_text validate['required','email']"/>
+			</p>
+			<p>
+				<span>Telephone</span>
+				<input type="text" name="Telephone" class="input_text validate['required','phone']" />
+			</p>
+			<p>
+				<span>Your Enquiry<br />(Max char:254)</span>
+				<textarea type="text" name="Your_Message" class="text_area_box validate['required']" onKeyDown="limitText(this.form.Your_Message,this.form.countdown,254);" 
+onKeyUp="limitText(this.form.Your_Message,this.form.countdown,254);"></textarea>
+<font size="1">
+			<input readonly type="text" name="countdown" size="3" value="254" style="width:23px;"> char left.</font>
+
+			</p>
+			<p>
+				<span>What courses are you interested in?</span><br />
+				<select name='interest' id='interest' class="validate['required']">
+				<option value="">Select</option>
+				<option value='Associates'>Associates</option>
+				<option value='Bachelors'>Bachelors</option>
+				<option value='Doctorate'>Doctorate</option>
+				<option value='Masters'>Masters</option>
+				<option value='Professional Certification'>Professional Certification</option>
+				</select>
+				
+			</p>
+			<p>
+				<span>When is the best time to contact you?</span><br />
+				<input type="text" name="time" class="input_text validate['required']" />
+			</p>
+			<div>
+				<input type="submit" name="submit" value="Submit">
+				<input type="reset" name="reset" value="Reset">
+							
+			</div>
+	  </form>
+	 
+
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+	}
+else{
+				if($school_id != ''){
+			
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$school_id.' and status = "active"');
+
+				$student_additional = get_record_sql('Select * from '.$CFG->prefix.'schools_additional where school_id = '.$school_id.' and status = "active"');
+			}
+
+		?>
+
+		<!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+   <script language="javascript" type="text/javascript">
+	function limitText(limitField, limitCount, limitNum) {
+		if (limitField.value.length > limitNum) {
+			limitField.value = limitField.value.substring(0, limitNum);
+		} else {
+			limitCount.value = limitNum - limitField.value.length;
+		}
+	}
+</script>
+    <!-- << left content -->
+   <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+	  <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>          
+			<?PHP
+			if(isset($_GET['preview']))
+			{
+			?>			
+				<li class="in_aroow"><a><strong>Colleges</strong></a></li>      				
+            <?php
+			}
+			else
+			{
+			?>
+				<li class="in_aroow"><a href="<?php echo $CFG->siteroot;?>/colleges.html"><strong>Colleges</strong></a></li>     
+			<?php
+			}
+			?>  	        
+            <li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+          </ul>
+        </div>
+         <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){?>
+			<div class="in_Right_link"><a href="#"></a><a href="<?php echo $CFG->siteroot;?>/my_account.html">My Account</a></div>
+		<?php } ?>
+        <div class="clear"></div>
+        <h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+        
+        <div class="clear"></div>
+      </div>
+      <div class="banner"> <img src="<?php echo $CFG->siteroot;?>/file.php/schools/<?php if(!empty($student_data->logo)) { echo $student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner"  />
+				<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)){ echo get_field('city','name','status','active','id',$student_data->city).', '; }?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+	  <div style="clear:both;"></div>
+
+      <?php 
+			$city	= cmi_genrate_url(get_data_frontend('city','name',$student_data->city));
+			$state	= cmi_genrate_url(get_data_frontend('state','name',$student_data->state));
+
+			$url  = get_s4c_seo($student_data->seo_keyword,$city,$state,$student_data->user_id);
+
+			get_menu_college($student_data->user_id,"colleges_send_enquiry",$url);
+		?>
+
+
+      <h4>Send Enquiry</h4>
+   
+   <form id="contactForm" method="post" action="<?php echo $CFG->siteroot;?>/cmi_emailer/email.php" name="contactForm" enctype="multipart/form-data">
+		<input type="hidden" name="config" value="colleges_enquiry" />
+		<input type="hidden" name="s4c_user_id" value="<?php echo $school_id;?> " />
+		<input type="hidden" name="to_email_id" value="<?php echo $to_email_id;?>" />
+			<p>
+				<span>Name</span>
+				<input type="text" name="Fullname" class="input_text validate['required']"/>
+			</p>
+			<p>
+				<span>Email</span>
+				<input type="text" name="Email" class="input_text validate['required','email']"/>
+			</p>
+			<p>
+				<span>Telephone</span>
+				<input type="text" name="Telephone" class="input_text validate['required','phone']" />
+			</p>
+			<p>
+				<span>Your Enquiry</span>
+				<textarea type="text" name="Your_Message" class="text_area_box validate['required']" onKeyDown="limitText(this.form.Your_Message,this.form.countdown,254);" 
+onKeyUp="limitText(this.form.Your_Message,this.form.countdown,254);"></textarea>
+<font size="1">
+<input readonly type="text" name="countdown" size="3" value="254" style="width:23px;"> char left.</font>
+			</p>
+			<p>
+				<span>What courses are you interested in?</span><br />
+				<select name='interest' id='interest' class="validate['required']">
+				<option value="">Select</option>
+				<option value='Associates'>Associates</option>
+				<option value='Bachelors'>Bachelors</option>
+				<option value='Doctorate'>Doctorate</option>
+				<option value='Masters'>Masters</option>
+				<option value='Professional Certification'>Professional Certification</option>
+				</select>
+				
+			</p>
+			<p>
+				<span>When is the best time to contact you?</span><br />
+				<input type="text" name="time" class="input_text validate['required']" />
+			</p>
+			<div>
+				<input type="submit" name="submit" value="Submit">
+				<input type="reset" name="reset" value="Reset">
+							
+			</div>
+	  </form>
+
+	 
+
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content >> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+	<?php
+			 }
+	require_once('includes/footer.php'); 
+?>

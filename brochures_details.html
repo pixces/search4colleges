@@ -1,0 +1,113 @@
+<?php 
+	require_once('includes/header.php');
+	$id=optional_param('id','0', PARAM_INT);
+	
+		
+	$master_image_path = 'brochures';	
+
+	//$sql = "SELECT rand(),blog.added_date, blog.description, blog.title, blog.category_id, blog.id, blog.user_id, blog.story, blog_category.title AS category_name FROM {$CFG->prefix}blog_category blog_category INNER JOIN {$CFG->prefix}blog blog ON (blog_category.id = blog.category_id) WHERE (blog.id = $id) ORDER BY blog_category.sort_order ASC";
+
+	//$sql  ="SELECT * FROM {$CFG->prefix}news WHERE  $id";
+	
+
+	$news_info = get_record('schools_brochures','id',$id);
+	$ext = pathinfo($news_info->filename);
+	$extension = $ext['extension'];
+	
+?>
+<script type="text/javascript" >
+	window.addEvent('domready', function(){
+		new FormCheck('add_blog_frm',{display:{showErrors:1}},{submitByAjax:true});		
+	});
+	
+</script>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+	
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+			<?php
+			if(isset($aritcle_info->parent_category_name)) { 
+				echo '<li class="in_aroow"><a href="articles.html"><strong>'.$aritcle_info->parent_category_name.'</strong></a></li>';				
+			}	
+			?>            
+			<li class="in_aroow"><span><?php  echo isset($news_info->title)?$news_info->title:''; ?></span></li>
+          </ul>
+        </div>
+		<div class="in_Right_link">
+					<a href="#"></a><?php   //echo date('d F Y',$blog->date);?>
+				</div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+      
+        <div class="clear"></div>
+      </div>
+	  
+	  
+<div class="news_wraper_right"></div>
+
+<div class="clear"></div>
+<?php 
+
+	echo '<table width="100%" cellspacing="0" cellpadding="6" border="0" align="center" >';
+	if($news_info){	
+		echo "<tr>";
+			echo "<td colspan=2 class='td_color'>";
+				echo "<div style='float:left;'><span class='blog_detail_head'>".ucfirst($news_info->title)."</span>";
+				echo "<br />".date('M Y',$news_info->added_date)."</div>"."";
+			echo "</td>";
+
+		echo "</tr>";
+		if($extension == 'pdf')
+		{
+			echo "<tr><td><div style='float:left;'>".ucfirst($news_info->short_description)."</div></td>
+				<td><div style='float:right;'><a href='".$CFG->siteroot."/file.php/".$master_image_path."/".$news_info->filename."' rel ='lightbox' title=''><img src=".$CFG->siteroot."/images/pdf.png alt='' /></a></div></td></tr>";
+		}
+		elseif($extension == 'doc' || $extension == 'docx')
+		{
+			echo "<tr><td><div style='float:left;'>".ucfirst($news_info->short_description)."</div></td>
+				<td><div style='float:right;'><a href='".$CFG->siteroot."/file.php/".$master_image_path."/".$news_info->filename."' title=''><img src=".$CFG->siteroot."/images/doc.png alt='' /></a></div></td></tr>";
+		}
+		elseif($extension == 'xls')
+		{
+			echo "<tr><td><div style='float:left;'>".ucfirst($news_info->short_description)."</div></td>
+				<td><div style='float:right;'><a href='".$CFG->siteroot."/file.php/".$master_image_path."/".$news_info->filename."' title=''><img src=".$CFG->siteroot."/images/xls.png alt='' /></a></div></td></tr>";
+		}
+		echo "<tr><td>&nbsp;</td></tr>";
+
+		
+	}
+	echo'</table>';
+
+
+?>		
+			
+
+ <div class="clear"></div>
+  
+    
+<div class="news_wraper_right"></div>
+    </div>
+  <div class="clear"></div>  
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+
+<?php 
+	//require_once('includes/footer.php'); 
+?>

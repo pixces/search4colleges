@@ -1,0 +1,251 @@
+<?php 
+
+	require_once('includes/header.php');
+	$id=optional_param('id','0', PARAM_INT);
+	
+	$sql = "SELECT rand(),blog.added_date, blog.description, blog.title, blog.category_id, blog.id, blog.user_id, blog.story, blog_category.title AS category_name FROM {$CFG->prefix}blog_category blog_category INNER JOIN {$CFG->prefix}blog blog ON (blog_category.id = blog.category_id) WHERE (blog.id = $id) ORDER BY blog_category.sort_order ASC";
+	
+	$blog_info = get_record_sql($sql);
+	if($blog_info){
+		$blog_user = get_user_info($blog_info->user_id);
+		$sql		= "select * from {$CFG->prefix}blog_comment where blog_id = $blog_info->id and isapproved=1 and status='active' ";
+		//echo $sql;
+		$comment_info = get_records_sql($sql);
+		//$comment_info = get_records('blog_comment','blog_id',$blog_info->id);
+		$comment_info_count = (empty($comment_info))?0:count($comment_info);
+		$total_post_by_user = count_records('blog','user_id',$blog_info->user_id);	
+		$category_name = get_field('blog_category','title','id',$blog_info->id);
+	}
+	
+	
+	
+?>
+<script type="text/javascript" >
+	window.addEvent('domready', function(){
+		new FormCheck('add_blog_frm',{display:{showErrors:1}},{submitByAjax:true});		
+	});	
+
+	function add_comment(id){	
+		if($('txtcomment').value == '' ){			
+			return false;
+		}else{
+			var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {'txtcomment' : $('txtcomment').value,
+						'id' : id,
+						'flag' : 'add_comment'
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+					 $('add_blog').innerHTML = response;
+					 $('post_image').innerHTML = '';
+					 //$('personal_msg').innerHTML = '';
+				}
+			}).send();	
+			//return false;
+		}
+	}
+
+	function edit_blog(id,count,name){	
+		
+			var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {'id' : id,
+						'count' : count,
+						'name' : name,
+						'flag' : 'edit_blog'
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+					 $('edit_blog').innerHTML = response;					 
+					 window.addEvent('domready', function(){
+						new FormCheck('edit_blog__form',{display:{showErrors:1}});
+					});
+					 //$('personal_msg').innerHTML = '';
+				}
+			}).send();	
+	}
+	
+	function save_blog(count,name){
+		if($('title').value == '' || $('description').value == '' || $('story').value == ''  ){
+			return false;
+		}else{
+			var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {'id' : $('id').value,
+						'title' : $('title').value,
+						'description' : $('description').value,
+						'story' : $('story').value,
+						'count' : count,
+						'name' : name,
+						'flag' : 'save_blog'
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+					window.location.reload();
+					// $('edit_blog').innerHTML = response;
+					 //$('personal_msg').innerHTML = '';
+				}
+			}).send();
+		}
+	}
+
+	function delete_comment(id){
+			
+			var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {'id' : id,	
+						'flag' : 'delete_comment'	
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) {
+				 		 window.location.reload();
+				}
+			}).send();	
+		}
+</script>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+	
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+			<li class="in_aroow"><a href="blog.html"><strong>Blog</strong></a></li>
+			<?php
+			if(isset($category_name)) { 
+				echo '<li class="in_aroow"><a href="blog.html"><strong>'.$category_name.'</strong></a></li>';				
+			}	
+			?>            
+			<li class="in_aroow"><span><?php  echo isset($blog_info->title)?$blog_info->title:''; ?></span></li>
+          </ul>
+        </div>
+		<div class="in_Right_link">
+					<a href="#"></a><?php   //echo date('d F Y',$blog->date);?>
+				</div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+      
+        <div class="clear"></div>
+      </div>
+	  
+	  
+<div class="news_wraper_right"></div>
+
+<div class="clear"></div>
+<?php 
+
+	echo'<table width="100%" cellspacing="0" cellpadding="6" border="0" align="center" >';
+	if($blog_info){	
+		$login_text = '';
+		if(isset($_SESSION['user_login']) && isset($_SESSION['user_type'])) {
+			$login_text ="<b>Comments : $comment_info_count</b>";			
+		}else{
+			$login_text = "<b>Comments : $comment_info_count &nbsp;&nbsp; <a href='index.html' class='anchor_dec'> Login to post Comments </b></a>";
+		}
+		$name = ucwords($blog_user->name)." (".$blog_user->user_type.") ";
+		echo"<tr><td>";
+			echo "<table width='100%' id='edit_blog' border='0' cellspacing='0' cellpadding='8'> ";
+				
+				echo "<tr>";
+					echo "<td class='td_color'>";
+						echo "<div style='float:left;'><span class='blog_detail_head'>".ucfirst($blog_info->title)."</span>";
+						echo "<br /><br />".$name;
+						echo "<br />".date('M Y',$blog_info->added_date)."</div>"."<div style='float:right;'>$login_text</div>";
+					echo "</td>";
+				echo "</tr>";	
+				if(isset($_SESSION['s4c_user_id']) && $_SESSION['s4c_user_id'] == $blog_user->user_id) {
+					echo "<tr><td align='right' style='float:right;'>";
+						echo"<img src='images/edit.gif' alt='edit' onclick='edit_blog($blog_info->id,$comment_info_count,\"$name\")' style='cursor:pointer;'/>";
+					echo"</td></tr>";
+				}
+
+				echo "<td><br /><b>Decription : </b><p>".ucfirst($blog_info->description)."</p></td></tr>";
+				echo "<tr><td><b>Story :</b><p>".ucfirst($blog_info->story)."</p></td></tr>";
+			echo"</table>";
+		echo "</td></tr>";
+		
+		if($comment_info){	
+			echo "<tr><td class='td_color'><div style='float:left;'><b>Comments</b></div></td></tr>";
+			foreach($comment_info as $record){
+            	$comment_post_info = get_user_info($record->user_id);
+				echo "<tr>";
+					echo "<td style='border-bottom:1px dotted black;'>";
+						echo"<dl style='margin: 0px; padding: 0 0 10px;'>";
+							echo "<dt><b><small> Posted By ".ucwords($comment_post_info->name)." (".$comment_post_info->user_type.") on ( ".date("M , Y  h:i",$record->added_date)." )</small></b> ";
+                            if(isset($_SESSION['s4c_user_id']) && $_SESSION['s4c_user_id'] == $record->user_id) {
+							echo"<img src='images/close_icon.jpg' alt='edit' onclick='delete_comment($record->id)' style='cursor:pointer;' align='right'/>"; }
+                            echo "</dt>";
+							echo "<dd style=' padding: 10px 0 0px;'>".$record->comment."</dd>";
+                            
+						echo "</dl>";
+					echo "</td>";
+                    
+					
+				echo "</tr>";
+			}
+		}
+		
+		echo "<tr><td align='right' class='td_color'>".$login_text."</td></tr>";
+		echo "<tr><td>&nbsp;</td></tr>";
+
+		if(isset($_SESSION['user_login']) && isset($_SESSION['user_type']) ) {
+			if(($expired == 0)){ 
+		?>
+			<tr>
+				<td >
+					<div>
+						<form name='add_blog_frm' id='add_blog_frm' onsubmit='add_comment(<?php echo $blog_info->id;?>);return false;' method="post">
+
+							<div id='add_blog' style='float:left;border:2 solid red;height: 150px;width: 350px;'>
+								<textarea style="border:1px solid #e7e7e7; width:380px; height:150px;" name='txtcomment' id='txtcomment' class="validate['required']" style=' height: 150px;width: 350px;' maxlength="100"></textarea>
+							</div>
+							<div id="post_image">
+							<div style='float:right;background-color:#F4F4F4;min-height:114px;min-width:260px;padding:20px; border: 1px solid #e7e7e7; border-radius: 5px 5px 5px 5px;'  >Maximum Characters : 100<br /><br /><br />
+							<input name='submit' id='submit' type='image' src='images/postComnt.gif' style='cursor:pointer;'/>
+							</div>
+							</div>
+						</form>
+					</div>
+				</td>
+			</tr>
+		<?php 
+			}
+		}
+	}
+	echo'</table>';
+
+
+?>		
+			
+
+ <div class="clear"></div>
+  
+    
+<div class="news_wraper_right"></div>
+    </div>
+  <div class="clear"></div>  
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+
+<?php 
+	require_once('includes/footer.php'); 
+?>

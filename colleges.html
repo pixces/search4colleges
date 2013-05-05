@@ -1,0 +1,484 @@
+<?php
+	require_once('includes/header.php');	
+    
+	$state = "";
+	$major = "";
+	$zip = "";
+	$extraselect = "";
+	$totalcount = 0;
+	$msg = optional_param('msg','',PARAM_RAW);
+	$get_state = optional_param('state','', PARAM_RAW);
+	$school_name = optional_param('school_name','', PARAM_RAW);
+	$state_name = '';
+	// filter expired college from feuser
+	    $currentDate = time();
+	    $dateData = get_records_sql("SELECT id,added_date FROM fe_users WHERE status='active' and id NOT IN (SELECT school_id FROM school_membership WHERE status='active' and expiryon> ".time().")");
+		$exp_date = array();
+		foreach($dateData as $dateDataval)
+		{
+			$login30Day = strtotime('+30days', $dateDataval->added_date);
+			if($currentDate > $login30Day){
+			$exp_date[$dateDataval->id] = $dateDataval->id;
+			}
+		}
+		
+	// filter end 
+      
+	if(!empty($get_state))
+	{
+		if(preg_match('/\d$/', $get_state))
+		{  
+			
+			$get_state = get_field('state','id','id',$get_state,'status','active');
+            $get_state_nm = get_field('state','name','id',$get_state,'status','active'); 
+		} 
+		else
+		{  
+			$state_name = str_replace('_',' ',$get_state);
+			$get_state = get_data_frontend('state','id',$state_name,'name');
+            $get_state_nm = $state_name;
+              
+		} 
+	}
+	
+	$get_type = optional_param('type','', PARAM_RAW); // FA
+    $get_state = str_replace("_"," ",$get_state); // FA
+	
+	$perpage			= '20';
+	$page				= optional_param('page', '0', PARAM_TEXT);
+	$start				= ($page) * $perpage;
+	$major = optional_param('search_major','', PARAM_RAW);
+	$zip = optional_param('search_zip','', PARAM_RAW);
+	if(is_array($major) && isset($major))
+	{
+		$major=implode("-",$major);
+	}
+	    $baseurl = 'colleges.html?state='.$get_state.'&search_major='.$major.'&search_zip='.$zip.'&page';
+	if(!empty($major) && !is_array($major))
+	{
+        $major=explode("-",$major);
+	}
+    if($get_type =="Private_High_School")
+	{
+		$institution_type=2;
+	}
+	if($get_type =="public_high_school_district")
+	{  
+		$institution_type=1;
+	}
+	
+
+
+	if($get_state!='')
+	{
+		$extraselect .= " AND s.state = ".$get_state ;
+	}
+	if($school_name!='')
+	{
+		
+		
+		/// record by city
+		$sql = "SELECT * FROM {$CFG->prefix}city WHERE name like '%".$school_name."%'";
+		$city_data = get_records_sql($sql);
+		
+	    if($city_data)
+		{
+			$city_ids = array();
+			foreach($city_data as $city)
+			{
+				if(in_array($city->id,$city_ids))
+				{
+					//continue
+				}
+				else
+				{
+					$city_ids[] = $city->id;
+				}
+			}
+			$c_ids = implode(',',$city_ids);
+			$extraselect .= " AND (s.school_name like '%".$school_name."%' || s.city IN(".$c_ids."))" ;
+		}else{
+			$extraselect .= " AND s.school_name like '%".$school_name."%'" ;
+		}
+		
+		// end of city
+	}
+	
+		
+	if(is_array($major)&&$major[0]!='Select Major')
+	{
+		$major_ids = implode(',',$major);
+		$sql = "SELECT * FROM {$CFG->prefix}school_major WHERE major_id IN (".$major_ids.")";
+		$school_data = get_records_sql($sql);
+
+		$school_ids[0]=0;
+
+		if($school_data)
+		{
+			foreach($school_data as $school)
+			{
+				if(in_array($school->school_id,$school_ids))
+				{
+					//continue
+				}
+				else
+				{
+					$school_ids[] = $school->school_id;
+				}
+			}
+		}
+
+		$ids = implode(',',$school_ids);
+
+		if($get_type !='')
+		{
+			$extraselect .= " AND s.user_id IN(".$ids.")";
+		}else{
+			$extraselect .= " AND s.user_id IN(".$ids.")";
+		}
+
+	}
+
+	if($zip!='')
+	{
+		if($get_type !='')
+		{
+			$extraselect .= " AND s.zip_code LIKE '%".$zip."%'";
+		}else
+		{	
+			$extraselect .= " AND s.zip_code LIKE '%".$zip."%'";
+		}
+	}
+	
+
+	if($get_type !='')
+	{
+		$qry = 'SELECT count(s.id) as max_count FROM '.$CFG->prefix.'schools as s ,'.$CFG->prefix.'schools_additional sa WHERE s.status = "active"  and s.user_id=sa.school_id and sa.institution_type='.$institution_type.$extraselect ;
+	}
+	else
+	{
+		 if($exp_date)
+		 {
+		 $qry = "SELECT count(s.id) as max_count FROM ".$CFG->prefix."schools s,".$CFG->prefix."fe_users f WHERE s.status = 'active'".$extraselect." AND f.id NOT in (".implode(",",$exp_date).") AND user_id=f.id";
+		 }else{
+		 $qry = "SELECT count(s.id) as max_count FROM ".$CFG->prefix."schools s,".$CFG->prefix."fe_users f WHERE s.status = 'active'".$extraselect."  AND user_id=f.id";
+		 }
+	}
+	
+	$data = get_record_sql($qry);
+	$totalcount = $data->max_count;
+	
+	/*
+    if($get_type !='')
+    {
+        $student_data1 = get_records_sql('SELECT * FROM '.$CFG->prefix.'schools as s, 
+										'.$CFG->prefix.'schools_additional sa,
+										'.$CFG->prefix.'fe_users f  WHERE s.status = "active" 
+										and s.user_id=sa.school_id and sa.institution_type='.$institution_type.$extraselect.' 
+										AND f.id NOT in ('.implode(",",$exp_date).') AND user_id=f.id ORDER BY s.school_name 
+                                        LIMIT '.$start.', '.$perpage);
+    }else{
+		$student_data1 = get_records_sql('SELECT * FROM '.$CFG->prefix.'schools s, '.$CFG->prefix.'fe_users f WHERE s.status = "active" '.$extraselect.' AND f.id NOT in ('.implode(",",$exp_date).') AND user_id=f.id ORDER BY school_name LIMIT '.$start.', '.$perpage);
+	}
+    */
+	if($exp_date)
+	{
+	$student_data1 = get_records_sql('SELECT * FROM '.$CFG->prefix.'schools s, '.$CFG->prefix.'fe_users f WHERE s.status = "active" '.$extraselect.' AND f.id NOT in ('.implode(",",$exp_date).') AND user_id=f.id ORDER BY school_name LIMIT '.$start.', '.$perpage);
+	$qry = 'SELECT * FROM '.$CFG->prefix.'schools s, '.$CFG->prefix.'fe_users f WHERE s.status = "active" '.$extraselect.' AND f.id NOT in ('.implode(",",$exp_date).') AND user_id=f.id ORDER BY school_name';
+	}else
+	{
+	$student_data1 = get_records_sql('SELECT * FROM '.$CFG->prefix.'schools s, '.$CFG->prefix.'fe_users f WHERE s.status = "active" '.$extraselect.'  AND user_id=f.id ORDER BY school_name LIMIT '.$start.', '.$perpage);
+	$qry = 'SELECT * FROM '.$CFG->prefix.'schools s, '.$CFG->prefix.'fe_users f WHERE s.status = "active" '.$extraselect.' AND user_id=f.id ORDER BY school_name';
+	}
+	$query = urlencode($qry);
+
+?>
+    <SCRIPT language=Javascript>
+	function show_search()
+    {
+            
+			var accr_id = document.getElementById("accr_id").style.display;
+            if (accr_id == 'block') {
+                document.getElementById("accr_id").style.display = 'none';
+            } else {
+                document.getElementById("accr_id").style.display = 'block';
+            }
+			var filter_id = document.getElementById("filter_id").style.display;
+            if (filter_id == 'block') {
+                document.getElementById("filter_id").style.display = 'none';
+            } else {
+                document.getElementById("filter_id").style.display = 'block';
+            }
+			var search_id = document.getElementById("search_id").style.display;
+            if (search_id == 'block') {
+                document.getElementById("search_id").style.display = 'none';
+            } else {
+                document.getElementById("search_id").style.display = 'block';
+            }
+			var title_id = document.getElementById("title_id").style.display;
+            if (title_id == 'block') {
+                document.getElementById("title_id").style.display = 'none';
+            } else {
+                document.getElementById("title_id").style.display = 'block';
+            }
+			
+		
+    }
+      <!--
+      function isNumberKey(evt)
+      {
+         var charCode = (evt.which) ? evt.which : event.keyCode
+		 
+		 if ((charCode > 31 || charCode == 8) && (charCode < 48 || charCode > 57))
+		 {
+            return true;
+		 }else{
+		    return false;
+		 }
+      }
+	  function view_count(id)
+	  {
+				var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {'id':id,
+						'flag' : 'view_count'						
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+				 }
+			}).send();
+	  }
+      //-->
+   </SCRIPT>
+
+  <!-- content section >> -->
+  <div id="content_sec">
+
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><span>Search Colleges</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+
+        <div class="clear"></div>
+        <h1><span>Colleges</span></h1>
+        <div class="clear"></div>
+      </div>
+
+
+      <div class="clear"></div>
+
+      <div id="upload_form">
+        <div class="rgs_heading" >
+		
+        <h2 <?php if(!empty($get_state) || !empty($major) || !empty($zip) || !empty($school_name)) {?> style="display:none;" <?php } ?> id="title_id">Search Colleges by following criteria's</h2><br>
+		
+		<?php if(!empty($get_state) || !empty($major) || !empty($zip) || !empty($school_name) )
+		{ ?>
+			<h2 align='center'><?php if($totalcount==0){ echo "No Records Found ";echo isset($state_name) && $state_name != ''? "for state ".$state_name : ''."!!"; }else{ echo $totalcount." Record(s) Found !!"; } ?></h2>
+		<?php } elseif(isset($_GET['msg'])) { ?>
+			<h2 align='center'><?php echo $msg; ?></h2>
+		<?php } ?>
+		<div <?php if(!empty($get_state) || !empty($major) || !empty($zip) || !empty($school_name) )
+		{ ?>style="display:none;"<?php } ?> id="accr_id">
+        <form method="post" action="" id="college_form" >
+		<div class="text_name2">Keyword</div>
+			<div class="text_input">
+				<input name="school_name" size="25" type="text" class="small_input1  input-text" value="<?php echo $school_name; ?>"  onkeypress="return isNumberKey(event)"/>
+			</div>
+			<div class="text_name2">State</div>
+			<div class="text_input">
+				<!-- <select name="state" class="small_select1 validate['required']"> -->
+				<select name="state" class="small_select1">
+				<option value="">Select</option>
+				<?php
+					$state_data = get_records('state','status','active');
+
+					//print_object($state_data);
+					if($state_data)
+					{						
+						foreach($state_data as $sdata)
+						{
+							if($sdata->id==$state || $sdata->id==$get_state)
+							{
+				?>				<option selected="selected" value="<?php echo $sdata->id; ?>"><?php echo $sdata->name; ?></option>
+				<?php 		}
+							else
+							{
+				?>				<option value="<?php echo $sdata->id; ?>"><?php echo $sdata->name; ?></option>
+				<?php		}
+						}
+					}
+				?>
+				</select>
+			</div>
+			<div class="text_name2">Major</div>
+			<div class="text_input">
+				<select multiple name="search_major[]" size="10">
+					<?php
+						$main_majors = get_records('majors','parent_id','0');
+						if($main_majors)
+						{
+							foreach($main_majors as $main)
+							{
+					?>			<option disabled value="0"><?php echo $main->name; ?></option>
+								<?php
+									$major_data = get_records('majors','parent_id',$main->id);
+									if($major_data)
+									{
+										foreach($major_data as $data)
+										{
+											if(is_array($major)&&in_array($data->id,$major))
+											{
+								?>				<option selected="selected" value="<?php echo $data->id; ?>">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $data->name; ?></option>
+								<?php		}
+											else
+											{
+								?>				<option value="<?php echo $data->id; ?>">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $data->name; ?></option>
+								<?php		}
+										}
+									}
+							}
+						}						
+					?>
+				</select>
+			</div>
+			<div class="text_name2">Zip Code</div>
+			<div class="text_input">
+				<input name="search_zip" size="10" type="text" maxlength="7" class="small_input1  input-text" value="<?php echo $zip; ?>" />
+			</div>
+			
+
+        <div class="clear"> </div>
+		</div>
+		</div>
+		<div class="wraper6">
+        
+			<input type="hidden" name="submit" value="submit" />
+			
+			<img src="images/refine-search.png" <?php if(!empty($get_state) || !empty($major) || !empty($zip) || !empty($school_name) )
+			{ ?>style="float:left;display:block;" <?php }else{ ?> style="float:left;display:none;" <?php } ?> onclick="show_search();" id="filter_id"/>
+			
+			<input type="image" src="images/search_btn.jpg" <?php if(!empty($get_state) || !empty($major) || !empty($zip) || !empty($school_name) )
+			{ ?>style=" width:84px; height:23px; float: left; display:none;" <?php } ?> id="search_id"/>
+			
+			
+            <?php if(isset($_SESSION['s4c_user_id'])&&isset($_POST['submit'])&&$totalcount!=0) { ?>&nbsp;&nbsp;&nbsp;&nbsp;<a rel="lightbox['search' 490 150]" href="save_search.html?state=<?php echo $get_state_nm; ?>&majors=<?php echo $major_ids; ?>&zip=<?php echo $zip; ?>&school_name=<?php echo $school_name; ?>&query=<?php echo urlencode($query); ?>"><img src="images/save-search.png" alt="" /></a><?php } ?>&nbsp;&nbsp;&nbsp;&nbsp;<span style="cursor:pointer" onclick="window.location='colleges.html'"><img src="images/clear-search.png" alt="" /></span>&nbsp;&nbsp;&nbsp;&nbsp;<a href="advanced_search.html" style="text-decoration:underline; color:#000000;"><img src="images/advanced-search.png" alt="" /></a>
+
+        </div>
+		</div>
+		</form>
+		<div id="upload_form_btm"></div>
+
+	<?php
+		if(!empty($get_state) || !empty($major) || !empty($zip) || !empty($school_name) )
+		{
+
+		?>
+
+	<!-- <div class="msg_lst">Your search returned: <span>59</span> matches</div>
+	<div class="list_page2">  </div>
+	<div class="inquiry2"><a href="#"><strong>wishlist</strong></a></div>
+	<div class="wishlist"><a href="#"><strong>wishlist</strong></a></div> -->
+
+	<!-- pagination block start -->
+		<?php echo print_paging($totalcount, $page, $perpage, $baseurl,'','','','','','');  ?>
+	<!-- pagination block end -->
+	<?php if($student_data1) { ?>
+		<table width="100%" border="0" class="table_font6" cellpadding="0" cellspacing="8">
+			<tr bgcolor="#d0d0d0" style="color:#000;">
+				<td width="38%">Name </td>
+				<td width="11%">Location </td>
+				<td width="10%">Student Population </td>
+				<td width="12%">Entrance Difficulty</td>
+
+				<!-- <td width="10%">Add to<br />Wishlist</td> -->
+			</tr>
+			<?php
+				//print_object($student_data1);
+				foreach($student_data1 as $data)
+				{
+					$student_data_selectivirty = get_record_sql('SELECT * FROM '.$CFG->prefix.'school_culture_campus_life WHERE status = "active" AND school_id='.$data->user_id);
+					$selectivity = '';
+
+					if(!empty($student_data_selectivirty))
+					{
+						$selectivity = $student_data_selectivirty->selectivity;
+					}
+					$city	= cmi_genrate_url(get_data_frontend('city','name',$data->city));
+					$state	= cmi_genrate_url(get_data_frontend('state','name',$data->state));
+					if($data->seo_keyword){
+						if(isset($_SESSION['s4c_user_id'])){
+							if($_SESSION['s4c_user_id'] == $data->user_id)
+								$url	= "colleges_profile.html?view=".$data->user_id; 
+							else
+								$url	= $state."/".$city."/".$data->seo_keyword."/profile";
+						}
+						else
+							$url	= $state."/".$city."/".$data->seo_keyword."/profile";
+					}
+					else
+						$url	= "colleges_profile.html?view=".$data->user_id;
+			?>
+					<tr>
+						<td>
+							<a href="<?php if(isset($url)) echo $CFG->siteroot."/".$url;?>" onclick="view_count(<?php echo $data->id; ?>)">
+							<?php echo $data->school_name;?>
+							</a>
+						</td>
+						<td>
+							<?php $city = str_replace(array("_","/"),array(" ","-"), $city); if(!empty($city)){ echo ucwords($city).','; }?><br />
+							<?php $state = str_replace(array("_","/"),array(" ","-"), $state); if(!empty($state)){ echo ucwords($state); }?>
+						</td>
+						<td> <?php $population = get_field('schools_additional','student_population','school_id',$data->user_id);  if(!empty($population)){ echo $population; }else{ echo '-';}?> </td>
+						<td><?php if(!empty($selectivity)){ $entra = str_replace(array("_","/"),array(" ","-"), $selectivity); echo ucwords($entra);}else{ echo '-';}?></td>
+						<!-- <td><a href="colleges_profile.html"><img src="images/add_to_wishlist.jpg" border="0" /></a></td> -->
+					</tr>
+			<?php
+				}
+			?>
+		</table>
+		
+		<!-- pagination block start -->
+			<?php echo print_paging($totalcount, $page, $perpage, $baseurl,'','','','','','');  ?>
+		<!-- pagination block end -->
+
+		<!-- <div class="msg_lst">Your search returned: <span>59</span> matches</div>
+		<div class="list_page2">  </div>
+		<div class="inquiry2"><a href="#"><strong>wishlist</strong></a></div>
+		<div class="wishlist"><a href="#"><strong>wishlist</strong></a></div> -->
+
+	<?php
+			}
+		}
+	else{
+		
+
+	}
+	?>
+    </div>
+
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php
+
+  require_once('includes/footer.php');
+
+?>

@@ -1,0 +1,233 @@
+<?php 
+	
+	require_once('includes/checkExpire.php');
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 
+	$master_image_path = 'schools';
+	// filter expired college from feuser
+	    $currentDate = time();
+	    $dateData = get_records_sql("SELECT id,added_date FROM fe_users WHERE status='active' and id NOT IN (SELECT school_id FROM school_membership WHERE status='active' and expiryon> ".time().")");
+		$exp_date = array();
+		foreach($dateData as $dateDataval)
+		{
+			$login30Day = strtotime('+30days', $dateDataval->added_date);
+			if($currentDate > $login30Day){
+			$exp_date[$dateDataval->id] = $dateDataval->id;
+			}
+		}
+		
+	// filter end 
+
+	$school_id	= optional_param('view','', PARAM_RAW);
+	$preview	= optional_param('preview','', PARAM_RAW);
+	$message1 = '';
+	$related_string = '';
+	$staff_permission = '';
+
+	$seo_keyword	= optional_param('seo_keyword', '', PARAM_RAW);
+	if($seo_keyword != '')
+	{
+		$sqldata  = get_record('schools','seo_keyword',$seo_keyword,'status','active');
+		if(isset($sqldata->user_id))
+				$school_id = $sqldata->user_id;
+	}
+
+
+	$profile = $board_members = $department = $department_head = $department_email = $student_population = $campus_type = $student_body = $location_google_map = '';
+
+
+	if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'staff')
+		{
+			$allowed = get_field('school_staff_user','allowed_sections','fe_staff_id',$_SESSION['s4c_user_id']);
+
+			if(!empty($allowed))
+			{
+				$alloweds = explode(",",$allowed);
+				if(in_array($page_name,$alloweds))
+				{
+					$staff_permission = 'yes';
+				}
+				else
+				{
+					$staff_permission = 'no';
+				}
+			}
+
+		}
+
+
+	if($school_id != ''){
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$school_id.' and status = "active"');
+				
+				
+				$sql = "SELECT rand(),schools.user_id,
+							   schools.school_name,
+							   schools.city,
+							   schools.state,
+							   school_major.school_id,
+							   school_major.major_id
+						  FROM    {$CFG->prefix}schools schools
+							   INNER JOIN
+								  {$CFG->prefix}school_major school_major
+							   ON (schools.user_id = school_major.school_id)
+						 WHERE     (schools.user_id = ".$school_id.")
+							   AND(schools.status = 'active')
+							   AND(school_major.status = 'active')";
+							   
+				$colleges_data = get_records_sql($sql);
+				$majors_data = array('0'); 
+				$state_data	= 0; 
+				$city_data	= 0; 
+				if($colleges_data)	
+				{
+					foreach($colleges_data as $data)
+					{
+						$majors_data[] = $data->major_id;
+						$state_data    = $data->state;
+						$city_data 	   = $data->city;
+					}
+				}  
+				$sql = "SELECT schools.*,
+							   school_major.school_id
+						  FROM    {$CFG->prefix}schools schools
+							   INNER JOIN
+								  {$CFG->prefix}school_major school_major
+							   ON (schools.user_id = school_major.school_id)
+							   INNER JOIN
+								  {$CFG->prefix}fe_users fe_users
+							   ON (schools.user_id = fe_users.id)
+						 WHERE (schools.status = 'active') 
+								AND (schools.user_id != ".$school_id.") 
+								AND (school_major.status = 'active')
+								AND (school_major.major_id in (".implode(',',$majors_data)."))
+								OR (schools.state = {$state_data})
+								OR (schools.city = {$city_data})"; 
+							
+				$student_data_original = get_records_sql($sql); 
+			}
+
+		?>
+	 <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+ <?php require_once("includes/left_content.php"); ?>
+  <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>         
+			<?PHP
+			if(isset($_GET['preview']))
+			{
+			?>			
+				<li class="in_aroow"><a><strong>Colleges</strong></a></li>      				
+            <?php
+			}
+			else
+			{
+			?>
+				<li class="in_aroow"><a href="<?php echo $CFG->siteroot;?>/colleges.html"><strong>Colleges</strong></a></li>     
+			<?php
+			}
+			?>    	         
+            <li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+          </ul>
+        </div>
+         <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){?>
+			<div class="in_Right_link"><a href="#"></a><a href="<?php echo $CFG->siteroot;?>/my_account.html">My Account</a></div>
+		<?php } ?>
+        <div class="clear"></div>
+        <h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+        
+        <div class="clear"></div>
+      </div>
+      <div class="banner"> <img src="<?php echo $CFG->siteroot;?>/file.php/schools/f4_<?php if(!empty($student_data->logo)){ echo $student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner"  />
+				<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)){ echo get_field('city','name','status','active','id',$student_data->city).', '; }?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+	  <div style="clear:both;"></div>
+
+      
+
+	  <?php 
+			$city	= cmi_genrate_url(get_data_frontend('city','name',$student_data->city));
+			$state	= cmi_genrate_url(get_data_frontend('state','name',$student_data->state));
+
+			$url  = get_s4c_seo($student_data->seo_keyword,$city,$state,$student_data->user_id);
+
+			get_menu_college($student_data->user_id,"colleges_related_colleges",$url);
+		?>
+		
+	
+
+	<div style="clear:both;float:right"></div>
+	  <center><?php echo $message;?></center>
+     <h3><span style="vertical-align:super">Related Colleges :</span></h3>
+ 
+		<?php 
+		if(!empty($student_data_original))
+		{ 
+			foreach($student_data_original as $data)
+			{
+				if(in_array($data->user_id,$exp_date)) continue;
+				//print_object($data);
+				$new_url = '';
+				$url = '';
+				$city	= cmi_genrate_url(get_data_frontend('city','name',$data->city));
+				$state	= cmi_genrate_url(get_data_frontend('state','name',$data->state));
+
+				$url  = get_s4c_seo($data->seo_keyword,$city,$state,$data->user_id);
+
+				//echo $url;
+
+				if($url == ''){
+					$new_url = "colleges_profile.html?view=".$data->user_id;
+				}else{
+					$new_url =  $url."/profile";
+				}
+				//echo $url."<br />";
+				
+		?>
+		
+			<div class="college_contact_infobox">
+				<p><b><a href="<?php echo $CFG->siteroot."/".$new_url; ?>"><?php echo $data->school_name; ?></a></b>
+				<?php
+				if(isset($data->logo) && !empty($data->logo)) {
+				?>
+				<a href="<?php echo $CFG->siteroot?>/file.php/<?php echo $master_image_path;?>/<?php echo $data->logo; ?>" rel ="lightbox" title="<?php echo $data->logo; ?>">
+					<img src="<?php echo $CFG->siteroot?>/file.php/<?php echo $master_image_path;?>/f1_<?php echo $data->logo; ?>" alt="<?php echo $data->logo; ?>" style="float:right; margin-left:10px; margin-top:5px; border:2px solid #999999;" />
+				</a>
+			    <?php } else{ ?>
+				<img src="<?php echo $CFG->siteroot?>/images/noimage.jpg" alt="No logo" style="float:right; margin-left:10px; margin-top:5px; border:2px solid #999999;" />
+				<?php } ?>
+				<br />
+				  <?php echo $data->address; ?>
+				  <br/>
+				  <?php if(isset($data->city)) echo get_field('city','name','status','active','id',$data->city).', '; ?>,<?php if(isset($data->state)) echo get_field('state','name','status','active','id',$data->state); ?><br />
+				 	</p>
+			  </div>
+			
+   
+		<?php 
+			$url = '';
+			}
+		}
+		else
+		{
+			echo  "<center><div>No related Colleges Found</div></center>";
+		}
+		?>
+	 </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php
+
+	require_once('includes/footer.php'); 
+?>

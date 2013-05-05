@@ -1,0 +1,25 @@
+<?php
+	session_destroy();
+	require_once('includes/header.php'); 
+?>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec" style="height:200px;">  
+<br />
+	<?php 
+	if(!isset($_GET['msg'])) { ?>
+		<center ><h2>Registration Failed. Try Again !!!<h2><br /></center>
+	<?php }
+	else { ?>
+
+		<center><h2>Sorry, the code you entered was invalid.  <a href="javascript:history.go(-1)">Go back</a> to try again.</h2></center>
+	<?php } ?>
+    
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+	require_once('includes/footer.php'); 
+?>

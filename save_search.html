@@ -1,0 +1,66 @@
+<?php
+	require_once('cmiadmin/config.php'); 
+		
+	if(isset($_SESSION['s4c_user_id']))
+	{
+		//continue
+	}
+	else
+	{
+		redirect('index.html');
+	}
+	
+	$qry = optional_param('query','',PARAM_RAW);
+	$query = urldecode($qry);
+		
+	if(isset($_POST['submit']))
+	{
+		$title 	= optional_param('title','',PARAM_RAW);
+	    $query 	= optional_param('query','',PARAM_RAW);
+        $state 	= optional_param('state','',PARAM_RAW);
+        $majors = optional_param('majors','',PARAM_RAW);
+        $zip   	= optional_param('zip','',PARAM_RAW);
+        $school_name = optional_param('school_name','',PARAM_RAW);
+		
+		$save = new object();
+		$save->user_id = $_SESSION['s4c_user_id'];
+		$save->title = $title;
+        $save->state = $state;
+        $save->majors = $majors;
+        $save->keyword = urldecode($school_name);
+		$save->query = addslashes(urldecode($query));
+        $save->zipcode = $zip;
+		$save->added_date = time();
+        if(insert_record('save_search',$save))
+		{
+?>			<script  type="text/javascript">	
+				parent.window.location = "colleges.html?msg=Search Result Saved Successfully !!!";
+				parent.Mediabox.close();			
+			</script>
+<?php
+		}
+	}
+?>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="css/formcheck.css">
+<script language="javascript" type="text/javascript" src="js/mootools.js" ></script>
+<script language="javascript" type="text/javascript" src="js/mootools_more.js" ></script>
+<script language="javascript" type="text/javascript" src="js/en.js" ></script>
+<script language="javascript" type="text/javascript" src="js/formcheck.js" ></script>
+<script type="text/javascript">
+	window.addEvent('domready', function(){
+		new FormCheck('save_search_frm',{display:{showErrors:1}});
+	});
+</script>
+</head>
+<body>
+<h3>SAVE SEARCH</h3><br>
+<form name="save_search_frm" id="save_search_frm" method="post" action="">
+<span style="font-size: 12px; font-family : Verdana;">Title</span> : <input type="text" name="title" class="validate['required']" size="50" />
+<input type="hidden" name="query" value="<?php echo $query; ?>" />
+<br><br>
+<input type="submit" name="submit" value="SAVE" />
+</form>
+</body>
+<html>

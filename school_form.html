@@ -1,0 +1,129 @@
+<?php 
+	require_once('includes/header.php'); 
+?>
+  <!-- content section >> -->
+  <div id="content_sec">
+    <div class="inner_link reg">
+      <ul>
+        <li><strong><a href="index.html">Home</a> </strong></li>
+        <li class="in_aroow"><span>Registration</span></li>
+      </ul>
+    </div>
+    <div class="clear"></div>
+    <div id="registration_form">
+	<form action="register_complete.html" method="post" id="s4c_reg" name="s4c_reg">
+      <div class="rgs_heading">
+        <div class="req"><span>* </span>fields are compulsory</div>
+        <h1>Register as <span>School/College/Institute</span></h1>
+        <div class="clear"></div>
+      </div>
+      <div class="rgs_heading">
+        <h4>Login details</h4>
+       
+          <div class="text_name"><span>* </span>Email Address (Username)</div>
+          <div class="text_input">
+            <input name="email" id="email" type="text" class="input-text validate['required','email','%customEmail']" />
+          </div>
+          <div class="text_name"><span>* </span>Confirm Email Address</div>
+          <div class="text_input">
+            <input name="confirm_email" id="confirm_email" type="text" class="input-text validate['required','%customEmailconfirm']"  />
+          </div>
+          <div class="text_name"><span>*</span> Password</div>
+          <div class="text_input">
+            <input name="password" id="password" type="password" class="input-text validate['required']"  />
+          </div>
+          <div class="text_name"><span>*</span> Confirm Password</div>
+          <div class="text_input">
+            <input name="confirm_password" id ="confirm_password" type="password" class="input-text validate['required','confirm[password]']" />
+          </div>
+       
+        <div class="clear"> </div>
+      </div>
+      <div class="rgs_heading">
+        <h4>School / College / Institute Details</h4>
+       
+          <div class="text_name"><span>* </span>School Name</div>
+          <div class="text_input">
+            <input name="school_name" type="text" class="input-text validate['required']" id="school_name"  />
+          </div>
+          
+          <div class="text_name"><span>* </span>Address Line1</div>
+          <div class="text_input">
+            <input name="address" type="text" class="input-text validate['required']" id="address"  />
+          </div>
+
+		  <div class="text_name">Address Line2</div>
+          <div class="text_input">
+            <input name="street" type="text" class="input-text" id="street"  />
+          </div>
+
+		   <div class="text_name"><span>* </span>City</div>
+          <div class="text_input">
+            <input name="city" type="text" class="input-text validate['required']" id="city"/>
+			<!--<select id="city_from" name="city" class="validate['required'] txtBox">
+					<?php //echo get_state_option($state_id,$country_id); ?>
+			</select>-->	
+          </div>
+          
+		  <div class="text_name"><span>* </span>State</div>
+          <div class="text_input"><!--onchange="javascript:get_city(this.value,'city_from');"-->
+            <select name="state" id="state" class="validate['required']" >
+				<?php cmi_get_us_states(); ?>
+            </select>
+          </div>
+
+          
+          
+          <div class="text_name"><span>* </span>Zip Code</div>
+          <div class="text_input">
+            <input name="zip_code" type="text" class="input-text validate['required']" id="zip_code"  />
+          </div>
+
+		  <div class="text_name"><span>* </span>Country</div>
+          <div class="text_input">
+            <select name="country" id="country" disabled >
+			  <option>U.S.</option>
+              <option>Select</option>
+			  <option>India</option>
+			  
+            </select>
+          </div>
+          
+          <div class="text_name"><span>* </span>Contact No.</div>
+          <div class="text_input">
+            <input name="phone" type="text" class="input-text validate['required','phone']" id="phone"  />
+          </div>
+          
+          <div class="text_name">School Website</div>
+          <div class="text_input">
+            <input name="school_website" type="text" class="input-text validate['required','url']" id="school_website"  />
+          </div>
+          
+       
+        <div class="clear"> </div>
+      </div>
+      <div class="rgs_heading">
+        <div class="wraper2">Type the characters you see in the picture below.</div>
+        <div class="wraper2"><img src="securimage/securimage_show.php?sid=<?php echo md5(uniqid(time())); ?>" id="image" align="absmiddle" /></div>
+        <div class="wraper2">
+          <input type="text" name = "captcha" id = "captcha" />
+          <br />
+          Letters are not case-sensitive </div>
+        <div class="clear"></div>
+      </div>
+      <div class="wraper3">
+        <input type="image" src="images/submit_botton.jpg" style="width:84px; height:24px;" />
+        <img src="images/cancel_bottom.jpg" style="width:84px; height:24px;cursor:pointer" onclick="$('s4c_reg').reset();"/>
+       	<input type="hidden" name="reg_type" value='school' />
+      </div>
+      <!-- << inner content -->
+      <div class="clear"></div>
+      <!-- << inner content>> -->
+    </form>
+	</div>
+    <div id="registration_bottom"></div>
+    <!-- << content section -->
+    <!-- footer section >> -->
+  <?php 
+	require_once('includes/footer.php'); 
+?>

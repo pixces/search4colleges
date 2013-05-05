@@ -1,0 +1,55 @@
+<?php 
+	
+	require_once('includes/checkExpire.php');
+	
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php');
+	$user_info = check_login();
+?>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->  
+ <?php require_once("includes/left_content.php"); 
+ ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>            
+            <li class="in_aroow"><span>Academic</span></li>
+          </ul>
+        </div>
+        <div class="clear"></div>
+        <h1><span>Academic</span></h1>        
+        <div class="clear"></div>
+      </div>
+     <div class="academic">
+	 <b>Degree</b>
+	 <br />
+	 Lorem ipsum dolor sit amet consectetuer adipiscing elit	 </div>
+	 <div class="academic-passing">
+	 <b>Year Of Passing</b>
+	 <br />
+	 1998	 </div>
+	 <div class="academic-passing">
+	 <b>Name Of Institute, High School, College</b>
+	 <br />
+	 <span class="academic">Lorem ipsum dolor sit amet</span></div>
+	  <p>&nbsp;</p>
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+	require_once('includes/footer.php'); 
+?>

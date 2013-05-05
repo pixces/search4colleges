@@ -1,0 +1,254 @@
+<?php  
+	require_once('includes/checkExpire.php');
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php');
+	$user_info = check_login();
+
+	if($_SESSION['user_type'] =='staff' || $_SESSION['user_type'] =='school'){
+		header('location:personal_details.html');
+	}
+	
+?>
+<script type="text/javascript" >
+	/*window.addEvent('domready',function() {
+		$('city_div').setStyle('display','none');	 
+	 
+		//FormCheck = new FormCheck('friend_form',{
+		//	submit:false,
+		//	onValidateSuccess: search_friends,
+		//	display:{
+		//		showErrors:1
+		//	}
+		//});
+		
+		
+		$('filter_id').addEvent('change', function(event){
+			if($('filter_id').value == 'city')
+			{		
+				$('keyword_div').setStyle('display','none');	 
+				
+				$('city_div').setStyle('display','block');	 
+				
+				$('keyword').value = '';
+
+				$('city_keyword').removeProperty('class');
+				//$('keyword').setProperty('class', 'validate[\'required\']');
+			}
+			else
+			{
+					
+				$('keyword_div').setStyle('display','block');
+				 
+				$('city_div').setStyle('display','none');	  
+				
+				$('city_keyword') = 0 ; 
+
+				$('keyword').removeProperty('class');
+				//$('city_keyword').setProperty('class', 'validate[\'required\']');
+			}
+		});
+		
+	});*/
+	function addFriend(id){
+		var movealert = new SexyAlertBox();
+		var req = new Request({
+			 method: 'post',
+			 url: 'ajax_handler.php',
+			 data: { 'id' : id,
+					 'flag' : 'addFriend'
+				 },
+			 onRequest: function() { },
+			 onComplete: function(response) { 
+				if(response=='yes')
+				 {				
+					movealert.alert('<h1>Request Send Successfully.</h1>');
+					search_friends();
+					 populate_all_friends();
+				 }
+				 else if(response=='duplicate')
+				 {
+					movealert.alert('<h1>Already Request has been sent .</h1>');
+				 }
+				 else
+				 {
+					movealert.error('<h1>Sorry! Due to Some technical problem Unable to complete your request .Please Try Again.</h1>');
+				 }
+			}
+		 
+		}).send();		
+	}
+
+	
+	function search_friends()
+	{ 
+		var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {
+				 		//'txtsearchtype':$('filter_id').value,
+						'txtsearch':$('keyword').value,
+						//'txtsearch_city':$('city_keyword').value, 
+						'flag' : 'search_friends'						
+					 },
+				 		onRequest: function() {},
+				 		onComplete: function(response) { 
+					    $('populate_friends').innerHTML = response;
+					    //$('personal_msg').innerHTML = '';
+				}
+			}).send();
+	}
+	function delete_friends(id)
+	{
+		var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {'id':id,
+						'flag' : 'delete_friends'						
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+					// $('populate_friends').innerHTML = response;
+					 populate_all_friends();
+					 //$('personal_msg').innerHTML = '';
+				}
+			}).send();
+	} 
+	function populate_all_friends()
+	{
+		var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {'flag' : 'populate_all_friends'						
+					 },
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+					 $('populate_all_friends').innerHTML = response;					 
+					  Mediabox.scanPage();
+					 //$('personal_msg').innerHTML = '';
+				}
+			}).send();
+	}
+	populate_all_friends();
+
+	/*function add_removeclass(val){
+		
+		
+	}*/
+	
+</script>
+<!-- <script type="text/javascript">
+	window.addEvent('domready',function() {
+		var lynx = $$('#search-options a'), activeItem = $$('#search-options a.active')[0] || lynx[0], button = $('submit');
+		var searchForm = $('search-form'), container = $('search-container').set('class',activeItem.get('text').toLowerCase());
+		lynx.addEvent('click',function(e) {
+			//brick event
+			e.stop();
+			//manage "active" class
+			activeItem.className = '';
+			this.addClass('active ' + this.get('text').toLowerCase());
+			activeItem = this;
+			//manage URL and color class
+			searchForm.set('action',this.get('href'));
+			container.className = this.get('class');
+			$('txtsearchtype').value=this.get('id');
+		});
+	});
+	
+</script> -->
+<style type="text/css">
+	#search-container	{ position:relative; padding:10px; -moz-border-radius:10px; -webkit-border-radius:10px; }
+	#search-options		{  }
+		#search-options a	{ top:-20px; position:absolute; font-size:11px; padding:3px 6px; color:#00f; -moz-border-radius-topleft:5px; -moz-border-radius-topright:5px; -webkit-border-top-left-radius:5px; -webkit-border-top-right-radius:5px; }
+		#search-options a.active	{ z-index:5; text-decoration:none; font-weight:bold; color:#000; }
+	#query 				{ font-size:24px; padding:4px; background:#fff; }
+	#submit				{ font-size:16px; }
+	
+	.major				{ background:#ccc; }
+	/*.name				{ background:#5872aa; }
+	.city				{ background:#ccc; }*/
+	.degree				{ background:#5872aa; }
+	.college			{ background:#ccc; }
+</style>
+  <!-- << header section -->
+  <!-- content section >> -->
+  <div id="content_sec">
+    <!-- << left content -->
+   <?php require_once("includes/left_content.php"); 
+   ?>
+    <!-- left content >> -->
+    <!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>            
+            <li class="in_aroow"><span>Friends</span></li>
+          </ul>
+        </div>
+		<?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+        <div class="clear"></div>
+        <h1><span>Friends</span></h1>        
+        <div class="clear"></div>
+      </div>
+      <div class="clear"></div>
+
+    <div id="populate_all_friends">
+	</div>
+		<div class="clear"></div>
+		<form method="post"  id="friend_form" name="s4c_reg" >
+			<div class="center">
+			<h3 style="margin-top:10px;">Search </h3>
+			<div id="search-container" style="width:500px">
+				<div id="search-options" style="width:500px">
+					<!--<div style="float:left; ">
+                        <label style="float:left;">Search by Name:</label>
+					    <select name="filter_id" id="filter_id" >
+                          <option value="name">Name</option>
+                          <option value="city">City</option>
+                        </select>
+					</div>-->
+					<div style="float:left;" id="keyword_div">
+						<input type="text" id="keyword" name="keyword"  style="background-color:#F4F4F4; border: 1px solid #e7e7e7; border-radius: 5px 5px 5px 5px;" class="validate['required']" /> 
+					</div>
+					<!--<div style="float:left;" id="city_div">
+						<select name="city_keyword" id="city_keyword" >
+							<option value="0">Select city</option>
+							<?php	
+								$sql = "SELECT * FROM ".$CFG->prefix."city WHERE status = 'active' ORDER BY name ASC";
+								$user_data = get_records_sql($sql);
+								if(!empty($user_data))
+								{
+									foreach($user_data as $data)
+									{
+							?>
+										<option value="<?php echo $data->id ; ?>"><?php echo  $data->name ?></option>
+							<?php
+									}
+								}
+							?>
+						</select>
+					</div>-->
+					<div>
+						<input type="submit" value="Search" name="search" id="search"  />	
+					</div> 
+				</div>
+			</div>
+		 </div>
+		</form>
+	<div class="clear"></div><br />
+	<div id="populate_friends">
+	</div>
+    </div>
+    <div class="clear"></div>
+    <!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <?php 
+	require_once('includes/footer.php'); 
+?>

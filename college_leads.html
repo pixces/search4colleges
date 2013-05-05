@@ -1,0 +1,357 @@
+<?php 
+	
+	require_once('includes/checkExpire.php');
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 
+	$school_id	= optional_param('view','', PARAM_RAW);
+	$preview	= optional_param('preview','', PARAM_RAW);
+	$staff_permission = '';
+
+	?>
+	<script type="text/javascript">
+		var email_flag=false;
+		function customEmail(el){
+			var movealert = new SexyAlertBox();
+			if($('email').value != ''){
+				var req = new Request({
+					 method: 'post',
+					 url: 'ajax_handler.php',
+					 data: { 'emailid' : $('email').value,flag: 'email_exists',},
+					
+					 onRequest: function() { },
+					 onComplete: function(response) { 
+						if(response=='yes')
+						 {
+							$('email').value = "";
+							movealert.error('<h1>Sorry! Email is already registerd.</h1>');
+						 }
+						 else
+						 {
+							email_flag = true;
+						 }
+					}
+				 
+				}).send();
+			}
+		}
+
+		function edit_me(id){
+			if(id){
+				var sections = '';
+				//console.log($(id).value);
+				$$('.'+id).each(function(item, index){
+					if(item.checked == true){
+						sections += item.value+",";
+
+					}
+				}); 
+				
+				var req = new Request({
+					 method: 'post',
+					 url: 'ajax_handler.php',
+					 data: {'id' : id,
+							'flag' : 'edit_staff_section'
+					 },
+					onRequest: function() {},
+					onComplete: function(response) {
+					$('view_table').hide();
+					$('edit_section').innerHTML = response;
+					}
+				}).send();
+			}
+		}
+
+		function save_me(id){
+			if(id){
+				var sections = '';
+				var namer = $('namer').value;
+
+				//console.log($(id).value);
+				$$('.'+id).each(function(item, index){
+					if(item.checked == true){
+						sections += item.value+",";
+
+					}
+				}); 
+				
+				var req = new Request({
+					 method: 'post',
+					 url: 'ajax_handler.php',
+					 data: {'id' : id,
+							'sections' : sections,
+							'namer' : namer,
+							'flag' : 'update_manage_users'
+					 },
+					onRequest: function() {},
+					onComplete: function(response) {
+					window.location.reload();
+					}
+				}).send();
+			}
+		}
+
+		function delete_me(id){
+			if(id){
+				var req = new Request({
+					 method: 'post',
+					 url: 'ajax_handler.php',
+					 data: {'id' : id,
+							'flag' : 'delete_manage_user'
+							},
+					 onRequest: function() {},
+					 onComplete: function(response) {
+						window.location.reload();
+					}
+				}).send();
+			}
+		}
+	</script>
+	<?php
+
+
+	if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'staff')
+		{
+			$allowed = get_field('school_staff_user','allowed_sections','fe_staff_id',$_SESSION['s4c_user_id']);
+
+			if(!empty($allowed))
+			{
+				$alloweds = explode(",",$allowed);
+				if(in_array($page_name,$alloweds))
+				{
+					$staff_permission = 'yes';
+				}
+				else
+				{
+					$staff_permission = 'no';
+				}
+			}
+
+		}
+			$today = time();
+			$week = time() - (7 * 24 * 60 * 60);
+			$month = time() - (30 * 24 * 60 * 60);
+			$year = time() - (365 * 24 * 60 * 60);
+
+	if(isset($_SESSION['s4c_user_id']) && !isset($_GET['preview']) && ($staff_permission == 'yes' || $school_id == $_SESSION['s4c_user_id'])) {
+
+			if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'staff'){
+				
+				$school_staff = get_field('school_staff_user','fe_school_id','fe_staff_id',$_SESSION['s4c_user_id']);
+
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$school_staff.' and status = "active"');
+
+				$school_enquiry = get_records_sql('Select * from '.$CFG->prefix.'schools_enquiry where school_id = '.$school_staff.' and status = "active" order by added_date DESC');
+
+				$school_enquiry_week = get_records_sql('Select * from '.$CFG->prefix.'schools_enquiry where school_id = '.$school_staff.' and status = "active" and (added_date >= '.$week.' and added_date <= '.$today.') order by added_date DESC');
+
+				$school_enquiry_month = get_records_sql('Select * from '.$CFG->prefix.'schools_enquiry where school_id = '.$school_staff.' and status = "active" and (added_date >= '.$month.' and added_date <= '.$today.') order by added_date DESC');
+
+				$school_enquiry_year = get_records_sql('Select * from '.$CFG->prefix.'schools_enquiry where school_id = '.$school_staff.' and status = "active" and (added_date >= '.$year.' and added_date <= '.$today.') order by added_date DESC');
+
+
+			}
+			elseif(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'school'){
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+
+				$school_enquiry = get_records_sql('Select * from '.$CFG->prefix.'schools_enquiry where school_id = '.$_SESSION['s4c_user_id'].' and status = "active" order by added_date DESC');
+
+				$school_enquiry_week = get_records_sql('Select * from '.$CFG->prefix.'schools_enquiry where school_id = '.$_SESSION['s4c_user_id'].' and status = "active" and (added_date >= '.$week.' and added_date <= '.$today.') order by added_date DESC');
+
+				$school_enquiry_month = get_records_sql('Select * from '.$CFG->prefix.'schools_enquiry where school_id = '.$_SESSION['s4c_user_id'].' and status = "active" and (added_date >= '.$month.' and added_date <= '.$today.') order by added_date DESC');
+
+				$school_enquiry_year = get_records_sql('Select * from '.$CFG->prefix.'schools_enquiry where school_id = '.$_SESSION['s4c_user_id'].' and status = "active" and (added_date >= '.$year.' and added_date <= '.$today.') order by added_date DESC');
+
+			}
+					
+			}	
+			$user_info = check_login();
+		?>
+			
+		  <!-- content section >> -->
+<div id="content_sec">
+  
+	<!-- << left content -->
+   <?php require_once("includes/left_content.php"); 
+   ?>
+	<!-- left content >> -->
+	
+	<!-- << inner content -->
+		<div id="inner_content">
+		  <div class="inner_top">
+			<div class="inner_link">
+			  <ul>
+				<li><a href="index.html"><strong>Home</strong></a></li>           
+				<li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+			  </ul>
+			</div>
+			 <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+				<div class="clear"></div>
+				<h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+				
+				<div class="clear"></div>
+			  </div>
+			  <div class="banner"> <img src="file.php/schools/<?php if(!empty($student_data->logo)){ echo 'f6_'.$student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner" />
+				<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)) echo get_field('city','name','status','active','id',$student_data->city).', '; ?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+			 <?php 
+
+				$city	= cmi_genrate_url(get_data_frontend('city','name',$student_data->city));
+				$state	= cmi_genrate_url(get_data_frontend('state','name',$student_data->state));
+
+				$url  = get_s4c_seo($student_data->seo_keyword,$city,$state,$student_data->user_id);
+
+				 get_menu_college($student_data->user_id,"colleges_users",$url);
+
+			 ?>
+			
+			<div> <h3><span style="vertical-align:super">College Leads</span></h3></div>
+
+			<div> <h2><span style="font-size:13px;">This Week</span></h2></div>
+
+
+	  <?php 
+				if(!empty($school_enquiry_week)) { ?>
+					<table border="1" cellspacing="0" cellpadding="5" width="100%" id="view_table" >
+		  <tr>
+					<th bgcolor="#e6e6e6" >Name</th>
+					<th bgcolor="#e6e6e6" >Email</th>
+					<th bgcolor="#e6e6e6" >Enquiry</th>
+					<th bgcolor="#e6e6e6" >Phone No.</th>
+					<th bgcolor="#e6e6e6" >Interested in.</th>
+					<th bgcolor="#e6e6e6" >Best time to contact .</th>
+					<th bgcolor="#e6e6e6" >Date</th>
+					  </tr>
+					<?php 
+					foreach($school_enquiry_week as $data)
+					{
+					?>
+						<tr>
+							<td valign="top"><?php if(isset($data->fullname)) echo $data->fullname; ?></td>
+							<td valign="top"><?php if(isset($data->email)) echo $data->email; ?></td>
+							<td valign="top"><?php if(isset($data->enquiry)) echo $data->enquiry; ?></td>
+							<td valign="top"><?php if(isset($data->phone)) echo $data->phone; ?></td>
+							<td valign="top"><?php if(isset($data->interest)) echo $data->interest; ?></td>
+							<td valign="top"><?php if(isset($data->time_contact)) echo $data->time_contact; ?></td>
+							<td valign="top"><?php if(isset($data->added_date)) echo date("m/d/Y",$data->added_date); ?></td>
+							
+					<?php 
+					}
+					?>
+					</table>
+
+      <?php }
+				else
+				{
+					echo "<div align='center'> No Records Found...</div>";
+				}
+			?>
+				
+
+			<div class="clear"></div>
+
+<div> <h2><span style="font-size:13px;">This Month</span></h2></div>
+
+
+	  <?php 
+				if(!empty($school_enquiry_month)){ ?>
+					<table border="1" cellspacing="0" cellpadding="5" width="100%" id="view_table" >
+		  <tr>
+					<th bgcolor="#e6e6e6" >Name</th>
+					<th bgcolor="#e6e6e6" >Email</th>
+					<th bgcolor="#e6e6e6" >Enquiry</th>
+					<th bgcolor="#e6e6e6" >Phone No.</th>
+					<th bgcolor="#e6e6e6" >Interested in.</th>
+					<th bgcolor="#e6e6e6" >Best time to contact .</th>
+					<th bgcolor="#e6e6e6" >Date</th>
+					  </tr>
+					<?php 
+					foreach($school_enquiry_month as $data)
+					{
+					?>
+						<tr>
+							<td valign="top"><?php if(isset($data->fullname)) echo $data->fullname; ?></td>
+							<td valign="top"><?php if(isset($data->email)) echo $data->email; ?></td>
+							<td valign="top"><?php if(isset($data->enquiry)) echo $data->enquiry; ?></td>
+							<td valign="top"><?php if(isset($data->phone)) echo $data->phone; ?></td>
+							<td valign="top"><?php if(isset($data->interest)) echo $data->interest; ?></td>
+							<td valign="top"><?php if(isset($data->time_contact)) echo $data->time_contact; ?></td>
+							<td valign="top"><?php if(isset($data->added_date)) echo date("m/d/Y",$data->added_date); ?></td>
+							
+					<?php 
+					}
+					?>
+					</table>
+
+      <?php }
+				else
+				{
+					echo "<div align='center'> No Records Found...</div>";
+				}
+			?>
+				
+
+			<div class="clear"></div>
+
+			<div> <h2><span style="font-size:13px;">This Year</span></h2></div>
+
+
+	  <?php 
+				if(!empty($school_enquiry_year)){ ?>
+					<table border="1" cellspacing="0" cellpadding="5" width="100%" id="view_table" >
+		  <tr>
+					<th bgcolor="#e6e6e6" >Name</th>
+					<th bgcolor="#e6e6e6" >Email</th>
+					<th bgcolor="#e6e6e6" >Enquiry</th>
+					<th bgcolor="#e6e6e6" >Phone No.</th>
+					<th bgcolor="#e6e6e6" >Interested in.</th>
+					<th bgcolor="#e6e6e6" >Best time to contact .</th>
+					<th bgcolor="#e6e6e6" >Date</th>
+					  </tr>
+					<?php 
+					foreach($school_enquiry_year as $data)
+					{
+					?>
+						<tr>
+							<td valign="top"><?php if(isset($data->fullname)) echo $data->fullname; ?></td>
+							<td valign="top"><?php if(isset($data->email)) echo $data->email; ?></td>
+							<td valign="top"><?php if(isset($data->enquiry)) echo $data->enquiry; ?></td>
+							<td valign="top"><?php if(isset($data->phone)) echo $data->phone; ?></td>
+							<td valign="top"><?php if(isset($data->interest)) echo $data->interest; ?></td>
+							<td valign="top"><?php if(isset($data->time_contact)) echo $data->time_contact; ?></td>
+							<td valign="top"><?php if(isset($data->added_date)) echo date("m/d/Y",$data->added_date); ?></td>
+							
+					<?php 
+					}
+					?>
+					</table>
+
+      <?php }
+				else
+				{
+					echo "<div align='center'> No Records Found...</div>";
+				}
+			?>
+				
+
+			<div class="clear"></div>
+
+
+			</div>
+			<div class="clear"></div>
+			<!-- << inner content>> -->
+		  </div>
+		  <!-- << content section -->
+		  <!-- footer section >> -->
+
+		  <?php 
+		
+	require_once('includes/footer.php'); 
+?>

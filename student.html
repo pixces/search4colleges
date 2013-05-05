@@ -1,0 +1,312 @@
+<?php
+	require_once('includes/header.php');
+	
+	$sid		= optional_param('sid','',PARAM_TEXT);
+
+	if(!empty($sid))
+    {
+    	$data = get_record_sql("SELECT s.*,u.image FROM ".$CFG->prefix."student s ,fe_users u WHERE s.status = 'active' and s.id=$sid and s.user_id=u.id");
+	}
+    $target_path = $CFG->siteroot."/file.php/personal/";
+?>
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><a href="financial_provider_search.html"><strong>Counselors</strong></a></li>
+            <li class="in_aroow"><span>
+            <?php 
+                   if(isset($data->first_name) && !empty($data->first_name))
+                   {
+                      echo $data->first_name;
+                   }
+                   if(isset($data->last_name) && !empty($data->last_name))
+                   {
+                      echo " ".$data->last_name;
+                   }
+            ?>
+            </span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+
+        <div class="clear"></div>
+        <h1><span><?php 
+                   if(isset($data->first_name) && !empty($data->first_name))
+                   {
+                      echo $data->first_name;
+                   }
+                   ?>
+                   </span></h1>       
+        <div class="clear"></div>
+      </div>
+	 
+	  
+      <div class="clear"></div>
+  
+	 
+	  
+    	
+        <div id="wraper">
+	  
+<div class="clear"></div>
+</div>
+        
+         <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+      	<tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Image</b></td>
+   				<td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+        		<?php 
+						if(isset($data->image) && !empty($data->image))
+						{ 
+						?>
+						<a rel="lightbox[img]" href="<?php echo $target_path.$data->image; ?>" title="<?php echo $data->first_name; ?>"><img src="<?php echo $target_path.'f3_'.$data->image; ?>" border="0" title=""/></a>
+						<?php } else {?>
+						 <img src="images/noimage.jpg" border="0"/>
+						<?php } ?>
+        		</td>
+          </tr>
+          </table>
+		  <?php if(isset($data->first_name) && !empty($data->first_name)) { ?>
+		<table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+      	<tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>First Name</b></td>
+   				<td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+        		   <?php echo $data->first_name; ?>
+        		</td>
+          </tr>
+          </table>
+          <?php } ?>
+          <?php if(isset($data->last_name) && !empty($data->last_name)) { ?>  
+          <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Last Name</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $data->last_name;?>
+                </td>
+          	</tr>
+            </table>
+          <?php } ?>
+          <?php if(isset($data->experience) && !empty($data->experience)) { ?>
+            <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+            
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Experience</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $data->experience;?>
+                </td>
+          		</tr>
+            </table>
+           <?php } ?>
+          <?php if(isset($data->gender) && !empty($data->gender)) { ?> 
+            <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" > 
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Gender</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $data->gender; ?>
+                </td>
+          	</tr>
+            </table>
+          <?php } ?>
+          <?php //if(isset($data->date_of_birth) && !empty($data->date_of_birth)) { ?>
+            <!--<table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Date of Birth</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $data->date_of_birth;?>
+                </td>
+          	</tr>
+          </table>-->
+          <?php //} ?>
+          <?php if(isset($data->educational_interest) && !empty($data->educational_interest)) { ?>
+          <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+           <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Educational Interest</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $data->educational_interest; ?>
+                </td>
+            </tr>
+            </table>
+          <?php } ?>
+          <?php //if(isset($data->address) && !empty($data->address)) { ?> 
+           <!-- <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+            
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Address</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $data->address; ?>
+                </td>
+          	</tr>
+            </table>-->
+          <?php //} ?>
+          <?php if(isset($data->street) && !empty($data->street)) { ?>   
+            <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >  
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Street</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $data->street;?>
+                </td>
+              </tr>
+            </table>
+          <?php } ?>
+          <?php if(isset($data->state) && !empty($data->state)) { ?>  
+            
+            <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>State</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $state = get_field('state','name','id',$data->state);?>
+                </td>
+              </tr>
+            </table>  
+          <?php } ?>
+          <?php if(isset($data->city) && !empty($data->city)) { ?>   
+            <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >  
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>City</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $state = get_field('city','name','id',$data->city);?>
+                </td>
+              </tr>
+           </table>
+          <?php } ?>
+          <?php if(isset($data->zip_code) && !empty($data->zip_code)) { ?>
+           <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Zip Code</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $data->zip_code; ?>
+                </td>
+              </tr>
+           </table>
+          <?php } ?>
+          <?php if(isset($data->short_description) && !empty($data->short_description)) { ?>    
+           <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Short Description</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $data->short_description;?>
+                 </td>
+              </tr>
+            </table>
+          <?php } ?>
+          <?php if(isset($data->goals_in_life) && !empty($data->goals_in_life)) { ?>   
+            <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Goals in Life</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000; text-align:left; padding-left:10px;">
+                   <?php echo $data->goals_in_life;?>
+                 </td>
+              </tr>
+			</table>
+		  <?php } ?>
+		  
+		  <?php
+			
+			$photo_uploaded = get_records_select('gallery'," approved='approved' AND type='image' AND user_id=$data->user_id AND status ='active' ");
+			$photo_uploaded_count = count($photo_uploaded);
+			if($photo_uploaded)
+			{
+		  ?>
+		  <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+              <tr>
+                <td width="100%" colspan=2 align="center" bgcolor="#F4F4F4" style="color:#000;">
+	 
+				Uploaded Images<br><br>
+				  <?php  
+					//print_object($photo_uploaded);
+					$i =1;
+					if($photo_uploaded){
+						foreach($photo_uploaded as $record){
+							if($i == 4)
+								$class ='upload_img';
+							else
+								$class ='upload_img';
+							echo "
+								<div class='$class'>
+									<a href='$CFG->siteroot/file.php/gallery/$record->name' rel ='lightbox' title='$record->name' >
+										<img src='$CFG->siteroot/file.php/gallery/f3_$record->name' title='$record->name' width='124' height='91' />
+									</a>
+									<strong><br />$record->comment</strong> 
+								</div>";
+							$i++;
+						} 
+					}
+				  ?>
+					</td>
+				</tr>
+			</table>
+			<?php
+			}
+			?>	
+	
+		<br> <br>
+		<?php
+			 
+			$video_uploaded = get_records_select('gallery'," approved='approved' AND (type='video' OR type='link' ) AND user_id=$data->user_id AND status ='active' ");
+			$video_uploaded_count = count($video_uploaded);
+			if($video_uploaded)
+			{
+		  ?>
+			<table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;" >
+			  <tr>
+				<td width="100%" colspan=2 align="center" bgcolor="#F4F4F4" style="color:#000;">
+	 
+				Uploaded Videos<br><br>
+				<?php
+				
+				$i =1;
+				if($video_uploaded){
+					foreach($video_uploaded as $record){
+						if($record->type=='video'){
+							echo "
+								<div class='upload_clip'>
+								<a href='$CFG->siteroot/file.php/gallery/$record->name' rel ='lightbox' title='$record->name' >
+									<img src='images/video_img.jpg' width='128' height='86' alt='$record->name'/>
+								</a> 
+								</div>";
+						}else{
+							echo "
+								<div class='upload_clip'>
+								<a href='$record->name' rel ='lightbox' title='$record->name' >
+									<img src='images/video_img.jpg' width='128' height='86' alt='$record->name'/>
+								</a>
+									<div style='width:140px;'><strong>$record->comment</strong> 
+								</div>";
+						}
+						$i++;
+					}
+				} 
+			  ?>
+					</td>
+				</tr>
+			</table>
+		<?php
+		}
+		?>	
+	     
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+	
+  </div>
+ 
+  <!-- << content section -->
+  <!-- footer section >> -->
+
+<?php 
+	require_once('includes/footer.php'); 
+?>

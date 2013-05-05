@@ -1,0 +1,212 @@
+<?php
+	require_once("calendar/inc_calendar.class.php");
+	require_once('includes/header.php');
+	$month = date('n');
+	$year = date('o');
+
+	$oCalendar = new inc_calendar();
+	if(isset($_REQUEST['month']))
+		$month = $_REQUEST['month'];
+	if(isset($_REQUEST['year']))
+		$year = $_REQUEST['year'];
+	$oCalendar->dateNow($month,$year);
+
+	$m_type = 'Page';
+?>
+<script type="text/javascript">
+
+
+		window.addEvent('domready', function()
+		{
+			new FormCheck('cform');
+			if($('oldyr').value == '')
+			{
+				$('oldyr').value = $('newyr').value;
+			}
+			if($('oldmon').value == '')
+			{
+				$('oldmon').value = $('newmon').value;
+			}
+			
+		});
+
+
+	function alter_calendar(prevnext){
+			var cal_req = prevnext;
+			if(cal_req == 0)
+			{
+				//document.cform.mon.value="" + "<?php echo $month?>";
+				//document.cform.yr.value="" + "<?php echo $year?>";
+				if(document.cform.oldmon.value == "")
+				{
+					getMonthYear();
+				}
+					m = eval(document.cform.oldmon.value + "-" + 1);
+					y = document.cform.oldyr.value;
+				if(m < 1)
+				{
+					m = 12;
+					y = eval(y + "-" + 1);
+
+					
+				}
+
+			}
+			else if(cal_req == 1)
+			{
+				//document.cform.mon.value="" + "<?php echo $month?>";
+				//document.cform.yr.value="" + "<?php echo $year?>";
+				if(document.cform.oldmon.value == "")
+				{
+					getMonthYear();
+				}
+					m = eval(document.cform.oldmon.value + "+" + 1);
+					y = document.cform.oldyr.value;
+				if(m > 12)
+				{
+					m = 1;
+					y = eval(y + "+" + 1);
+				}
+			}
+
+			document.cform.oldmon.value = m;
+			document.cform.oldyr.value = y;
+
+			var req = new Request({
+				 method: 'post',
+				 url: 'ajax_handler.php',
+				 data: {'flag' : 'alter_calendar_detail',
+						'month' : m,
+						'year' : y
+						},
+				 onRequest: function() {},
+				 onComplete: function(response) { 
+					 $('calendaring').innerHTML = response;
+					 //$('personal_msg').innerHTML = '';
+					 show_tipz();
+				}
+			}).send();	
+		}
+
+
+	function showPrevMonth()
+	{
+		document.cform.mon.value="" + "<?php echo $month?>";
+		document.cform.yr.value="" + "<?php echo $year?>";
+		if(document.cform.mon.value == "")
+		{
+			getMonthYear();
+		}
+		m = eval(document.cform.mon.value + "-" + 1);
+	  y = document.cform.yr.value;
+		if(m < 1)
+		{
+			m = 12;
+			y = eval(y + "-" + 1);
+		}
+		window.location.href="my_calendar_"+m+'_'+y+".html";
+	}
+	function showNextMonth()
+	{
+		document.cform.mon.value="" + "<?php echo $month?>";
+		document.cform.yr.value="" + "<?php echo $year?>";
+		if(document.cform.mon.value == "")
+		{
+			getMonthYear();
+		}
+		m = eval(document.cform.mon.value + "+" + 1);
+	  y = document.cform.yr.value;
+		if(m > 12)
+		{
+			m = 1;
+			y = eval(y + "+" + 1);
+		}
+		window.location.href="my_calendar_"+m+'_'+y+".html";
+	}
+	function show_tipz(){
+		$$('a.tipz').each(function(element,index) {
+			var content = element.get('title').split('::');
+			element.store('tip:title', content[0]);
+			element.store('tip:text', content[1]);
+		});
+		
+		//create the tooltips
+			var tipz = new Tips('.tipz',{
+				className: 'tipz',
+				fixed: true,
+				hideDelay: 50,
+				showDelay: 50
+		});
+
+	}
+	function getMonthYear()
+	{
+			cdate = new Date();
+			mvalue = cdate.getMonth();
+			yvalue = cdate.getYear();
+
+			alert(yvalue);
+			document.cform.oldmon.value = mvalue;
+			document.cform.oldyr.value = yvalue;
+			exit;
+	}
+
+	
+</script>
+<script type="text/javascript" >
+	window.addEvent('domready', function(){
+		show_tipz();
+			
+		});
+</script>
+
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+ <?php require_once("includes/left_content.php"); ?>
+
+ <link href="css/tipz.css" rel="stylesheet" type="text/css"/>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><span>Event Calendar</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+        <div class="clear"></div>
+        <h1>Event <span>Calendar</span></h1>
+        <div class="clear"></div>
+      </div>
+	  <!-- CAlndar module -->
+					<form name="cform" id="cform" action="events_calender.html" method="post">
+					<input type="hidden" name="newmon" id="newmon" value="<?php echo $month; ?>"><input type="hidden" id="newyr" name="newyr" value="<?php echo $year; ?>">
+					<input type="hidden" name="oldmon" id="oldmon" value=""><input type="hidden" id="oldyr" name="oldyr" value="">
+					</form>
+					<div id="calendaring">
+					<?php
+						$oCalendar->showThisMonth();
+					?>
+					</div>
+					<!-- CAlndar module -->
+		
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+   </div>
+   <div class="clear"></div>
+   <?php 
+	require_once('includes/footer.php'); 
+?>

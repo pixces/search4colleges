@@ -1,0 +1,152 @@
+<?php 
+	require_once('includes/header.php');
+if(isset($_SESSION['user_login']) && ($_SESSION['user_login'] == 'yes'))
+{		
+	$user_info = check_login();
+	require_once('includes/checkExpire.php');
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+?>
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); 
+  ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><span>Search Counselors</span></li>
+          </ul>
+        </div>
+       <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+
+        <div class="clear"></div>
+        <h1><span>Counselors</span></h1>       
+        <div class="clear"></div>
+      </div>
+	  
+	  
+      <div class="clear"></div>
+  
+      <div id="upload_form">
+        <div class="rgs_heading">
+        <p>&nbsp;</p>
+        <h2>Search Counselors by following criteria's</h2>
+        <form>
+          <div class="text_name2">Select a Major</div>
+          <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+          <div class="text_name2">Keywords</div>
+          <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+          <div class="text_name2">Name</div>
+          <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+          </form>
+        <div class="clear"> </div>
+      </div>
+	  
+        <div class="wraper6">
+     
+            <input type="image" src="images/search_btn.jpg" style="width:84px; height:23px;" />
+            <input type="image" src="images/cancel_bottom.jpg" style="width:84px; height:24px;" />
+         
+          
+        </div>
+		
+      </div>
+	  <div id="upload_form_btm"></div>
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php }else{?>
+	 <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+   <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><span>Conselors</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php } ?>
+
+        <div class="clear"></div>
+        <h1><span>Counselor</span></h1>        
+        <div class="clear"></div>
+      </div>
+	  
+	  
+      <div class="clear"></div>
+  
+      <div id="upload_form">
+        <div class="rgs_heading">
+        <p>&nbsp;</p>
+        <h2>Search Counselors by following criteria's</h2>
+        <form>
+          <div class="text_name2">Select a Major</div>
+          <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+          <div class="text_name2">Keywords</div>
+          <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+          <div class="text_name2">Name</div>
+          <div class="text_input">
+            <input name="" type="text" class="input-text"  />
+          </div>
+          </form>
+        <div class="clear"> </div>
+      </div>
+	  
+        <div class="wraper6">
+     
+            <input type="image" src="images/search_btn.jpg" style="width:84px; height:23px;" />
+            <input type="image" src="images/cancel_bottom.jpg" style="width:84px; height:24px;" />
+         
+          
+        </div>
+		
+      </div>
+	  <div id="upload_form_btm"></div>
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+
+	<?php }?>
+<?php 
+	require_once('includes/footer.php'); 
+?>

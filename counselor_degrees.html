@@ -1,0 +1,131 @@
+<?php 
+	require_once('includes/checkExpire.php');
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 
+	 
+	$user_id = $_SESSION['s4c_user_id'];
+	
+	$user_info = check_login();
+	if(isset($_POST['add_major']) && $_POST['add_major']=='add_major') {
+		
+		$major_categories	= optional_param('major_categories','',PARAM_RAW);
+
+		$student_majors_data= get_records_sql('Select * from '.$CFG->prefix.'school_major where school_id = '.$user_id);
+		$major_data = array();
+		if($student_majors_data) {
+			foreach($student_majors_data as $school_majors){
+				$major_data[$school_majors->major_id] = $school_majors->major_id;
+			}
+		}
+		//print_object($major_data);
+		//print_object($_POST);
+		if($major_categories){
+			foreach($major_categories as $key=>$value){
+				
+				if(in_array($value,$major_data)){
+					unset($major_data[$value]);
+					//echo"<hr />$value";
+				}else{
+					$add_major = new object();
+					$add_major->school_id = $user_id;
+					$add_major->major_id = $value;
+					$add_major->added_date = time();
+					insert_record('school_major',$add_major);
+				}
+			}
+		}
+		
+		if($major_data){
+			foreach($major_data as $key=>$value){
+				delete_records('school_major','school_id',$user_id,'major_id',$value);
+			}
+		}
+	}
+
+	
+	$student_majors		= get_records_sql('Select * from '.$CFG->prefix.'majors where status = "active" order by name');
+	$student_majors_data= get_records_sql('Select * from '.$CFG->prefix.'school_major where school_id = '.$user_id);
+
+	$major_data = array();
+	if($student_majors_data) {
+		foreach($student_majors_data as $school_majors){
+			$major_data[$school_majors->major_id] = $school_majors->major_id;
+		}
+	}
+	
+?>
+			
+	<!-- content section >> -->
+	<div id="content_sec">
+	 
+		<!-- << left content -->
+		<?php require_once("includes/left_content.php"); 
+		?>
+		<!-- left content >> -->
+		<!-- << inner content -->
+		<div id="inner_content">
+			<div class="inner_top">	
+				<div class="inner_link">
+					  <ul>
+						<li><a href="index.html"><strong>Home</strong></a></li>
+						<li class="in_aroow"><span>Counselor Majors</span></li>
+					  </ul>
+				</div>
+
+				<?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+				<div class="clear"></div>	
+				<h1><span>Counselor Majors</span></h1>       
+				<div class="clear"></div>
+			</div>
+			
+			<form method="post" action="counselor_degrees.html" id="profile_form" name="profile_form" enctype="multipart/form-data"/>
+			<table border="0" width="100%">
+			<tr>
+				<td valign="top" width="50%">			
+					<!-- Majors -->							
+					<div><h3>Majors :</h3></div>							
+					<?php 		
+					if(!empty($student_majors)){
+						foreach($student_majors as $majors){
+							if(isset($majors->parent_id) && $majors->parent_id == '0' ){
+								echo "<ul class='ul_degrees'><li >".$majors->name."<ul>";
+								foreach($student_majors as $major_cat){
+									if(in_array($major_cat->id,$major_data)){
+										$checked = "checked='checked'";
+									}
+									else{
+										$checked = "";
+									}
+									if($major_cat->parent_id == $majors->id){
+										echo  "<li><input name=\"major_categories[]\" type='checkbox' ".$checked." value=".$major_cat->id." />".$major_cat->name."</li>";
+									}
+								}
+								echo "</ul></li></ul>";
+							}
+						}	
+					}
+					?>
+					</td>
+					</table>
+				<br />
+			<center><div>
+				<input type="hidden" name="add_major" id="add_major" value="add_major"/>
+				<input type="image" src="images/save_button.jpg" />
+			</div></center>
+			</form>
+			<div class="clear"></div>
+			</div>
+			<div class="clear"></div>
+			<!-- << inner content>> -->
+		  </div>
+		  <!-- << content section -->
+		  <!-- footer section >> -->
+<?php 
+	require_once('includes/footer.php'); 
+?>

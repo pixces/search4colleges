@@ -1,0 +1,158 @@
+<?php
+	require_once('includes/header.php');
+	
+	$pid		= optional_param('pid','',PARAM_TEXT);
+
+	if(!empty($pid)){
+		$data = get_record_sql("SELECT * FROM ".$CFG->prefix."financial_provider WHERE status = 'active' and id=$pid");
+	}
+	$target_path = $CFG->siteroot."/file.php/financial_provider_logo/";
+?>
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><a href="financial_provider_search.html"><strong>Search Financial Providers</strong></a></li>
+            <li class="in_aroow"><span><?php echo $data->contact_person ?></span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+
+        <div class="clear"></div>
+        <h1><span><?php echo $data->contact_person ?></span></h1>
+		<div style="float:right;color:red"><a style="color:red" href="ask_fp_question.html?flag=sentbox&id=<?php echo $pid?>" rel ="lightbox[sent_<?php echo $pid?> 500 300] " title="Ask query">Ask a Query</a></div>
+        <div class="clear"></div>
+      </div>
+	 
+	  
+      <div class="clear"></div>
+  
+	 
+	  
+    	
+        <div id="wraper">
+	  
+<div class="clear"></div>
+</div>
+        
+         <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;">
+     		 <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Company Name </b></td>
+   				<td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000;"><?php if(isset($data->company_name)){ echo $data->company_name; } ?></td>
+          	</tr>
+        </table>
+		
+		<table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;">
+     		 <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Title </b></td>
+   				<td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000;"><?php if(isset($data->title)){ echo $data->title; } ?></td>
+          	</tr>
+        </table>    
+            
+        <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;">    
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Logo </b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000;">
+                <?php 
+                if(isset($data->Logo) && !empty($data->Logo))
+                { 
+                ?>
+                <a rel="lightbox[img]" href="<?php echo $target_path.$data->Logo; ?>" title="<?php echo $data->Logo; ?>"><img src="<?php echo $target_path.'f2_'.$data->Logo; ?>" border="0" title=""/></a>
+                <?php } else {?>
+                 <img src="images/noimage.jpg" border="0"/>
+                <?php } ?>
+                </td>
+          </tr>
+         </table>
+         
+         <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;">
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Short Description</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000;"><?php if(isset($data->short_description)){ echo $data->short_description; } ?></td>
+              </tr>
+         </table>
+         
+         <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;">
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Contact Person</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000;"><?php if(isset($data->contact_person)){ echo $data->contact_person; } ?></td>
+              </tr>
+        </table>
+        
+        <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;">
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Contact Number</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000;"><?php if(isset($data->contact_no)){ echo $data->contact_no; } ?></td>
+              </tr>
+        </table>
+        
+        <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;">
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Email Id</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000;"><?php if(isset($data->email_id)){ echo $data->email_id; } ?></td>
+              </tr>
+        </table> 
+		<table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;">
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Address</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000;"><?php if(isset($data->address)){ echo $data->address;} ?></td>
+              </tr>
+        </table>
+		<table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;">
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>City</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000;"><?php if(isset($data->city)){ echo $city = get_field('city','name','id',$data->city);} ?></td>
+              </tr>
+        </table>
+		<table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;">
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>State</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000;"><?php if(isset($data->state)){ echo $city = get_field('state','name','id',$data->state);} ?></td>
+              </tr>
+        </table>
+		<table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;">
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Zip Code</b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000;"><?php if(isset($data->zipcode)){ echo $data->zipcode;} ?></td>
+              </tr>
+        </table>
+		
+              
+        <table width="100%" border="0" cellpadding="5" class="table_font" style=" margin-bottom:5px!important;">      
+              <tr>
+                <td width="34%" align="center" bgcolor="#F4F4F4" style="color:#000;"><b>Availability </b></td>
+                <td width="66%" align="center" bgcolor="#F4F4F4" style="color:#000;"><?php if(isset($data->available_time_from)){ echo $data->available_time_from; } ?>
+                                  <?php if(isset($data->available_time_to)){ echo $data->available_time_to; } ?>
+                </td>
+              </tr>
+		</table>
+
+		<input type="button" value="Back" onclick="window.history.back()" />
+		
+  </div>	
+	     
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+	
+  </div>
+ 
+  <!-- << content section -->
+  <!-- footer section >> -->
+
+<?php 
+	require_once('includes/footer.php'); 
+?>

@@ -1,0 +1,31 @@
+AddType application/x-httpd-php .html
+AddType application/x-httpd-php .htm
+
+RewriteEngine on
+#RewriteCond %{HTTPS} off
+#RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}
+
+#RewriteRule ^(about_us|contact_us|index|sitemap)\.htm$ $1.htm [L]
+
+# child service
+#RewriteRule ^news_(.*)\.html$ news_.html?seo_keyword=$1 [L,QSA]
+
+#gallery
+RewriteRule ^my_calendar_(.*)_(.*)\.html$ my_calendar.html?month=$1&year=$2 [L,QSA]
+
+#gallery
+#RewriteRule ^event_(.*)_(.*)\.html$ events.html?name=$1&id=$2 [L,QSA]
+
+#RewriteRule ^articles_details_(.*)\.html$ articles_details.html?seo_keyword=$1 [L,QSA]
+
+#RewriteRule ^([^/]*)/([^/]*)/([^/]*)/profile colleges_profile.html?seo_keyword=$3 [L,QSA]
+#RewriteRule ^([^/]*)/([^/]*)/([^/]*)/majors_and_degrees colleges_degrees.html?seo_keyword=$3 [L,QSA]
+#RewriteRule ^([^/]*)/([^/]*)/([^/]*)/culture_campus_life colleges_culture_campus_life.html?seo_keyword=$3 [L,QSA]
+#RewriteRule ^([^/]*)/([^/]*)/([^/]*)/scholorship colleges_scholarships.html?seo_keyword=$3 [L,QSA]
+#RewriteRule ^([^/]*)/([^/]*)/([^/]*)/news college_news.html?seo_keyword=$3 [L,QSA]
+#RewriteRule ^([^/]*)/([^/]*)/([^/]*)/gallery colleges_gallery.html?seo_keyword=$3 [L,QSA]
+#RewriteRule ^([^/]*)/([^/]*)/([^/]*)/admission colleges_admissions.html?seo_keyword=$3 [L,QSA]
+#RRewriteRule ^([^/]*)/([^/]*)/([^/]*)/enquiry colleges_send_enquiry.html?seo_keyword=$3 [L,QSA]
+#RewriteRule ^([^/]*)/([^/]*)/([^/]*)/brochures colleges_download_brochures.html?seo_keyword=$3 [L,QSA]
+
+#RewriteRule ^([^/]*)/([^/]*)/([^/]*)  /related_colleges colleges_related_colleges.html?seo_keyword=$3 [L,QSA]

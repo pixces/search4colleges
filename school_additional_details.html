@@ -1,0 +1,158 @@
+<?php
+	require_once('cmiadmin/config.php');
+	
+	$degree_id			  = optional_param('degree_id','',PARAM_INT);
+	$school_id			  = optional_param('school_id','',PARAM_INT);
+	
+	$sql = 'Select * from '.$CFG->prefix.'school_admission_details where status = "active" and school_id = '.$school_id.' and degree_id = '.$degree_id ; 
+	$student_degrees_data = get_record_sql($sql);
+	if($student_degrees_data)
+	{
+		$tuition_fees 				=  $student_degrees_data->tuition_fees ;
+		$duration 					= $student_degrees_data->duration ;
+		$last_date_of_admission 	= $student_degrees_data->last_date_of_admission ;
+		$date_of_entrance_exam		= $student_degrees_data->date_of_entrance_exam ;
+		$how_to_apply 				= $student_degrees_data->how_to_apply ;
+		$brochures_and_prospectus 	= $student_degrees_data->brochures_and_prospectus ;
+	}
+	else
+	{
+		$tuition_fees 				= '';
+		$duration 					= '';
+		$last_date_of_admission 	= '';
+		$date_of_entrance_exam		= '';
+		$how_to_apply 				= '';
+		$brochures_and_prospectus 	= '';
+	}
+	
+	
+	
+	if(isset($_POST['submit']))
+	{
+		$degree_id				  = optional_param('degree_id','',PARAM_INT);
+		$school_id				  = optional_param('school_id','',PARAM_INT);
+		$tuition_fees			  = optional_param('tuition_fees','',PARAM_TEXT);
+		$duration				  = optional_param('duration','',PARAM_TEXT);
+		$last_date_of_admission   = optional_param('last_date_of_admission','',PARAM_TEXT);
+		$date_of_entrance_exam 	  = optional_param('date_of_entrance_exam','',PARAM_TEXT);
+		$how_to_apply		 	  = optional_param('how_to_apply','',PARAM_RAW);
+		$brochures_and_prospectus = optional_param('brochures_and_prospectus','',PARAM_TEXT);
+		$add_object = new object();
+		 
+		$target_path = $CFG->dataroot.'/brochures_and_prospectus/';
+		if(isset($_FILES['brochures_and_prospectus']['name']) && !empty($_FILES['brochures_and_prospectus']['name']))
+		{
+			$files_upload = upload_files('brochures_and_prospectus',$target_path);
+			if($files_upload)
+			{
+				$add_object->brochures_and_prospectus = $files_upload;
+			}
+			else
+			{
+				$add_object->brochures_and_prospectus = '';
+			}
+		}
+		
+		$add_object->school_id 				= $school_id;
+		$add_object->degree_id 				= $degree_id;
+		$add_object->tuition_fees			= $tuition_fees;
+		$add_object->duration				= $duration;
+		$add_object->last_date_of_admission	= $last_date_of_admission ;
+		$add_object->date_of_entrance_exam	= $date_of_entrance_exam ;
+		$add_object->how_to_apply			= $how_to_apply ;
+		$add_object->added_date				= time();
+		
+		$check_db = get_field('school_admission_details','id','status','active','school_id',$school_id,'degree_id',$degree_id);
+
+		if(!empty($add_object))
+		{
+			if($check_db)
+			{
+				$add_object->id = $check_db ;
+				update_record('school_admission_details',$add_object);
+				//echo 'DB Successfully Updated';
+			}
+			else
+			{
+				insert_record('school_admission_details',$add_object);
+				//echo 'DB Successfully Added';
+			}
+			?>
+				<script  type="text/javascript">	
+					parent.window.location = 'colleges_degrees.html?view=<?php echo $school_id; ?>';
+					parent.Mediabox.close();	
+					
+				</script>
+			<?php
+		}
+	}
+include_once("includes/header.php");
+    
+?>
+<!--<script language="javascript" type="text/javascript" src="js/mootools.js" ></script>
+<script language="javascript" type="text/javascript" src="js/mootools_more.js" ></script>-->
+<link rel="stylesheet" type="text/css" href="css/formcheck.css">
+<script language="javascript" type="text/javascript" src="js/en.js" ></script>
+<script language="javascript" type="text/javascript" src="js/formcheck.js" ></script>
+<link rel="stylesheet" href="editor/ckeditor/samples/sample.css" type="text/css">
+<script type="text/javascript" src="editor/ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="editor/ckeditor/samples/sample.js"></script>
+<script type="text/javascript" src="editor/ckeditor/ckfinderinit.js"></script>
+<script type="text/javascript" >
+	window.addEvent('domready', function(){
+		new FormCheck('frm_degress',{display:{showErrors:1}});
+	});	
+	
+</script>
+
+<form name="frm_degress" id='frm_degress' method='post' action='' enctype="multipart/form-data">	
+	<table width="100%" cellpadding="8">
+		<tr>
+			<td colspan="2">&nbsp;</td>
+		</tr>
+		<tr>
+			<td width="120" bgcolor="#F9F9F9">Tuition</td>
+			<td bgcolor="#F9F9F9"><input type="text" name="tuition_fees" id="tuition_fees" value="<?php echo $tuition_fees ;?>" class="validate['required']"/></td>
+		</tr>
+		<tr>
+			<td bgcolor="#F0F0F0">Duration</td>
+			<td bgcolor="#F0F0F0"><input type="text" name="duration" id="duration" value="<?php echo $duration ;?>" class="validate['required']"/></td>
+		</tr>
+		<tr>
+			<td bgcolor="#F9F9F9">Last Date of Admission</td>
+			<td bgcolor="#F9F9F9"><input type="text" name="last_date_of_admission" id="last_date_of_admission" value="<?php echo $last_date_of_admission ;?>" class="validate['required'] demo_vista1 txtBox " /></td>
+		</tr>
+		<tr>
+			<td bgcolor="#F0F0F0">Date of Entrance exam</td>
+			<td bgcolor="#F0F0F0"><input type="text" name="date_of_entrance_exam" id="date_of_entrance_exam" value="<?php echo $date_of_entrance_exam ;?>" class="validate['required'] demo_vista1 txtBox"/></td>
+		</tr>
+		<tr>
+			<td bgcolor="#F0F0F0">How to apply</td>
+			<td bgcolor="#F0F0F0">
+				<textarea name="how_to_apply" id="how_to_apply" class="editor"><?php echo $how_to_apply ;?></textarea>
+				<script type="text/javascript">
+					init_ckfinder('how_to_apply');
+				</script>
+			</td>
+		</tr>
+		<tr>
+			<td bgcolor="#F0F0F0">Brochures & prospectus</td>
+			<td bgcolor="#F0F0F0">
+				<input type="file" name="brochures_and_prospectus" id="brochures_and_prospectus" />&nbsp;&nbsp;
+				<?php if(!empty($brochures_and_prospectus)):	?>		
+					Uploaded File : <?php echo $brochures_and_prospectus; ?>
+				<?php ENDIF?>
+				
+			</td>
+		</tr>
+		<tr>
+			<td bgcolor="#F0F0F0">
+				<input type="hidden" name="school_id" id="school_id" value="<?php echo $school_id ; ?>"/>
+				<input type="hidden" name="degree_id" id="degree_id" value="<?php echo $degree_id ; ?>"/>
+			</td>
+			<td bgcolor="#F0F0F0">
+				<input type="submit"  name="submit" id="submit" value="submit" src="images/save_button.jpg" width='20' height='50'/>
+			</td>
+		</tr>
+	</table>
+</form>

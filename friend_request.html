@@ -1,0 +1,45 @@
+<?php 
+	require_once('includes/header.php');
+?>
+
+<script  type="text/javascript">
+
+	function verify_friend_req(id,op){
+		var req = new Request({
+			 method: 'post',
+			 url: 'ajax_handler.php',
+			 data: {'id' : id,					
+					'op' : op,				
+					'flag' : 'verify_friend_req'
+				 },
+			 onRequest: function() {},
+			 onComplete: function(response) { 
+				 $('verify_friend_req').innerHTML = response;
+				 populate_friend_req();
+				 //$('personal_msg').innerHTML = '';
+			}
+		}).send();	
+	}
+
+	function populate_friend_req(){
+		var req = new Request({
+			 method: 'post',
+			 url: 'ajax_handler.php',
+			 data: {'flag' : 'populate_friend_req'
+				 },
+			 onRequest: function() {},
+			 onComplete: function(response) { 
+				 $('populate_friend_req').innerHTML = response;
+				 //$('personal_msg').innerHTML = '';
+			}
+		}).send();	
+	}
+	populate_friend_req();
+</script>
+<div class='message'>
+	<div class="top">Friend Request</div>
+	<div id = 'verify_friend_req'>
+	</div>
+	<div id = 'populate_friend_req'>
+	</div>
+</div>

@@ -1,0 +1,50 @@
+<?php 
+	require_once('includes/header.php');
+	require_once('includes/checkExpire.php');
+	$user_info = check_login();
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+?>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+ <?php require_once("includes/left_content.php");  
+ ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><a href="my_account.html">My Account</a></li>
+            <li class="in_aroow"><span>Pictures & Videos</span></li>
+          </ul>
+        </div>
+        <div class="clear"></div>
+        <h1>Search4colleges <span>Pictures & Videos</span></h1>
+        <p>Lorem ipsum dolor sit amet consectetuer adipiscing elit.Cum sociis natoque penatibus et magnis dis parturient montes...</p>
+        <div class="clear"></div>
+      </div>
+	  <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+	  <div class="clear"></div>
+	  <div class="colleges_video">
+	  <img src="images/video.jpg" width="719" height="532" /> </div>
+	     </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+	require_once('includes/footer.php'); 
+?>

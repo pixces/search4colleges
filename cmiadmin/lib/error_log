@@ -1,0 +1,2 @@
+[06-Mar-2012 19:09:48] PHP Notice:  Fatal: $CFG->wwwroot is not configured! Exiting. in /home3/searchg1/public_html/cmiadmin/lib/setup.php on line 88
+[06-Mar-2012 19:09:59] PHP Notice:  Fatal: $CFG->wwwroot is not configured! Exiting. in /home3/searchg1/public_html/cmiadmin/lib/setup.php on line 88

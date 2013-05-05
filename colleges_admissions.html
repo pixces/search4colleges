@@ -1,0 +1,305 @@
+<?php 
+	
+	require_once('includes/checkExpire.php');
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 
+	$school_id	= optional_param('view','', PARAM_RAW);
+	$preview	= optional_param('preview','', PARAM_RAW);
+	$staff_permission = '';
+
+
+	$seo_keyword	= optional_param('seo_keyword', '', PARAM_RAW);
+	if($seo_keyword != '')
+	{
+		$sqldata  = get_record('schools','seo_keyword',$seo_keyword,'status','active');
+		if(isset($sqldata->user_id))
+				$school_id = $sqldata->user_id;
+	}
+
+	if($_POST){
+		//print_object($_POST);
+
+		$added_date				= time();			
+		$hiddenid			= optional_param('view', PARAM_RAW);
+	}
+
+	if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'staff')
+		{
+			$allowed = get_field('school_staff_user','allowed_sections','fe_staff_id',$_SESSION['s4c_user_id']);
+
+			if(!empty($allowed))
+			{
+				$alloweds = explode(",",$allowed);
+				if(in_array($page_name,$alloweds))
+				{
+					$staff_permission = 'yes';
+				}
+				else
+				{
+					$staff_permission = 'no';
+				}
+			}
+
+		}
+
+
+	if(isset($_SESSION['s4c_user_id']) && !isset($_GET['preview']) && ($staff_permission == 'yes' || $school_id == $_SESSION['s4c_user_id'])) {
+
+			if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'staff'){
+				
+				$school_staff = get_field('school_staff_user','fe_school_id','fe_staff_id',$_SESSION['s4c_user_id']);
+
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$school_staff.' and status = "active"');
+
+				$student_majors = get_records_sql('Select * from '.$CFG->prefix.'majors where status = "active" order by name');
+				$major_data = array();
+
+				$student_majors_data = get_records_sql('Select * from '.$CFG->prefix.'school_exam where status = "active" AND school_id = '.$school_staff);
+				$major_data = array();
+
+			}
+			elseif(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'school'){
+				
+				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+
+				$student_majors = get_records_sql('Select * from '.$CFG->prefix.'majors where status = "active" order by name');
+				$major_data = array();
+
+				$student_majors_data = get_records_sql('Select * from '.$CFG->prefix.'school_exam where status = "active" AND school_id = '.$_SESSION['s4c_user_id']);
+				$major_data = array();
+
+			}
+			$user_info = check_login();
+		?>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); 
+  
+  ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+			  <div class="inner_top">
+				<div class="inner_link">
+				  <ul>
+					<li><a href="index.html"><strong>Home</strong></a></li>        
+					<li class="in_aroow"><a><strong>Colleges</strong></a></li>      	          
+					<li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+				  </ul>
+				</div>
+				 <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="<?php echo $CFG->siteroot;?>/my_account.html">My Account</a></div>
+		<?php }} ?>
+				<div class="clear"></div>
+				<h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+				
+				<div class="clear"></div>
+			  </div>
+			  <div class="banner"> <img src="<?php echo $CFG->siteroot;?>/file.php/schools/<?php if(!empty($student_data->logo)){ echo 'f6_'.$student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner"   />
+				<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)){ echo get_field('city','name','status','active','id',$student_data->city).', '; }?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+			  <?php 
+				$city	= cmi_genrate_url(get_data_frontend('city','name',$student_data->city));
+				$state	= cmi_genrate_url(get_data_frontend('state','name',$student_data->state));
+
+				$url  = get_s4c_seo($student_data->seo_keyword,$city,$state,$student_data->user_id);
+
+				get_menu_college($student_data->user_id,"colleges_admissions",$url);
+				 
+
+			 ?>
+	<form method="post" action="colleges_admissions.html" id="profile_form" name="profile_form" enctype="multipart/form-data"/>
+	<div style="clear:both;float:right; margin-top:18px;"><a style="text-decoration: underline; color:#000000;" target="_blank" href="colleges_admissions.html?view=<?php if(isset($student_data->user_id)) echo $student_data->user_id; ?>&preview"><b>Preview</b></a></div>
+	<input type="hidden" name="view" value=<?php if(isset($student_data->user_id)) echo $student_data->user_id; ?> />
+	 
+    <div><h3><br />
+      Schedule:</h3>
+  </div>
+
+	<?php
+		if(!empty($student_majors_data)){ ?>
+			<table border="0" width="100%" cellspacing="0" cellpadding="0" class="table_font2">
+				<tr>
+					<td align="center"><b>Degrees</b></td>
+					<td align="center"><b>Date of Examination</b></td>
+					<td align="center"><b>Type</b></td>
+					<td align="center"><b>PDF file of exam schedule</b></td>
+					<td align="center"><b>Result State</b></td>
+					<td align="center"><b>Result Link</b></td>
+					<td align="center"></td>
+					
+			<?php
+				foreach($student_majors_data as $data){ ?>
+					<tr>
+						<td  width="40%"><?php echo get_data_frontend('majors','name',$data->major_category_id)?>--><?php echo get_data_frontend('majors','name',$data->degree_id)?> </td>
+						<td align="center"><?php if(isset($data->exam_date) && $data->exam_date != '') echo date('d M , Y',$data->exam_date); else echo "Will be declared"; ?></td>
+						<td align="center"><?php if(isset($data->degree_type)) echo $data->degree_type; else echo "-"; ?></td>
+						<td align="center" align="left">
+							<?php 
+								if(isset($data->download_schedule) && $data->download_schedule != ''){
+									echo "<a target='_blank' href='".$CFG->siteroot."/file.php/exam/".$data->download_schedule."'><img src='".$CFG->siteroot."/images/pdf_icon.png' /></a>"
+									;
+								}
+								else{
+									echo "Not Uploaded";
+								}
+							?>
+						</td>
+						<td align="center"><?php if(isset($data->result_status) && $data->result_status != '') echo $data->result_status; else echo " - "; ?></td>
+						<td align="center"><?php if(isset($data->result_web_url) && $data->result_web_url != '') echo "<a href=".$data->result_web_url." target='_blank'>".$data->result_web_url ."</p></a>"; else echo " - "; ?></td>
+						<td align="center">
+						<a rel="lightbox" href="<?php echo $CFG->siteroot;?>/exam_edit.html?view=<?php if(isset($student_data->id)) echo $student_data->id; ?>&edit=<?php if(isset($data->id)) echo $data->id; ?>"><img src="images/edit.gif" style="cursor:pointer;float:right" alt="edit" title="edit" /></a></td>
+					</tr>
+				<?php
+				}
+				echo '</table>';
+		}
+	?>
+	</form>
+    
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+
+<?php }
+	else{
+		
+		
+		if($school_id != ''){
+			$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$school_id.' and status = "active"');
+
+			$student_majors = get_records_sql('Select * from '.$CFG->prefix.'majors where status = "active" order by name');
+			$major_data = array();
+
+			$student_majors_data = get_records_sql('Select * from '.$CFG->prefix.'school_exam where status = "active" AND school_id = '.$school_id);
+			$major_data = array();
+
+		}
+	?>
+		 <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+  <?php require_once("includes/left_content.php"); ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+			  <div class="inner_top">
+				<div class="inner_link">
+				  <ul>
+					<li><a href="index.html"><strong>Home</strong></a></li>          
+					<?PHP
+					if(isset($_GET['preview']))
+					{
+					?>			
+						<li class="in_aroow"><a><strong>Colleges</strong></a></li>      				
+					<?php
+					}
+					else
+					{
+					?>
+						<li class="in_aroow"><a href="<?php echo $CFG->siteroot;?>/colleges.html"><strong>Colleges</strong></a></li>     
+					<?php
+					}
+					?>     	        
+					<li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
+				  </ul>
+				</div>
+				 <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){?>
+					<div class="in_Right_link"><a href="#"></a><a href="<?php echo $CFG->siteroot;?>/my_account.html">My Account</a></div>
+				<?php } ?>
+				<div class="clear"></div>
+				<h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
+				
+				<div class="clear"></div>
+			  </div>
+			  <div class="banner"> <img src="<?php echo $CFG->siteroot;?>/file.php/schools/<?php if(!empty($student_data->logo)) { echo 'f6_'.$student_data->logo; }else{ echo 's4c_watermark.png';}?>" alt="Banner"  />
+				<div class="banner-heading"> <b><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></b><br/>
+				  <?php if(isset($student_data->city)) echo get_field('city','name','status','active','id',$student_data->city).', '; ?> <?php if(isset($student_data->state)) echo get_field('state','name','status','active','id',$student_data->state); ?> </div>
+				 
+			  </div>
+			  <?php 
+
+				$city	= cmi_genrate_url(get_data_frontend('city','name',$student_data->city));
+				$state	= cmi_genrate_url(get_data_frontend('state','name',$student_data->state));
+
+				$url  = get_s4c_seo($student_data->seo_keyword,$city,$state,$student_data->user_id);
+
+				get_menu_college($student_data->user_id,"colleges_admissions",$url);
+
+
+			 ?>
+	<form method="post" action="colleges_admissions.html" id="profile_form" name="profile_form" enctype="multipart/form-data"/>
+	<input type="hidden" name="view" value=<?php if(isset($student_data->user_id)) echo $student_data->user_id; ?> />
+	 <br />
+    <div><h3>Schedule:</h3></div>
+
+	<?php
+		if(!empty($student_majors_data)){ ?>
+			<table border="0" width="100%" cellspacing="0" cellpadding="0" class="table_font2">
+				<tr>
+					<td align="center"><b>Degrees</b></td>
+					<td align="center"><b>Date of Examination</b></td>
+					<td align="center"><b>Type</b></td>
+					<td align="center"><b>PDF file of exam schedule</b></td>
+					<td align="center"><b>Result State</b></td>
+					<td align="center"><b>Result Link</b></td>
+			<?php
+				foreach($student_majors_data as $data){ ?>
+					<tr>
+						<td  width="40%" align="left"><?php echo get_data_frontend('majors','name',$data->major_category_id)?>--><?php echo get_data_frontend('majors','name',$data->degree_id)?> </td>
+						<td align="center" align="left"><?php if(isset($data->exam_date) && $data->exam_date != '') echo date('d M , Y',$data->exam_date); else echo "Will be declared"; ?></td>
+						<td align="center" align="left"><?php if(isset($data->degree_type)) echo $data->degree_type; else echo "-"; ?></td>
+						<td align="center" align="left">
+							<?php 
+								if(isset($data->download_schedule) && $data->download_schedule != ''){
+									echo "<a target='_blank' href='".$CFG->siteroot."/file.php/exam/".$data->download_schedule."'><img src='".$CFG->siteroot."/images/pdf_icon.png' /></a>"
+									;
+								}
+								else{
+									echo "Not Uploaded";
+								}
+							?>
+						</td>
+						<td align="center" align="left"><?php if(isset($data->result_status) && $data->result_status != '') echo $data->result_status; else echo " - "; ?></td>
+						<td align="center" align="left"><?php if(isset($data->result_web_url) && $data->result_web_url != '') echo "<a href=".$data->result_web_url." target='_blank'>".$data->result_web_url ."</p></a>"; else echo " - "; ?></td>
+					</tr>
+				<?php
+				}
+				echo '</table>';
+		}
+		else{ ?>
+				<center><div> No Schedule details found.</div></center>
+			<?php }
+
+	?>
+	</form>
+    
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php
+	}
+
+	require_once('includes/footer.php'); 
+?>

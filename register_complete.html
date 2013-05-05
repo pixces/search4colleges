@@ -1,0 +1,254 @@
+<?php 
+
+require_once("cmiadmin/lib/phpmailer/class.phpmailer.php");
+require_once("securimage/securimage.php");
+
+$img = new Securimage();
+$valid = $img->check($_POST['captcha']);
+
+require_once("cmiadmin/config.php"); 
+
+if(isset($_POST) && !empty($_POST))
+{	
+	if(isset($_POST['reg_type']) && !empty($_POST['reg_type'])) {
+
+		if($valid == true){
+
+			$added_date				= time();			
+			$email					= required_param('email', PARAM_RAW);
+			$password				= required_param('password', PARAM_RAW); 		
+			$code					= generate_random(7);
+			$gender					= optional_param('gender', PARAM_RAW);  
+			$date_month				= optional_param('date_month', PARAM_RAW); 
+			$date_day				= optional_param('date_day', PARAM_RAW); 
+			$date_year				= optional_param('date_year', PARAM_RAW); 
+			$first_name				= optional_param('first_name','', PARAM_RAW);
+			$last_name				= optional_param('last_name','', PARAM_RAW);
+			$reg_type				= optional_param('reg_type', PARAM_RAW);
+			$school_name			= optional_param('school_name','', PARAM_RAW);
+			$table					= '';
+			
+			$date_of_birth = $date_month . '/' .$date_day .'/' .$date_year ;
+			
+			$add_info					= new object();	
+			$add_info->gender			= $gender;
+			$add_info->first_name		= $first_name;	
+			$add_info->last_name		= $last_name;
+			$add_info->date_of_birth	= $date_of_birth ;
+			$add_info->added_date 		= $added_date;		
+			
+
+			switch($reg_type){
+				case 'student':		$table							= 'student';
+									$educational_interest			= optional_param('educational_interest', PARAM_RAW);
+									$add_info->educational_interest	= $educational_interest;
+									$add_info->address	= '';
+									$add_info->street	= '';
+									$add_info->state	= '';
+									$add_info->city	= '';
+									$add_info->zip_code	= '';
+									$add_info->short_description	= '';
+									$add_info->long_description	= '';
+									$add_info->goals_in_life	= '';
+									$add_info->expectation_from_s4c	= '';
+									break;
+				case 'counselor':	$table							='counselors';
+									$proffession					= optional_param('proffession', PARAM_RAW);
+									$experience						= optional_param('experience', PARAM_RAW);
+									$add_info->proffession			= $proffession;
+									$add_info->experience 			= $experience;								
+									$add_info->added_date 			= $added_date;
+									$add_info->address 	 			= '';
+									$add_info->street 				= '';
+									$add_info->state 				= '';
+									$add_info->city 				= '';
+									$add_info->zip_code 			= '';
+									$add_info->about_me  			= '';
+									break;
+				case 'parent':		$table							='parent';
+									//$proffession					= optional_param('proffession', PARAM_RAW);
+									//$add_info->proffession		= $proffession;
+									$add_info->experience 			= $experience;								
+									$add_info->added_date 			= $added_date;
+									break;
+				case 'school':		$table							='schools';
+									$school_name					= optional_param('school_name', PARAM_RAW);
+									$address						= optional_param('address', PARAM_RAW);
+									$street							= optional_param('street', PARAM_RAW);
+									$phone							= optional_param('phone', PARAM_RAW);
+									$country						= optional_param('country', PARAM_RAW);
+									$state							= optional_param('state', PARAM_RAW);
+									$zip_code						= optional_param('zip_code', PARAM_RAW);
+                                    //$city							= optional_param('city', PARAM_RAW);
+                                    $city_string					= optional_param('city','', PARAM_RAW);	
+                            
+                                    $sql 							= ("SELECT * FROM {$CFG->prefix}city WHERE name LIKE '%$city_string%' and status = 'active'");
+                                    $city 							= get_record_sql($sql);
+                                    
+                                    if(!empty($city)){
+                                        $city						= $city->id;
+                                        }else{
+                                            $rec  = execute_sql("INSERT INTO ".$CFG->prefix."city SET
+                                                                        state_id		= ".$state.", 	
+                                                                        pincode 		= '',
+                                                                        zipcode 		= '".$zip_code."',
+                                                                        code 			= '".$city_string."',
+                                                                        name 			= '".$city_string."',
+                                                                        added_date 		= ".time().",
+                                                                        status 			= 'active'",false);
+                            
+                                            if($rec){
+                                                    $city = mysql_insert_id();
+                                                 }
+                                    }
+									$school_website					= optional_param('school_website', PARAM_RAW);
+									unset($add_info->gender);
+									unset($add_info->first_name);
+									unset($add_info->date_of_birth);
+									$add_info->school_name			= $school_name;
+									$add_info->seo_keyword			= cmi_genrate_url($school_name);
+									$add_info->address 				= $address;	
+									$add_info->phone 				= $phone;		
+									$add_info->country 				= $country;		
+									$add_info->street 				= $street;		
+									$add_info->state 				= $state;		
+									$add_info->city 				= $city;		
+									$add_info->zip_code 			= $zip_code;		
+									$add_info->web_url				= $school_website;	
+									$add_info->image				= '';
+									$add_info->logo					= '';
+									$add_info->added_date 			= $added_date;
+									break;
+				case 'teacher':		$table							='teacher';
+									$address						= optional_param('address', PARAM_RAW);
+									$street							= optional_param('street', PARAM_RAW);
+									$state							= optional_param('state', PARAM_RAW);
+									$zip_code						= optional_param('zip_code', PARAM_RAW);
+									//$city							= optional_param('city', PARAM_RAW);
+                                    $city_string					= optional_param('city','', PARAM_RAW);	
+                            
+                                    $sql 							= ("SELECT * FROM {$CFG->prefix}city WHERE name LIKE '%$city_string%' and status = 'active'");
+                                    $city 							= get_record_sql($sql);
+                                    
+                                    if(!empty($city)){
+                                        $city						= $city->id;
+                                        }else{
+                                            $rec  = execute_sql("INSERT INTO ".$CFG->prefix."city SET
+                                                                        state_id		= ".$state.", 	
+                                                                        pincode 		= '',
+                                                                        zipcode 		= '".$zip_code."',
+                                                                        code 			= '".$city_string."',
+                                                                        name 			= '".$city_string."',
+                                                                        added_date 		= ".time().",
+                                                                        status 			= 'active'",false);
+                            
+                                            if($rec){
+                                                    $city = mysql_insert_id();
+                                                 }
+                                    }
+									$college_name					= optional_param('college_name', PARAM_RAW);
+									$experience						= optional_param('experience', PARAM_RAW);
+									$primary_phone					= optional_param('primary_phone', PARAM_RAW);
+									$phone							= optional_param('phone', PARAM_RAW);
+									$private_email					= optional_param('private_email', PARAM_RAW);
+									$comments						= optional_param('comments', PARAM_RAW);
+									unset($add_info->gender);
+									unset($add_info->date_of_birth);
+									$add_info->address 				= $address;									
+									$add_info->street 				= $street;									
+									$add_info->city 				= $city;									
+									$add_info->state 				= $state;									
+									$add_info->zip_code 			= $zip_code;									
+									$add_info->college_name 		= $college_name;	
+									$add_info->experience 			= $experience;		
+									$add_info->primary_phone 		= '';	//$primary_phone;	
+									$add_info->phone 				= $phone;		
+									$add_info->private_email 		= $private_email;		
+									$add_info->comments 			= $comments;
+									$add_info->added_date 			= $added_date;
+									break;
+			}
+		
+			$add_user				= new object();	
+			$add_user->email		= $email;
+			$add_user->password		= md5($password);	
+			$add_user->user_type	= $reg_type;
+			$add_user->code			= $code;
+			$add_user->added_date	= $added_date;
+
+			$to= $email;
+			$sub = "Search 4 Colleges Verification";
+			$msg = "<br /><a href='".$CFG->siteroot."'><img src='".$CFG->siteroot."/cmiadmin/theme/cmi/images/cmi_logo.png' alt='Logo' border='0' /></a><br /><br />"; 
+
+			
+			if($school_name != '')
+			{
+				$msg .= '<b>Dear '.$school_name.'</b>,<br /><br />We have sent you a verification email.
+					Kindly click on the link to verify your account with us.
+					<a href="'.$CFG->siteroot.'/verify.html?code='.$code.'">Click Here</a><br />';
+
+			}
+			else
+			{
+				$msg .= '<b>Dear '.$last_name.'</b>,<br /><br />We have sent you a verification email.
+					Kindly click on the link to verify your account with us.
+					<a href="'.$CFG->siteroot.'/verify.html?code='.$code.'">Click Here</a><br />';
+
+			}
+			
+			$msg .= <<<OP
+				<div style="background-color:#FFFFFF;">
+					  <br /><b>Thanks,</b><br />
+						<b>S4c </b>
+				</div>
+OP;
+
+
+			global $CFG; 
+			$mail				= new PHPMailer();
+			$mail->IsHTML(true);
+			$mail->From			= $CFG->frommail;
+			$mail->FromName		= $CFG->fromname;
+			$mail->Subject		= $sub;
+			$mail->Body			= $msg;
+			$mail->AddAddress($to);
+			$mail->AddReplyTo($CFG->frommail, "Registration");
+			if($mail->Send())
+			{
+							
+				if($table !=''){
+					$new = insert_record('fe_users', $add_user);				
+					if($new){
+						$sql				= " SELECT max(id) id FROM {$CFG->prefix}fe_users ";		
+						$add_user_id		= get_record_sql($sql);	
+						$add_info->user_id	= $add_user_id->id ;	
+						$new				= insert_record($table, $add_info);
+						header("location:thanks.html");
+					}	
+				}
+				else{
+					$msg=" Registration Failed. Try Again !!!";
+				}
+			}
+			else
+			{
+				header("location:failure.html");
+				$msg=" Registration Failed. Try Again !!!";
+			}
+		}
+		else{
+			header("location:failure.html?msg=1");
+			$msg= "<center>Sorry, the Code you entered was invalid.  <a href=\"javascript:history.go(-1)\">Go back</a> to try again.</center>";
+		}
+	}
+	else{
+		echo "<center>Sorry, the code you entered was invalid.  <a href'javascript:history.go(-1)'>Go back</a> to try again.</center>";
+	}
+}
+else{ 
+		echo "unable to connect";
+}
+
+//echo $msg;
+
+?>

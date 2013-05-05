@@ -1,0 +1,101 @@
+<?php 
+	
+	require_once('includes/checkExpire.php');
+	if( $expired == 1){
+		header("Location: membership_buy.html");
+	}
+	require_once('includes/header.php'); 	
+	$user_info = check_login();
+	$keyword = optional_param('keyword','',PARAM_TEXT);
+
+	$id = optional_param('id','0',PARAM_RAW);
+	if($id!=0)
+	{
+		$search = new object();
+		$search->id = $id;
+		$search->status = 'delete';
+		update_record('save_search',$search);
+	}
+?>
+  <!-- << header section -->
+  
+  <!-- content section >> -->
+  <div id="content_sec">
+  
+    <!-- << left content -->
+ <?php require_once("includes/left_content.php"); 
+ ?>
+  <!-- left content >> -->
+	
+	<!-- << inner content -->
+    <div id="inner_content">
+      <div class="inner_top">
+        <div class="inner_link">
+          <ul>
+            <li><a href="index.html"><strong>Home</strong></a></li>
+            <li class="in_aroow"><span>Searched History</span></li>
+          </ul>
+        </div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
+				if(($expired == 0)){ 
+		?>
+			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+		<?php }} ?>
+
+        <div class="clear"></div>
+        <h1><span>Searched History</span></h1>        
+        <div class="clear"></div>
+      </div>
+
+		<div style="padding:20px 0px;border:0px solid red;">
+			<form name="s4c_reg" id="s4c_reg" action="searched_history.html" method="post">
+				Search Title &nbsp;&nbsp;
+				<input type="text" name="keyword" id="keyword" value=""  style="background-color:#F4F4F4; border: 1px solid #e7e7e7; border-radius: 5px 5px 5px 5px;"/>&nbsp;&nbsp;
+				<input type="submit" name="submit" value="Search" />
+			</form>
+
+		</div>
+		
+		<div class="clear"></div>
+		<?php
+		$sql = "SELECT * FROM {$CFG->prefix}save_search where user_id=".$_SESSION['s4c_user_id']." AND status='active'";
+		if(!empty($keyword)) {
+			$sql .= " And title LIKE '%$keyword%'";
+		}
+		$history = get_records_sql($sql);
+		if(!empty($history)){
+			$i = 1;
+			
+			echo " <div class='massage_list' >";
+				echo "<div class='massage_time'><b>TIME</b></div> ";
+				echo "<div class='massage_sub'><b>TITLE</b></div>";
+				echo "<div class='massage_date'><b>DATE</b></div>";
+				echo "<div></div>";
+			echo "</div>";
+				
+			foreach($history as $record){
+				//echo $class = (($i%2)==0)?' class="massage_list2" ':' class="massage_list" ';
+				echo " <div class='massage_list2' >";
+					echo "<div class='massage_time'>".date('h:i A',$record->added_date)."</div> ";
+					echo "<div class='massage_sub'><a href='user_search.html?search_id=".$record->id."'>$record->title</a></div>";
+					echo "<div class='massage_date'>".date('d-m-Y',$record->added_date)."</div>";
+			?>		<div class="close_btn" title="Delete" onclick="call_alert_confirm('Do you want to delete this search history?','searched_history.html?id=<?php echo $record->id; ?>');"></div>
+			
+			<?php
+				echo "</div>";
+				$i++;
+			}
+		}else{
+			echo "<br/>No Result Found<br/>";
+		}
+		?>
+		<div class="clear"></div>
+    </div>
+    <div class="clear"></div>
+	<!-- << inner content>> -->
+  </div>
+  <!-- << content section -->
+  <!-- footer section >> -->
+<?php 
+	require_once('includes/footer.php'); 
+?>
