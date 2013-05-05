@@ -85,20 +85,21 @@
 		}
 	}
 
-	function populate_personal_detail(){
-			
-			var req = new Request({
-				 method: 'post',
-				 url: 'ajax_handler.php',
-				 data: {'flag' : 'populate_personal_detail'						
-					 },
-				 onRequest: function() {},
-				 onComplete: function(response) { 
-					 $('personal_detail').innerHTML = response;
-					 //$('personal_msg').innerHTML = '';
-				}
-			}).send();	
-		}
+        function populate_personal_detail(){
+
+                var req = new Request({
+                     method: 'post',
+                     url: 'ajax_handler.php',
+                     data: {'flag' : 'populate_personal_detail'
+                         },
+                     onRequest: function() {},
+                     onComplete: function(response) {
+                         $('personal_detail').innerHTML = response;
+                         //$('personal_msg').innerHTML = '';
+                    }
+                }).send();
+        }
+
 		function edit_personal_detail(){
 			
 			var req = new Request({
@@ -120,6 +121,7 @@
 				}
 			}).send();	
 		}
+
 		function update_personal_detail(){			
 			var req = new Request({			
 				 method: 'post',
@@ -134,7 +136,7 @@
 					//populate_personal_detail();
 					//$('personal_msg').innerHTML = ' &nbsp;&nbsp;&nbsp;(&nbsp;&nbsp;&nbsp;Personal Infomation Added&nbsp;&nbsp;&nbsp;)';
 				}
-			}).send();	
+			}).send();
 		}
 		
 		populate_personal_detail();
@@ -146,10 +148,11 @@
 				 url: 'ajax_handler.php',
 				 data: {"institute_name":$('institute_name_add').value,
 						 "degree":$('degree_add').value,
+                         "city":$('city_add').value,
 						 "date_month":$('date_month').value,
-						 "date_day":$('date_day').value,
 						 "date_year":$('date_year').value,
-						 //"year_of_passing":$('year_of_passing_add').value,	
+                         //"date_day":$('date_day').value,
+						 //"year_of_passing":$('year_of_passing_add').value,
 						'flag' : 'addAcademic'	
 					 },
 				 onRequest: function() {},
@@ -239,9 +242,10 @@
 					 method: 'post',
 					 url: 'ajax_handler.php',
 					 data: { "institute_name":$('institute_name_change').value,
-							 "degree":$('degree_change').value,
+                             "city":$('city_change').value,
+                             "degree":$('degree_change').value,
 							 "date_month":$('date_month').value,
-						 	 "date_day":$('date_day').value,
+						 	 //"date_day":$('date_day').value,
 						 	 "date_year":$('date_year').value,
 							 //"year_of_passing":$('year_of_passing_change').value,						 
 							 "id":id,

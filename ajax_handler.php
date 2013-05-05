@@ -519,21 +519,32 @@ $sections = '';
 		$personal_info = get_records_sql($sql);
 		echo"<form name='academic_form' id='academic_form' method='post'>	<table  border='0' cellspacing='10' cellpadding='2'>		
 				<tr>
-					<th width='150px'>Institute Name</th>
-					<th width='150px'>Degree </th>
+					<th width='125px'>Institute Name</th>
+					<th width='125px'>City </th>
+					<th width='125px'>Degree </th>
 					<th width='250px'>Graduation Date</th>
 					<th width='100px'>&nbsp;</th>
 				</tr>";
 		
-		if($personal_info){			
-
+		if($personal_info){
+            $school_type = get_records_sql('Select * from '.$CFG->prefix.'school_type');
 			foreach($personal_info as $record){
 				if($record->id == $personal->id){							
 				echo"
 					<tr>
-					<td><input type='text' name='institute_name_change' id= 'institute_name_change' value='$record->institute_name' class=\"validate['required']\"  /></td>
-					<td><input type='text' name='degree_change' id= 'degree_change' value='$record->degree'  /></td><td>";
-					$val_date = date("n/d/Y",$record->year_of_passing);
+					<td><input type='text' size='18' name='institute_name_change' id= 'institute_name_change' value='$record->institute_name' class=\"validate['required']\"  /></td>
+					<td><input type='text' size='18' name='city_change' id= 'city_change' value='$record->city' class=\"validate['required']\"/></td>
+					<td><select name='degree_change' id='degree_change' class=\"validate['required']\" style='width:150px;' >";
+                    foreach($school_type as $rec){
+                        if($record->degree == $rec->type){
+                            echo "<option value='".$rec->type."' selected >".$rec->type."</option>";
+                        } else {
+                            echo "<option value='".$rec->type."'>".$rec->type."</option>";
+                        }
+                    }
+                    echo "</select></td>
+					<td>";
+					$val_date = date("m/d/Y",$record->year_of_passing);
 					$day_month_year = explode('/',$val_date);
 					
 								$day	= date("d",time());
@@ -542,7 +553,7 @@ $sections = '';
 								//echo  " $day : $month : $year ";
 								$num = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 								echo "<select name='date_month' id='date_month' >";
-								$month_array = array('Select Month','January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
+								$month_array = array('Select Month','Jan', 'Feb', 'March', 'April', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec');
 								foreach($month_array as $key=>$value){
 									if($key != 0){
 										if(isset($day_month_year[0]) && $key == $day_month_year[0]){
@@ -555,15 +566,15 @@ $sections = '';
 								echo "</select> ";
 
 
-								echo "<select name='date_day' id='date_day' >";
-									for($i = 1; $i<=$num; $i++){
-										if(isset($day_month_year[1]) && $i == $day_month_year[1]){
-											echo "<option value='$i' selected >$i</option>";
-										}else{
-											echo "<option value='$i'>$i</option>";
-										}
-									}
-								echo"</select>";
+								//echo "<select name='date_day' id='date_day' >";
+								//	for($i = 1; $i<=$num; $i++){
+								//		if(isset($day_month_year[1]) && $i == $day_month_year[1]){
+								//			echo "<option value='$i' selected >$i</option>";
+								//		}else{
+								//			echo "<option value='$i'>$i</option>";
+								//		}
+								//	}
+								//echo"</select>";
 
 								echo "<select name='date_year' id='date_year' >";
 									$year_start = 1910;
@@ -584,8 +595,9 @@ $sections = '';
 					echo"
 					<tr id='academic_id_$record->id'>
 					<td>".ucwords($record->institute_name) ."</td>
+					<td>".ucwords($record->city) ."</td>
 					<td>".ucwords($record->degree) ."</td>
-					<td >".date('d/m/Y',$record->year_of_passing) ."</td>";
+					<td >".date('F, Y',$record->year_of_passing) ."</td>";
 					echo "<td>&nbsp;</td>";
 					echo "</tr>";
 				}
@@ -600,10 +612,11 @@ $sections = '';
 		
 		$institute_name		= optional_param('institute_name','',PARAM_RAW);
 		$degree				= optional_param('degree','',PARAM_RAW);
-		$date_month			= optional_param('date_month','0',PARAM_INT);
+		$city               = optional_param('city','',PARAM_RAW);
+        $date_month			= optional_param('date_month','0',PARAM_INT);
 		$date_day			= optional_param('date_day','0',PARAM_INT);
 		$date_year			= optional_param('date_year','0',PARAM_INT);
-		$year_of_passing	= $date_month . '/' . $date_day . '/' . $date_year;
+		$year_of_passing	= $date_month . '/01/' . $date_year;
 		$year_of_passing    = strtotime($year_of_passing);
 		//$year_of_passing	= optional_param('year_of_passing','',PARAM_RAW);		
 		$id					= optional_param('id','',PARAM_RAW);
@@ -611,6 +624,7 @@ $sections = '';
 		$update_record = new object();
 		$update_record->institute_name	= $institute_name;
 		$update_record->degree			= $degree;
+        $update_record->city			= $city;
 		if(empty($year_of_passing)){			
 			$update_record->year_of_passing	= time();
 		}else{
@@ -697,17 +711,19 @@ $sections = '';
 		
 		$institute_name		= optional_param('institute_name','',PARAM_RAW);
 		$degree				= optional_param('degree','',PARAM_RAW);
+        $city               = optional_param('city','',PARAM_RAW);
 		//$year_of_passing	= optional_param('year_of_passing','',PARAM_RAW);
 		$date_month			= optional_param('date_month','0',PARAM_INT);
-		$date_day			= optional_param('date_day','0',PARAM_INT);
 		$date_year			= optional_param('date_year','0',PARAM_INT);
-		$year_of_passing	= $date_month . '/' . $date_day . '/' . $date_year;
-		$year_of_passing    = strtotime($year_of_passing);
+        //$date_day			= optional_param('date_day','0',PARAM_INT);
+        $year_of_passing	= strtotime( $date_month . '/01/' . $date_year);
 		$student_id			= $_SESSION['s4c_user_id'];
 
 		$update_record = new object();
 		$update_record->institute_name	= $institute_name;
 		$update_record->degree			= $degree;
+        $update_record->city            = $city;
+
 		if(empty($year_of_passing)){			
 			$update_record->year_of_passing	= time();
 		}else{
@@ -728,8 +744,9 @@ $sections = '';
 		if($personal_info){
 			echo"			
 				<tr>
-					<th width='150px'>Institute Name</th>
-					<th width='150px'>Degree </th>
+					<th width='125px'>Institute Name</th>
+					<th width='125px'>City </th>
+					<th width='125px'>Degree </th>
 					<th width='250px'>Graduation Date</th>
 					<th width='100px'>&nbsp;</th>
 				</tr>";
@@ -738,8 +755,9 @@ $sections = '';
 				echo"
 					<tr>
 					<td>".ucwords($record->institute_name) ."</td>
+					<td>".ucwords($record->city) ."</td>
 					<td>".ucwords($record->degree) ."</td>
-					<td >".date('F d, Y',$record->year_of_passing) ."</td>";
+					<td >".date('F, Y',$record->year_of_passing) ."</td>";
 					echo "<td><a href='javascript:void(0);' onclick='editAcademic($record->id);' ><img src='images/edit.gif' border='0' /></a>&nbsp;&nbsp;<a href='javascript:void(0);' onclick='deleteAcademic($record->id);' ><img src='images/delete.png' border='0' /></a></td>";
 					echo "</tr>";
 			}
@@ -753,13 +771,14 @@ $sections = '';
 		global $CFG;
 		$sql = "select * from {$CFG->prefix}academic where student_id=".$_SESSION['s4c_user_id'];
 		$personal_info = get_records_sql($sql);
-		echo "<form name='academic_form' id='academic_form' method='post'><table  border='0' cellspacing='10' cellpadding='2'>";
+		echo "<form name='academic_form' id='academic_form' method='post'><table  border='0' cellspacing='10' cellpadding='2' width='100%'>";
 		echo"			
 				<tr>
-					<th width='150px'>Institute Name</th>
-					<th width='150px'>Degree </th>
+					<th width='125px'>Institute Name</th>
+					<th width='125px'>City</th>
+					<th width='125px'>Degree </th>
 					<th width='250px'>Graduation Date</th>
-					<th width='100px'>&nbsp;</th>
+					<th width='50px'>&nbsp;</th>
 				</tr>";
 
 		if($personal_info){			
@@ -767,22 +786,32 @@ $sections = '';
 				echo"
 					<tr>
 					<td>".ucwords($record->institute_name) ."</td>
+					<td>".ucwords($record->city) ."</td>
 					<td>".ucwords($record->degree) ."</td>
 					<td >".date('d/m/Y',$record->year_of_passing) ."</td>";
 					echo "<td><a href='javascript:void(0);' onclick='editAcademic($record->id);' ><img src='images/edit.gif' border='0' /></a>&nbsp;&nbsp;<a href='javascript:void(0);' onclick='deleteAcademic($record->id);' ><img src='images/delete.png' border='0' /></a></td>";
 					echo "</tr>";
 			}
 		}
+
+        //get details of school type
+        $school_type = get_records_sql('Select * from '.$CFG->prefix.'school_type');
 		echo"
 			<tr>
-			<td><input type='text' name='institute_name_add' id= 'institute_name_add' value='' class=\"validate['required']\"/></td>
-			<td><input type='text' name='degree_add' id= 'degree_add' value=''  class=\"validate['required']\" /></td><td  >";
+			<td><input type='text' size='18' name='institute_name_add' id= 'institute_name_add' value='' class=\"validate['required']\"/></td>
+			<td><input type='text' size='18' name='city_add' id= 'city_add' value='' class=\"validate['required']\"/></td>
+			<td><select name='degree_add' id='degree_add' class=\"validate['required']\" style='width:150px;' >";
+                foreach($school_type as $rec){
+                    echo "<option value='".$rec->type."'>".$rec->type."</option>";
+                }
+			echo "</select></td>
+			<td  >";
 								$day	= date("d",time());
 								$month	= date("m",time());
 								$year	= date("Y",time());
 			$num = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 								echo "<select name='date_month' id='date_month' >";
-								$month_array = array('Select Month','January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
+								$month_array = array('Select Month','Jan', 'Feb', 'March', 'April', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec');
 								foreach($month_array as $key=>$value){
 									if($key != 0){
 										echo "<option value='$key'>$value</option>";
@@ -791,11 +820,11 @@ $sections = '';
 								echo "</select> ";
 
 
-								echo "<select name='date_day' id='date_day' >";
-									for($i = 1; $i<=$num; $i++){
-											echo "<option value='$i'>$i</option>";
-									}
-								echo"</select>";
+								//echo "<select name='date_day' id='date_day' >";
+									//for($i = 1; $i<=$num; $i++){
+									//		echo "<option value='$i'>$i</option>";
+									//}
+								//echo"</select>";
 
 								echo "<select name='date_year' id='date_year' >";
 									$year_start = 1910;
