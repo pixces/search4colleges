@@ -33,6 +33,10 @@
 		//print_object($counselor_data);
 
 		if(isset($counselor_data->user_id) && $counselor_data->user_id != ''){
+            /* Delete profile image, photos and videos uploaded by user */
+            // Get fe_user info
+            $user_info = get_record('fe_users','id',$counselor_data->user_id);
+            delete_images($user_info->image,'personal',true);
 			
 			// Delete from Gallery 
 
@@ -40,6 +44,12 @@
 
 			if(!empty($gallery_data)){
 				foreach($gallery_data as $gallery){
+                    // Delete each video/image from users gallery
+                    if($gallery->type =="image") {
+                        delete_images($gallery->name,'gallery',true);
+                    } else {
+                        delete_images($gallery->name,'gallery',false);
+                    }
 
 					$gallery_delete = "DELETE from ".$CFG->prefix."gallery where id = ".$gallery->id;
 					execute_sql($gallery_delete,false);
@@ -87,8 +97,8 @@
 			execute_sql($blog_delete,false);
 		
 			/* Delete from blog_comment */
-			$blog_comment_delete = "DELETE  from ".$CFG->prefix."blog_comment where user_id = ".$counselor_data->user_id;
-			execute_sql($blog_comment_delete,false);
+//			$blog_comment_delete = "DELETE  from ".$CFG->prefix."blog_comment where user_id = ".$counselor_data->user_id;
+//			execute_sql($blog_comment_delete,false);
 
 			/* Delete from save_search */
 			$save_search_delete = "DELETE  from ".$CFG->prefix."save_search where user_id = ".$counselor_data->user_id;
@@ -127,6 +137,10 @@
 			$counselor_data = get_record('counselors','id',$delete_id);
 
 			if(isset($counselor_data->user_id) && $counselor_data->user_id != ''){
+                /* Delete profile image, photos and videos uploaded by user */
+                // Get fe_user info
+                $user_info = get_record('fe_users','id',$counselor_data->user_id);
+                delete_images($user_info->image,'personal',true);
 				
 
 				// Delete from Gallery 
@@ -135,6 +149,12 @@
 
 				if(!empty($gallery_data)){
 					foreach($gallery_data as $gallery){
+                        // Delete each video/image from users gallery
+                        if($gallery->type =="image") {
+                            delete_images($gallery->name,'gallery',true);
+                        } else {
+                            delete_images($gallery->name,'gallery',false);
+                        }
 
 						$gallery_delete = "DELETE from ".$CFG->prefix."gallery where id = ".$gallery->id;
 						execute_sql($gallery_delete,false);
@@ -182,8 +202,8 @@
 			execute_sql($blog_delete,false);
 		
 			/* Delete from blog_comment */
-			$blog_comment_delete = "DELETE  from ".$CFG->prefix."blog_comment where user_id = ".$counselor_data->user_id;
-			execute_sql($blog_comment_delete,false);
+//			$blog_comment_delete = "DELETE  from ".$CFG->prefix."blog_comment where user_id = ".$counselor_data->user_id;
+//			execute_sql($blog_comment_delete,false);
 
 			/* Delete from save_search */
 			$save_search_delete = "DELETE  from ".$CFG->prefix."save_search where user_id = ".$counselor_data->user_id;
@@ -378,7 +398,7 @@
 
 		} else {
 
-		  $table->head = array ($check,$id, $first_name,"<a href='JavaScript:void(0);'>Email</a>", $date_of_birth, $address,"","");
+		  $table->head = array ($check,$id, $first_name,"<a href='JavaScript:void(0);'>Email</a>", $date_of_birth, $address,"","","");
 		  $table->align = array ("center", "center", "center", "center","Center");
 		  $table->width = "100%";
 
@@ -406,6 +426,7 @@
 					$data->date_of_birth,
 					"$data->address",
 					"<a href='counselor_detail.php?id=".$data->id."'>View Detail</a>",
+					"<a href='counselor_detail.php?id=".$data->id."&action=edit'>Edit Detail</a>",
 					$disablebutton . $deletebutton
 			);
 			}

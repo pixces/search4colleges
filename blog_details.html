@@ -185,19 +185,28 @@
 			echo "<tr><td class='td_color'><div style='float:left;'><b>Comments</b></div></td></tr>";
 			foreach($comment_info as $record){
             	$comment_post_info = get_user_info($record->user_id);
+                $author = trim($comment_post_info->name);
+                if($author!=""){
+                    $author = $comment_post_info->name;
+                    $author_type = "(".$comment_post_info->user_type.")";
+                } else {
+                    $author =  $record->user_name;
+                    $author_type = "";
+                }
+
 				echo "<tr>";
 					echo "<td style='border-bottom:1px dotted black;'>";
 						echo"<dl style='margin: 0px; padding: 0 0 10px;'>";
-							echo "<dt><b><small> Posted By ".ucwords($comment_post_info->name)." (".$comment_post_info->user_type.") on ( ".date("M , Y  h:i",$record->added_date)." )</small></b> ";
+							echo "<dt><b><small> Posted By ".ucwords($author)." ".$author_type." on ( ".date("M , Y  h:i",$record->added_date)." )</small></b> ";
                             if(isset($_SESSION['s4c_user_id']) && $_SESSION['s4c_user_id'] == $record->user_id) {
 							echo"<img src='images/close_icon.jpg' alt='edit' onclick='delete_comment($record->id)' style='cursor:pointer;' align='right'/>"; }
                             echo "</dt>";
 							echo "<dd style=' padding: 10px 0 0px;'>".$record->comment."</dd>";
-                            
+
 						echo "</dl>";
 					echo "</td>";
-                    
-					
+
+
 				echo "</tr>";
 			}
 		}

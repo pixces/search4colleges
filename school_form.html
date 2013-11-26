@@ -94,7 +94,7 @@
             <input name="phone" type="text" class="input-text validate['required','phone']" id="phone"  />
           </div>
           
-          <div class="text_name">School Website</div>
+          <div class="text_name"><span>* </span>School Website</div>
           <div class="text_input">
             <input name="school_website" type="text" class="input-text validate['required','url']" id="school_website"  />
           </div>
@@ -102,7 +102,85 @@
        
         <div class="clear"> </div>
       </div>
+      <!-- Added new section as per the requirement-->
       <div class="rgs_heading">
+
+              <div class="text_name">Type of Campus area </div>
+              <div class="text_input">
+                  <select name="campus_type" class="only_for_local">
+                      <?php get_data('campus_type','type',$selectid);?>
+                  </select>
+              </div>
+
+              <div class="text_name">Institution Type</div>
+              <div class="text_input">
+                  <select name="institution_type" class="only_for_local">
+                      <?php
+			  $sql = "select type from {$CFG->prefix}school_type where status='active'";
+                      $school_type_qry = get_records_sql($sql);
+                      if(isset($school_type_qry))
+                      {
+                      foreach($school_type_qry as $school_type_val)
+                      {
+                      ?>
+                      <option value="<?php echo $school_type_val->type; ?>" <?php if($student_additional->institution_type==$school_type_val->type){ echo "selected";} ?>><?php echo $school_type_val->type; ?></option>
+                      <?php
+			  }
+			  }
+			  ?>
+                  </select>
+              </div>
+
+              <div class="text_name">Student Population</div>
+              <div class="text_input">
+                  <input class="profile_inputs" name="population" value="" type="text" onkeypress="return isNumberKey(event)"/>
+              </div>
+
+              <div class="text_name">Affiliations/ Accreditation</div>
+              <div class="text_input">
+                  <select name="afiilation" class="only_for_locals">
+                      <?php get_data('schools_affiliations_accreditation','title',$selectid);?>
+                  </select>
+              </div>
+
+              <div class="text_name">Student Body</div>
+              <div class="text_input"><!--onchange="javascript:get_city(this.value,'city_from');"-->
+                  <select name="student_body" class="only_for_locals">
+                      <?php get_data('school_student_body','title',$selectid) ?>
+                  </select>
+              </div>
+              <div class="text_name">Cultural Diversity</div>
+              <div class="text_input">
+                  <select name="cultural_diversity" class="only_for_locals">
+                      <?php get_data('school_cultural_diversity','title',$selectid) ?>
+                  </select>
+              </div>
+
+              <div class="text_name">Only for Locals</div>
+              <div class="text_input">
+                  <select name="only_for_local" class="only_for_locals">
+                      <?php
+				    $local_data = array();
+					$local_data[0]='Mostly in-state';
+					$local_data[1]='Mostly out-of-state';
+					$local_data[2]='Balanced';
+					$local_data[3]='Any';
+
+					foreach($local_data as $ldata)
+					{
+					?>
+                      <option value="<?php echo $ldata; ?>" <?php if($student_additional->only_for_local==$ldata){ echo "selected";} ?>>
+                      <?php echo $ldata; ?>
+                      </option>
+                      <?php
+					}
+					?>
+                  </select>
+              </div>
+
+
+              <div class="clear"> </div>
+          </div>
         <div class="wraper2">Type the characters you see in the picture below.</div>
         <div class="wraper2"><img src="securimage/securimage_show.php?sid=<?php echo md5(uniqid(time())); ?>" id="image" align="absmiddle" /></div>
         <div class="wraper2">

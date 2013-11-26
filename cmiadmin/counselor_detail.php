@@ -17,7 +17,8 @@
 	$perpage		= 10;     
 	
 	
-	$id				= required_param('id',PARAM_INT);	     
+	$id				= required_param('id',PARAM_INT);
+    $edit         = $_GET['action']=="edit"?true:false;
 	
 	$txtsearch_name	= optional_param('txtsearch_name', '', PARAM_RAW);
 
@@ -44,6 +45,45 @@
 		$status				= required_param('status', PARAM_TEXT);
 		update_status_record($status_id,$status,$master_table_name);	
 	}
+
+    //Updation goes here
+    if($_POST && $_POST['action']=="update"){
+        $user_id        = required_param('user_id',PARAM_INT);
+        $first_name     = required_param('first_name',PARAM_TEXT);
+        $last_name      = required_param('last_name',PARAM_TEXT);
+        $gender         = required_param('gender',PARAM_TEXT);
+        $dob_month      = required_param('dob_month',PARAM_TEXT);
+        $dob_day        = required_param('dob_day',PARAM_TEXT);
+        $dob_year       = required_param('dob_year',PARAM_TEXT);
+        $address        = required_param('address',PARAM_TEXT);
+        $street         = optional_param('street');
+        $state          = required_param('state',PARAM_TEXT);
+        $city           = required_param('city',PARAM_TEXT);
+        $zip_code       = required_param('zip_code',PARAM_INT);
+        $about_me       = optional_param('about_me');
+        $experience     = optional_param('experience');
+        $proffession    = optional_param('proffession');
+
+        $counselor_info                = new Object();
+        $counselor_info->id            = $id;
+        $counselor_info->user_id       = $user_id;
+        $counselor_info->first_name    = $first_name;
+        $counselor_info->last_name     = $last_name;
+        $counselor_info->gender        = $gender;
+        $counselor_info->last_name     = $last_name;
+        $counselor_info->date_of_birth = $dob_month."/".$dob_day."/".$dob_year;
+        $counselor_info->address       = $address;
+        $counselor_info->street        = $street;
+        $counselor_info->state         = $state;
+        $counselor_info->city          = $city;
+        $counselor_info->address       = $address;
+        $counselor_info->zip_code      = $zip_code;
+        $counselor_info->about_me      = $about_me;
+        $counselor_info->experience    = $experience;
+        $counselor_info->proffession   = $proffession;
+
+        update_record('counselors',$counselor_info);
+    }
 ?>
 
 <?php 
@@ -73,7 +113,8 @@
 					Counselor Detail: 
 				</div>
 				<?php notify($message);?>
-				<form method="post" name="frm_search" id="frm_search" action="<?php echo $page_name; ?>">
+				<form method="post" name="frm_search" id="frm_search" action="<?php echo $page_name.'?id='.$id; ?>">
+                    <input type="hidden" name="action" value="update">
 						<table width="90%">
 							<tbody>
 								<div><h4>Personal Detail:</h4>
@@ -81,7 +122,8 @@
 									<?php
 									$personal_info = get_record('counselors','id',$id);
 									$user_id		= $personal_info->user_id;
-									$update_string ='';	
+									$update_string ='';
+                                    echo "<input type='hidden' name='user_id' value='".$user_id."'/>";
 									if($personal_info){
 											echo" <table border='0' cellspacing='5' cellpadding='5'>
 												 <tr>
@@ -98,25 +140,58 @@
 															<th width='150px'><div align='right'>".ucwords(str_replace('_',' ',$key)) ."</div></th>
 															<td width='3%'>:</td>
 															<td width='75%'>";
-																 
-																if($key == 'added_date'){
-																	if($value != ''){
-																		echo date('d F Y',$value);
-																	}
-																}
-																else{
-																	if($key == 'state' || $key == 'city'){
-																		echo  get_field($key,'name','status','active','id',$value);
-																	}
-																	else
-																	{
-																		echo $value;
-																	}	
-																}
+																if($edit==true){
+                                                                    if($key=="gender"){
+                                                                        $options = array("male" =>"Male",
+                                                                            "female" =>"Female");
+                                                                        echo get_select_tag("gender",$options,$value,false);
+                                                                    } else if($key=="date_of_birth"){
+                                                                        $date_split = explode("/",$value);   // MM/DD/YYYY
+                                                                        echo get_select_tag("dob_month","month",$date_split[0],false);
+                                                                        echo get_select_tag("dob_day","date",$date_split[1],false);
+                                                                        echo get_select_tag("dob_year","year",$date_split[2],false,"",true);
+                                                                    } else if($key=="added_date"){
+                                                                        echo date('d/m/y',$value);
+                                                                    } else if($key=="state"){
+                                                                        $states = get_records_sql('SELECT id,name FROM '.$CFG->prefix.'state WHERE status="active"');
+                                                                        echo get_select_tag("state",$states,$value);
+                                                                    } else if($key=="city"){
+                                                                        $cities = get_records_sql('SELECT * FROM '.$CFG->prefix.'city WHERE status="active"');
+                                                                        echo get_select_tag("city",$cities,$value);
+                                                                    } else if($key=="about_me"){
+                                                                        echo "<textarea name='about_me'></textarea>";
+                                                                    } else {
+                                                                        echo "<input type='text' name='".$key."' value='".$value."' />";
+                                                                    }
+                                                                } else {
+                                                                    if($key == 'added_date'){
+                                                                        if($value != ''){
+                                                                            echo date('d F Y',$value);
+                                                                        }
+                                                                    }
+                                                                    else{
+                                                                        if($key == 'state' || $key == 'city'){
+                                                                            echo  get_field($key,'name','status','active','id',$value);
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            echo $value;
+                                                                        }
+                                                                    }
+                                                                }
 													}
 													echo "</td>";
 													echo "</tr>";
 											}
+                                            if($edit===true){
+                                                echo "
+                                                            <tr>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td><input type='submit' name='update_parent_info' value='Update' /></td>
+                                                            </tr>
+                                                            ";
+                                            }
 											echo "</table>";
 										}
 									?>

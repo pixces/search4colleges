@@ -14,7 +14,7 @@ RewriteRule ^news_(.*)\.html$ news_.html?seo_keyword=$1 [L,QSA]
 RewriteRule ^my_calendar_(.*)_(.*)\.html$ my_calendar.html?month=$1&year=$2 [L,QSA]
 
 #gallery
-RewriteRule ^event_(.*)_(.*)\.html$ events.html?name=$1&id=$2 [L,QSA]
+#RewriteRule ^event_(.*)_(.*)\.html$ events.html?name=$1&id=$2 [L,QSA]
 
 #articles
 RewriteRule ^articles_details_(.*)\.html$ articles_details.html?seo_keyword=$1 [L,QSA]
@@ -28,5 +28,6 @@ RewriteRule ^([^/]*)/([^/]*)/([^/]*)/gallery colleges_gallery.html?seo_keyword=$
 RewriteRule ^([^/]*)/([^/]*)/([^/]*)/admission colleges_admissions.html?seo_keyword=$3 [L,QSA]
 RewriteRule ^([^/]*)/([^/]*)/([^/]*)/enquiry colleges_send_enquiry.html?seo_keyword=$3 [L,QSA]
 RewriteRule ^([^/]*)/([^/]*)/([^/]*)/brochures colleges_download_brochures.html?seo_keyword=$3 [L,QSA]
+RewriteRule ^([^/]*)/([^/]*)/([^/]*)/affiliated_banks college_affiliated_banks.html?seo_keyword=$3 [L,QSA]
 
 RewriteRule ^([^/]*)/([^/]*)/([^/]*)/related_colleges colleges_related_colleges.html?seo_keyword=$3 [L,QSA]

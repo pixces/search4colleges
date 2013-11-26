@@ -178,7 +178,11 @@ if(isset($_SESSION['user_type']) && $_SESSION['user_type'] !='')
 	<ul>
 		<?php 
 			if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'school' || $_SESSION['user_type'] == 'staff') {
-				if($_SESSION['user_type'] == 'school'){				
+
+                //get details of the school
+                $student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+
+                if($_SESSION['user_type'] == 'school'){
 				?>
 						<li><a href="<?php echo $CFG->siteroot;?>/colleges_profile.html?view=<?php echo $_SESSION['s4c_user_id']; ?> " <?php echo $profile_sel; ?> >Profile</a></li>
 						<li><a href="<?php echo $CFG->siteroot;?>/colleges_degrees.html?view=<?php echo $_SESSION['s4c_user_id']; ?>" <?php echo $colleges_degrees_sel; ?> >Majors and Degrees</a></li>
@@ -190,15 +194,16 @@ if(isset($_SESSION['user_type']) && $_SESSION['user_type'] !='')
 						<li><a href="<?php echo $CFG->siteroot;?>/college_leads.html?view=<?php echo $_SESSION['s4c_user_id']; ?>" <?php echo $college_leads_sel; ?> >Leads</a></li>
 						<li><a href="<?php echo $CFG->siteroot;?>/college_membership.html?view=<?php echo $_SESSION['s4c_user_id']; ?>" <?php echo $college_membership_sel; ?> >Membership Details</a></li>
 						<li><a href="<?php echo $CFG->siteroot;?>/college_affiliated_banks.html?view=<?php echo $_SESSION['s4c_user_id']; ?>" <?php echo $college_affiliated_banks_sel; ?> >List affiliated banks</a></li>
-						<li><a href="<?php echo $CFG->siteroot;?>/college_statistics.html?view=<?php echo $_SESSION['s4c_user_id']; ?>" <?php echo $statistics_sel; ?> >Statistics</a></li>
+						<?php if ($student_data->statistics) { ?>
+                        <li><a href="<?php echo $CFG->siteroot;?>/college_statistics.html?view=<?php echo $_SESSION['s4c_user_id']; ?>" <?php echo $statistics_sel; ?> >Statistics</a></li>
+                        <?php } ?>
 						<li><a href="<?php echo $CFG->siteroot;?>/college_users.html?view=<?php echo $_SESSION['s4c_user_id']; ?>" <?php echo $college_users_sel; ?> >Manage Users</a></li>
-				<?php }
-				else{ 
-					$school_staff_user = get_record_sql('Select * from '.$CFG->prefix.'school_staff_user where fe_staff_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+				<?php } else {
 
-					$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$school_staff_user->fe_school_id.' and status = "active"');
-					?>
-				
+                        //get the staff details and school details
+                        $school_staff_user = get_record_sql('Select * from '.$CFG->prefix.'school_staff_user where fe_staff_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+                        $student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$school_staff_user->fe_school_id.' and status = "active"');
+                    ?>
 						<li><a href="<?php echo $CFG->siteroot;?>/colleges_profile.html?view=<?php echo $student_data->user_id; ?> " <?php echo $profile_sel; ?> >Profile</a></li>
 						<li><a href="<?php echo $CFG->siteroot;?>/colleges_degrees.html?view=<?php echo $student_data->user_id; ?>" <?php echo $colleges_degrees_sel; ?> >Majors and Degrees</a></li>
 						<li><a href="<?php echo $CFG->siteroot;?>/colleges_culture_campus_life.html?view=<?php echo $student_data->user_id; ?>" <?php echo $colleges_culture_campus_life_sel; ?> >Culture & Campus Life</a></li>
@@ -209,7 +214,9 @@ if(isset($_SESSION['user_type']) && $_SESSION['user_type'] !='')
 						<li><a href="<?php echo $CFG->siteroot;?>/college_leads.html?view=<?php echo $student_data->user_id; ?>" <?php echo $college_leads_sel; ?> >Leads</a></li>
 						<li><a href="<?php echo $CFG->siteroot;?>/college_membership.html?view=<?php echo $student_data->user_id; ?>" <?php echo $college_membership_sel; ?> >Membership Details</a></li>
 						<li><a href="<?php echo $CFG->siteroot;?>/college_affiliated_banks.html?view=<?php echo $student_data->user_id; ?>" <?php echo $college_affiliated_banks_sel; ?> >List affiliated banks</a></li>
-						<li><a href="<?php echo $CFG->siteroot;?>/college_statistics.html?view=<?php echo $student_data->user_id; ?>" <?php echo $statistics_sel; ?> >Statistics</a></li>
+                    <?php if ($student_data->statistics) { ?>
+                        <li><a href="<?php echo $CFG->siteroot;?>/college_statistics.html?view=<?php echo $student_data->user_id; ?>" <?php echo $statistics_sel; ?> >Statistics</a></li>
+                    <?php } ?>
 				<?php }
 				?>
 		<?php

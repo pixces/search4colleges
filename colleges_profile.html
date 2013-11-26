@@ -21,7 +21,7 @@
 
 	if($_POST){
 
-		$added_date				= time();			
+        $added_date				= time();
 		$department				= optional_param('department', PARAM_RAW);
 		$department_head		= optional_param('department_head', PARAM_RAW);		
 		$department_email		= optional_param('department_email', PARAM_RAW);		
@@ -66,8 +66,6 @@
 			$update_info->cultural_diversity	= $cultural_diversity;
 			$update_info->location_google_map 	= $location_google_map;
 			$update_info->id 					= $student_additional_data->id;
-
-			//print_object($update_info);
 
 			if(!empty($update_info)){
 				$update = update_record('schools_additional', $update_info);
@@ -132,6 +130,16 @@
 		$update_school->phone		= $phone;
 		$update_school->web_url 	= $web_url;
 
+        // Added new object params, since the following data were not getting updated.
+        $update_school->department 	        = $department;
+        $update_school->department_head 	= $department_head;
+        $update_school->department_email 	= $department_email;
+        $update_school->location_google_map = $location_google_map;
+        $update_school->profile  			= $profile ;
+        $update_school->board_members 		= $board_members;
+
+
+
 		if(!empty($update_school)){
 			$update = update_record('schools', $update_school);
 		}
@@ -158,7 +166,6 @@
 			}
 
 		}
-
 
 
 	if(isset($_SESSION['s4c_user_id']) && !isset($_GET['preview']) && ($staff_permission == 'yes' || $school_id == $_SESSION['s4c_user_id'])) {
@@ -237,8 +244,7 @@
 
 				//print_object($student_data);
 			}
-					
-				
+
 			$user_info = check_login();
 		?>
 	<script type="text/javascript" >
@@ -281,7 +287,7 @@
 			  <div class="inner_top">
 				<div class="inner_link">
 				  <ul>
-					<li><a href="index.html"><strong>Home</strong></a></li>                
+					<li><a href="<?php echo $CFG->siteroot;?>"><strong>Home</strong></a></li>
 					<li class="in_aroow"><a><strong>Colleges</a></li>      	 
 					<li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
 				  </ul>
@@ -311,7 +317,7 @@
 			   <br />
 			
 
-			<form method="post" action="colleges_profile.html" id="profile_form" name="profile_form" enctype="multipart/form-data"/>
+		    <form method="post" action="colleges_profile.html" id="profile_form" name="profile_form" enctype="multipart/form-data"/>
 			<div style="clear:both;float:right; margin-top:5px; margin-right:5px;"><a style="color:#000000;" target="_blank" href="colleges_profile.html?view=<?php if(isset($student_data->user_id)) echo $student_data->user_id; ?>&preview"><b>Preview</b></a></div>
 			<input type="hidden" name="view" value=<?php if(isset($student_data->user_id)) echo $student_data->user_id; ?> />
 			<input type="hidden" name="additional" value=<?php if(isset($student_data->id)) echo $student_data->id; ?> />
@@ -617,7 +623,7 @@
       <div class="inner_top">
         <div class="inner_link">
           <ul>
-            <li><a href="index.html"><strong>Home</strong></a></li>           
+            <li><a href="<?php echo $CFG->siteroot;?>"><strong>Home</strong></a></li>
 			<?PHP
 			if(isset($_GET['preview']))
 			{

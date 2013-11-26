@@ -214,7 +214,7 @@
       <div class="inner_top">
         <div class="inner_link">
 				  <ul>
-					<li><a href="index.html"><strong>Home</strong></a></li>       
+					<li><a href="<?php echo $CFG->siteroot;?>"><strong>Home</strong></a></li>
 					<li class="in_aroow"><a><strong>Colleges</strong></a></li>      						
 					<li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
 				  </ul>
@@ -455,8 +455,8 @@ else{
       <div class="inner_top">
        <div class="inner_link">
 			  <ul>
-				<li><a href="index.html"><strong>Home</strong></a></li>        
-				<?PHP
+				<li><a href="<?php echo $CFG->siteroot;?>"><strong>Home</strong></a></li>
+				<?php
 				if(isset($_GET['preview']))
 				{
 				?>			
@@ -506,21 +506,21 @@ else{
 					?> 
 						<div class="sports_preview_box" style="width:700px;">
 						<?php
-                    		echo "<div><h3>Sports :</h3></div>";	
+                    		echo "<div><h3>Sports:</h3></div>";	
 					}
 									
 					if(!empty($sports_data_men))
 					{ 
 					?>
-						<div class="heading_preview" ><B>Men Team :</b></div>
+						<div class="heading_preview" ><B>Men Team:</b></div>
 					<?php 
 						foreach($sports_data_men as $data)
 						{
 					?>
 							<div>
 					<?php
-								echo  "".$data->team_name."<br />";
-								//echo  " --> <i>".$data->team_description."</i><br />";
+								echo "&nbsp;&nbsp;&nbsp;<b>Team Name:</b>&nbsp;".$data->team_name."<br />";
+								echo "&nbsp;&nbsp;&nbsp;<b>Team Description:</b>&nbsp;<i>".$data->team_description."</i><br />";
 					?>
 							</div>
 					<?php
@@ -528,13 +528,16 @@ else{
 					}
 
 					if(!empty($sports_data_women)){ ?>
-						<div class="heading_preview"><B>Women Team :</b></div>
+						<div class="heading_preview"><B>Women Team:</b></div>
 					<?php 
 							foreach($sports_data_women as $data)
 							{
 					?>			
 								<div> 
-									<?php echo  "".$data->team_name."<br />"; ?>
+						<?php			
+								echo  "<b>&nbsp;&nbsp;&nbsp;Team Name:</b>&nbsp;".$data->team_name."<br />";
+								echo  "<b>&nbsp;&nbsp;&nbsp;Team Description:</b>&nbsp;<i>".$data->team_description."</i><br />";
+						?>								
 								</div>
 					<?php
 							}

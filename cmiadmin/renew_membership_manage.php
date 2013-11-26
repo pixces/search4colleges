@@ -264,7 +264,7 @@
 					"$email",
 					"$data->web_url",
 					"$data->address",
-					"<a href='renew_membership.php?id=".$data->user_id."' rel='lightbox[set_".$data->id." 75% 90%]'>Renew/Add membership</a>",
+					"<a href='renew_membership.php?id=".$data->id."' rel='lightbox[set_".$data->id." 75% 90%]'>Renew/Add membership</a>",
 				);
 			}
 			

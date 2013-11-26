@@ -54,7 +54,7 @@ require_once("lib.php");
 
 	function generate_random($length)
 	{
-		$chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890';
+		$chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz12345`7890';
 
 		// Length of character list
 		$chars_length = (strlen($chars) - 1);
@@ -636,7 +636,13 @@ OP;
 	function print_paging($totalcount, $page, $perpage, $baseurl, $pagevar='page',$nocurr=false, $return=false,$gallery=false,$start,$list_in_current_page) {
 		$maxdisplay = 5;
 		$output = '';
-		
+	    // Cleaning up base url string
+        if($baseurl){
+            $baseUrlSplit = explode("?",$baseurl);
+            parse_str($baseUrlSplit[1],$queryString);
+            unset($queryString['page']);
+            $baseurl = $baseUrlSplit[0] . "?" . http_build_query($queryString);
+        }
 		if ($totalcount > $perpage) {
 			$start_display = ($page == 0)?1:($page*$perpage)+1;
 			$end_display = ($start_display+$perpage-1);
@@ -1365,10 +1371,10 @@ OP;
 				  <?php if(!isset($_SESSION['s4c_user_id'])){ ?>
 					  <li <?php if($selected == 'colleges_related_colleges') echo 'class="selected"';?>>
 					<a href="<?php echo $CFG->siteroot.'/'.$url.'/related_colleges';?>">Related colleges</a></li>
-				  <?php 
-					  
-				  }
-				  ?>
+				  <?php } ?>
+
+                  <li <?php if($selected == 'college_affiliated_banks') echo 'class="selected"';?>>
+                    <a href="<?php echo $CFG->siteroot.'/'.$url.'/affiliated_banks';?>">Affiliated Banks</a></li>
 				</ul>
 			<?php }
 				  else{ ?>
@@ -1385,7 +1391,8 @@ OP;
 				  <li <?php if($selected == 'colleges_download_brochures') echo 'class="selected"';?>><a href="colleges_download_brochures.html?view=<?php if(isset($id)) echo $id; ?>">Download Brochures</a></li>
 				  <?php if(!isset($_SESSION['s4c_user_id'])){ ?>
 					<li <?php if($selected == 'colleges_related_colleges') echo 'class="selected"';?>><a href="colleges_related_colleges.html?view=<?php if(isset($id)) echo $id; ?>">Related colleges</a></li>
-				 <?php  } ?>
+				  <?php  } ?>
+                    <li <?php if($selected == 'college_affiliated_banks') echo 'class="selected"';?>><a href="college_affiliated_banks.html?view=<?php if(isset($id)) echo $id; ?>">Affiliated Banks</a></li>
 				</ul>
 				<?php 
 					}
@@ -1418,6 +1425,68 @@ OP;
 				return $url;	
 		}
 
-	
+
+    /**
+     * Function to generate html select tag and options
+     */
+    function get_select_tag($name,$options,$selected="",$default=true,$class="",$is_age=false){
+        if($options==="month"){
+            $options_array = array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
+        } else if($options==="date"){
+            for($d=1;$d<=31;$d++){
+                $options_array[$d] = $d;
+            }
+        } else if($options==="year"){
+            $cy=date('Y');
+            $cy = $is_age?$cy-6:$cy;
+            for($y=$cy;$y>=1910;$y--){
+                $options_array[$y] = $y;
+            }
+        } else if(is_array($options)){
+            $options_array = $options;
+        }
+
+        if($default){
+            // Hack for year selection, to avoid resetting the index
+            if($options==="year"){
+                $options_array[0] = "--select--";
+            } else {
+                array_unshift($options_array,"--select--");
+            }
+        }
+        $option_string = "";
+        foreach($options_array as $key=>$option){
+            if(is_object($option)){
+                $s = $option->id==$selected?'selected="selected"':"";
+                $option_string .= "<option value='".$option->id."' ".$s.">".$option->name."</option>";
+            } else {
+                $s = $key==$selected?'selected="selected"':"";
+                $option_string .= "<option value='".$key."' ".$s.">".$option."</option>";
+            }
+        }
+        $select = "<select name='".$name."' id='".$name."' class='".$class."'>".$option_string."</select>";
+        return $select;
+    }
+
+    /**
+     * Function to delete images from personal folder and gallery folder
+     * Delete other backup files/other sized images too (f1_<name> to f6_<name>)
+     */
+    function delete_images($image,$path='personal',$recursive=false){
+        global $CFG;
+        $base_path = $CFG->dataroot.'/'.$path.'/';
+        if(isset($image) && $image!="" && file_exists($base_path.$image)){
+            unlink($base_path.$image);
+            // Delete other backup files/other sized images too (f1_<name> to f6_<name>)
+            if($recursive===true) {
+                for($i=1;$i<=6;$i++){
+                    $full_path = $base_path."f".$i."_".$image;
+                    if(file_exists($full_path)){
+                        $a = unlink($full_path);
+                    }
+                }
+            }
+        }
+    }
 
 ?>

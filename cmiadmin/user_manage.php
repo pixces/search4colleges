@@ -201,7 +201,7 @@
 
 	$sort_term    = $sort." ".$dir;				
 	$searchfields = array("first_name");
-	$extraselect = " status ='active' AND id != 1 ";
+	$extraselect = " status !='delete' AND id != 1 ";
 
 	if($search_email != ''){
 		$extraselect .= " AND email = '".$search_email."'";

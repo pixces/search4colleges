@@ -164,10 +164,10 @@
 		 $qry = "SELECT count(s.id) as max_count FROM ".$CFG->prefix."schools s,".$CFG->prefix."fe_users f WHERE s.status = 'active'".$extraselect."  AND user_id=f.id";
 		 }
 	}
-	
+
 	$data = get_record_sql($qry);
 	$totalcount = $data->max_count;
-	
+
 	/*
     if($get_type !='')
     {
@@ -289,7 +289,7 @@
 		
 		<?php if(!empty($get_state) || !empty($major) || !empty($zip) || !empty($school_name) )
 		{ ?>
-			<h2 align='center'><?php if($totalcount==0){ echo "No Records Found ";echo isset($state_name) && $state_name != ''? "for state ".$state_name : ''."!!"; }else{ echo $totalcount." Record(s) Found !!"; } ?></h2>
+			<h2 align='center'><?php if($totalcount==0){ echo "No college matches your search criteria";echo isset($state_name) && $state_name != ''? "for state ".$state_name : ''."!!"; }else{ echo $totalcount." Record(s) Found !!"; } ?></h2>
 		<?php } elseif(isset($_GET['msg'])) { ?>
 			<h2 align='center'><?php echo $msg; ?></h2>
 		<?php } ?>

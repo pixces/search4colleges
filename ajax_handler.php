@@ -542,8 +542,7 @@ $sections = '';
                             echo "<option value='".$rec->type."'>".$rec->type."</option>";
                         }
                     }
-                    echo "</select></td>
-					<td>";
+                    echo "</select></td><td>";
 					$val_date = date("m/d/Y",$record->year_of_passing);
 					$day_month_year = explode('/',$val_date);
 					
@@ -724,7 +723,7 @@ $sections = '';
 		$update_record->degree			= $degree;
         $update_record->city            = $city;
 
-		if(empty($year_of_passing)){			
+		if(empty($year_of_passing)){
 			$update_record->year_of_passing	= time();
 		}else{
 			$update_record->year_of_passing	= $year_of_passing;
@@ -1123,7 +1122,10 @@ $sections = '';
 					$image ="<a href='$CFG->siteroot/file.php/achievements/$record->image' rel ='lightbox' title='$record->image' ><img src='$CFG->siteroot/file.php/achievements/f3_$record->image' alt='$record->image' width='95' height='105' /></a>";					
 				}
 				echo"
-				<div style='text-align:right;widht:100%'><a href='javascript:void(0);' onclick='editAchievements($record->id);' ><img src='images/edit.gif' border='0' /></a></div>
+				<div style='text-align:right;widht:100%'>
+				    <a href='javascript:void(0);' onclick='editAchievements($record->id);' ><img src='images/edit.gif' border='0' /></a>
+				    <a href='javascript:void(0);' onclick='deleteAchievements($record->id);' ><img src='images/delete.png' border='0' /></a>
+				</div>
 				<div class='achievements_content' id='achievements_content_$record->id'>  					
 					 $image
 					<strong>".$record->title."</strong><br />
@@ -1217,7 +1219,7 @@ $sections = '';
 
 						<tr>
 							<td><strong>Short Description</strong></td>
-							<td><textarea  name='short_description' id='short_description' class="validate['required']" ><?php echo $record->short_description;?></textarea></td>
+							<td><textarea  name='short_description' id='short_description' class="" ><?php echo $record->short_description;?></textarea></td>
 						</tr>
 
 						<tr>
@@ -1249,6 +1251,18 @@ $sections = '';
 			
 		}
 		echo "</form>";		
+	}
+	 if(isset($_POST['flag']) && $_POST['flag']=='deleteAchievements') {
+
+		 $id = required_param('id',PARAM_INT);
+		 $user_id = $_SESSION['s4c_user_id'];
+
+         $result = delete_records('achievement','id',$id);
+
+         // Need to handle the error, unable to find the error display block in UI, for later
+//         if(!$result){
+//
+//         }
 	}
 
 	if(isset($_POST['flag']) && $_POST['flag']=='addAchievements') {
@@ -1764,13 +1778,13 @@ $sections = '';
 					}
 				$friend_cetogery = (($i%4) == 0)?'friend_cetogery':'friend_cetogery';
 				echo "				 
-					<div class='$friend_cetogery' style='float:left'> 
+					<div class='$friend_cetogery' style='float:left'>
 					<a rel='lightbox[img]' href='".$CFG->siteroot."/".$imageb."' title='$record->first_name'><img src='".$CFG->siteroot."/".$image."' border='0' title='$record->first_name'/></a>
 						<div class='friend_name'> <a href='".$CFG->siteroot."/".$link."'>".ucwords($record->first_name)." &nbsp; ".ucwords($record->last_name)." </a> </div>
 						<div class='clear'>
 							<div class='friend_delete'> <a href='javascript:void(0);' onclick='addFriend($record->user_id);' >Add  Friend</a>&nbsp;&nbsp;&nbsp;&nbsp; </div>
 						</div>
-					</div>	
+					</div>
 										
 					 ";
 					echo (($i%4) == 0)?'<div class="clear"></div>':'';
@@ -2072,13 +2086,24 @@ OP;
 							$imageb= "images/noimage.jpg";
 						}
 					}
+
+                    /*
+                     <div class='friend_cetogery_line'>
+						    <a rel='lightbox[img]' href='".$imageb."' title='".$name."'><img src='".$image."' /></a>
+							<a href='".$CFG->siteroot."/".$link."'>$name</a>
+							<a href='javascript:void(0);' onclick='delete_friends($record->id);'>
+							    <img src='images/delete_icon.png' style='width:16px; height:16px; margin: 4px 4px 0 20px; float: left; ' />
+							</a>&nbsp;&nbsp;
+							<a href='new_messages.html?id=$record->id&friend_id=$record->friend_id' rel =\"lightbox[msg_$record->id 550 300]\" >Send Message</a>
+						  </div>
+                     */
 					echo"
-						 <div class='friend_cetogery'><div style='text-align: center;'> <a rel='lightbox[img]' href='".$imageb."' title='".$name."'><img src='".$image."' /></div></a>
+						 <div class='friend_cetogery_line'><div style='text-align: center;'> <a rel='lightbox[img]' href='".$imageb."' title='".$name."'><img src='".$image."' /></div></a>
 							<div class='friend_name'> <a href='".$CFG->siteroot."/".$link."'>$name</a> </div>
 							<div class='clear'>
-							  <div class='friend_delete'> 
+							  <div class='friend_delete'>
 							  <a href='javascript:void(0);' onclick='delete_friends($record->id);'><img src='images/delete_icon.png' style='width:16px; height:16px; margin: 4px 4px 0 20px; float: left; ' /></a>&nbsp;&nbsp;
-							  <a href='new_messages.html?id=$record->id&friend_id=$record->friend_id' rel =\"lightbox[msg_$record->id 550 300]\" >Send Message</a> 
+							  <a href='new_messages.html?id=$record->id&friend_id=$record->friend_id' rel =\"lightbox[msg_$record->id 550 300]\" >Send Message</a>
 							  </div>
 							</div>
 						  </div>
@@ -2340,12 +2365,15 @@ OP;
 		$txtcomment = optional_param('txtcomment','',PARAM_RAW);
 		$id = optional_param('id','',PARAM_INT);
 		if($txtcomment != '' && $id != ''){
+            $user_info = get_user_info($_SESSION['s4c_user_id']);
 			$add_mode = new object();
 			$add_mode->comment = $txtcomment;
 			$add_mode->added_date = time();
 			$add_mode->blog_id = $id;
 			$add_mode->user_id = $_SESSION['s4c_user_id'];
+			$add_mode->user_name = $user_info->name;
 			insert_record('blog_comment', $add_mode);
+
 			echo "<strong>Thank you for your comments.<br />Your comments will be moderated by Search For Colleges and published soon.</strong>";
 
 		}else{

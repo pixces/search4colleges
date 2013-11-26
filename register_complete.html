@@ -35,8 +35,9 @@ if(isset($_POST) && !empty($_POST))
 			$add_info->first_name		= $first_name;	
 			$add_info->last_name		= $last_name;
 			$add_info->date_of_birth	= $date_of_birth ;
-			$add_info->added_date 		= $added_date;		
-			
+			$add_info->added_date 		= $added_date;
+
+            $additional_info            = null;
 
 			switch($reg_type){
 				case 'student':		$table							= 'student';
@@ -80,8 +81,16 @@ if(isset($_POST) && !empty($_POST))
 									$state							= optional_param('state', PARAM_RAW);
 									$zip_code						= optional_param('zip_code', PARAM_RAW);
                                     //$city							= optional_param('city', PARAM_RAW);
-                                    $city_string					= optional_param('city','', PARAM_RAW);	
-                            
+                                    $city_string					= optional_param('city','', PARAM_RAW);
+
+                                    $campus_type                    = optional_param('campus_type','', PARAM_RAW);
+                                    $institution_type               = optional_param('institution_type','', PARAM_RAW);
+                                    $population                     = optional_param('population','', PARAM_RAW);
+                                    $affiliation                     = optional_param('afiilation','', PARAM_RAW);
+                                    $student_body                   = optional_param('student_body','', PARAM_RAW);
+                                    $cultural_diversity             = optional_param('cultural_diversity','', PARAM_RAW);
+                                    $only_for_local                 = optional_param('only_for_local','', PARAM_RAW);
+
                                     $sql 							= ("SELECT * FROM {$CFG->prefix}city WHERE name LIKE '%$city_string%' and status = 'active'");
                                     $city 							= get_record_sql($sql);
                                     
@@ -113,11 +122,23 @@ if(isset($_POST) && !empty($_POST))
 									$add_info->street 				= $street;		
 									$add_info->state 				= $state;		
 									$add_info->city 				= $city;		
-									$add_info->zip_code 			= $zip_code;		
-									$add_info->web_url				= $school_website;	
+									$add_info->zip_code 			= $zip_code;
+									$add_info->web_url				= $school_website;
 									$add_info->image				= '';
 									$add_info->logo					= '';
 									$add_info->added_date 			= $added_date;
+
+                                    $additional_info                        = new object();
+                                    $additional_info->affiliations_id		= $affiliation;
+                                    $additional_info->institution_type		= $institution_type;
+                                    $additional_info->type_of_campus_area	= $campus_type;
+                                    $additional_info->student_body			= $student_body;
+                                    $additional_info->only_for_local		= $campus_type;
+                                    $additional_info->cultural_diversity	= $cultural_diversity;
+                                    $additional_info->student_population    = $population;
+                                    $additional_info->status				= 'active';
+                                    $additional_info->added_date 			= time();
+
 									break;
 				case 'teacher':		$table							='teacher';
 									$address						= optional_param('address', PARAM_RAW);
@@ -222,7 +243,14 @@ OP;
 						$sql				= " SELECT max(id) id FROM {$CFG->prefix}fe_users ";		
 						$add_user_id		= get_record_sql($sql);	
 						$add_info->user_id	= $add_user_id->id ;	
-						$new				= insert_record($table, $add_info);
+						$school_info	    = insert_record($table, $add_info);
+
+                        // Adding additional info
+                        if($school_info && !is_null($additional_info)){
+                            $additional_info->school_id = $new;
+                                $new_additional = insert_record('schools_additional',$additional_info);
+                        }
+
 						header("location:thanks.html");
 					}	
 				}

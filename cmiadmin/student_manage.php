@@ -28,15 +28,26 @@
 	{
 		$delete_id 				= required_param('delete', PARAM_INT);
 		$student_data = get_record('student','id',$delete_id);
-
 		if(isset($student_data->user_id) && $student_data->user_id != ''){
+
+            /* Delete profile image, photos and videos uploaded by user */
+            // Get fe_user info
+            $user_info = get_record('fe_users','id',$student_data->user_id);
+            delete_images($user_info->image,'personal',true);
 
 			/* Delete from Gallery */
 
 			$gallery_data = get_records('gallery','user_id',$student_data->user_id);
 
+
 			if(!empty($gallery_data)){
 				foreach($gallery_data as $gallery){
+                    // Delete each video/image from users gallery
+                    if($gallery->type =="image") {
+                        delete_images($gallery->name,'gallery',true);
+                    } else {
+                        delete_images($gallery->name,'gallery',false);
+                    }
 
 					$gallery_delete = "DELETE from ".$CFG->prefix."gallery where id = ".$gallery->id;
 					execute_sql($gallery_delete,false);
@@ -69,9 +80,11 @@
 			$blog_delete = "DELETE  from ".$CFG->prefix."blog where user_id = ".$student_data->user_id;
 			execute_sql($blog_delete,false);
 		
-			/* Delete from blog_comment */
-			$blog_comment_delete = "DELETE  from ".$CFG->prefix."blog_comment where user_id = ".$student_data->user_id;
-			execute_sql($blog_comment_delete,false);
+			/* Delete from blog_comment
+			    Note: Do not delete comment, preserv it, even if the user is been deleted
+			*/
+//			$blog_comment_delete = "DELETE  from ".$CFG->prefix."blog_comment where user_id = ".$student_data->user_id;
+//			execute_sql($blog_comment_delete,false);
 
 			/* Delete from save_search */
 			$save_search_delete = "DELETE  from ".$CFG->prefix."save_search where user_id = ".$student_data->user_id;
@@ -104,12 +117,23 @@
 
 			if(isset($student_data->user_id) && $student_data->user_id != ''){
 
+                    /* Delete profile image, photos and videos uploaded by user */
+                    // Get fe_user info
+                    $user_info = get_record('fe_users','id',$student_data->user_id);
+                    delete_images($user_info->image,'personal',true);
+
 					/* Delete from Gallery */
 
 					$gallery_data = get_records('gallery','user_id',$student_data->user_id);
 
 					if(!empty($gallery_data)){
 						foreach($gallery_data as $gallery){
+                            // Delete each video/image from users gallery
+                            if($gallery->type =="image") {
+                                delete_images($gallery->name,'gallery',true);
+                            } else {
+                                delete_images($gallery->name,'gallery',false);
+                            }
 
 							$gallery_delete = "DELETE from ".$CFG->prefix."gallery where id = ".$gallery->id;
 							execute_sql($gallery_delete,false);
@@ -146,8 +170,8 @@
 			execute_sql($blog_delete,false);
 		
 			/* Delete from blog_comment */
-			$blog_comment_delete = "DELETE  from ".$CFG->prefix."blog_comment where user_id = ".$student_data->user_id;
-			execute_sql($blog_comment_delete,false);
+//			$blog_comment_delete = "DELETE  from ".$CFG->prefix."blog_comment where user_id = ".$student_data->user_id;
+//			execute_sql($blog_comment_delete,false);
 
 			/* Delete from save_search */
 			$save_search_delete = "DELETE  from ".$CFG->prefix."save_search where user_id = ".$student_data->user_id;
@@ -178,8 +202,9 @@
 		$record->id			= $user_id;
 		$record->status		= $status;
 
-		if($fe_users_delete){
+		if($user_id){
 			$fe_id=get_field('student','user_id','id',$user_id);
+			update_record('student', $record);
 			$record->id		= $fe_id;
 			update_record('fe_users', $record);
 			//$status = str_replace('e','a',$status);
@@ -333,37 +358,38 @@
 
 		} else {
 
-		  $table->head = array ($check,$id, $first_name,"<a href='JavaScript:void(0);'>Email</a>", $date_of_birth, $address,"","");
+		  $table->head = array ($check,$id, $first_name,"<a href='JavaScript:void(0);'>Email</a>", $date_of_birth, $address,"","","");
 		  $table->align = array ("center", "center", "center", "center","Center");
 		  $table->width = "100%";
 
 				foreach ($user_data as $data) 
 				{
-						$status = 'active';
-						$image = 'delete1.png';
-						if($data->status == 'active'){
-							$status = 'inactive';
-							$image = 'add1.png';
-				}
+                    $status = 'active';
+                    $image = 'delete1.png';
+                    if($data->status == 'active'){
+                        $status = 'inactive';
+                        $image = 'add1.png';
+                    }
 
-				$editbutton = get_buttons('Edit Membership ',"membership_form.php?edit=$data->id","theme/$theme/images/edit.gif","rel='lightbox[get_edit_form_$data->id 75% 90%]'");
-				
-				$disablebutton = get_buttons('Active/inactive',"student_manage.php?active_inactive=$data->id&status=$status","theme/$theme/images/$image");
+                    $editbutton = get_buttons('Edit Membership ',"membership_form.php?edit=$data->id","theme/$theme/images/edit.gif","rel='lightbox[get_edit_form_$data->id 75% 90%]'");
 
-				$deletebutton = get_buttons('Delete',"#","theme/$theme/images/delete.png","onclick=\"confirm_delete($data->id); return false;\"");					
-				
-				$student = get_record('fe_users','id',$data->user_id);
-				$email = (isset($student->email))?$student->email:'';
-				$table->data[] = array ("<input type=\"checkbox\" class=\"check-me\" id=\"deletecheck\" name=\"checkbox[]\" 	value=\"".$data->id."\" >",
-					"$data->id",
-					"$data->first_name",
-					"$email",
-					$data->date_of_birth,
-					"$data->address",
-					"<a href='student_detail.php?id=".$data->id."'>View Detail</a>",
-					$disablebutton . $deletebutton
-				);
-			}
+                    $disablebutton = get_buttons('Active/inactive',"student_manage.php?active_inactive=$data->id&status=$status","theme/$theme/images/$image");
+
+                    $deletebutton = get_buttons('Delete',"#","theme/$theme/images/delete.png","onclick=\"confirm_delete($data->id); return false;\"");
+
+                    $student = get_record('fe_users','id',$data->user_id);
+                    $email = (isset($student->email))?$student->email:'';
+                    $table->data[] = array ("<input type=\"checkbox\" class=\"check-me\" id=\"deletecheck\" name=\"checkbox[]\" 	value=\"".$data->id."\" >",
+                        "$data->id",
+                        "$data->first_name",
+                        "$email",
+                        $data->date_of_birth,
+                        "$data->address",
+                        "<a href='student_detail.php?id=".$data->id."'>View Detail</a>",
+                        "<a href='student_detail.php?id=".$data->id."&action=edit'>Edit Detail</a>",
+                        $disablebutton . $deletebutton
+                    );
+                }
 			
 		}
 ?>

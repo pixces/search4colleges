@@ -5,8 +5,7 @@ if(isset($_SESSION['user_type']) && !empty($_SESSION['user_type'])){
 ?>
 
 <strong>
-<?php 
-	
+<?php
 	if($_SESSION['user_type'] == 'school'){
 		echo "<a href='".$CFG->siteroot."/my_account.html' title='Click here to view My Account Page'>".ucwords($user_info->school_name).'</a>';
 	}

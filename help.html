@@ -1,26 +1,28 @@
 <?php 
 	require_once('includes/header.php');
 
-    if(isset($_SESSION['user_login']) && ($_SESSION['user_login'] == 'yes')){
-        $user_info = check_login();
-        require_once('includes/checkExpire.php');
-        if( $expired == 1){
-            header("Location: membership_buy.html");
-        }
-    }
+	//do the query to get all data from faq table
+	//$sql="SELECT * FROM `{$CFG->prefix}faq` WHERE `status` = 'active' ORDER BY `added_date` ASC ";
 
-    $sql="SELECT * FROM `{$CFG->prefix}faq` WHERE `status` = 'active' ORDER BY `added_date` ASC ";
+    //sorting faq by sort_order field
+    $sql="SELECT * FROM `{$CFG->prefix}faq` WHERE `status` = 'active' ORDER BY `sort_order` ASC ";
     $get_faq=get_records_sql($sql);
+
+    if(isset($_SESSION['user_login']) && ($_SESSION['user_login'] == 'yes')) {
+	    $user_info = check_login();
+	    require_once('includes/checkExpire.php');
+
+	    if( $expired == 1){
+		    header("Location: membership_buy.html");
+	    }
+    }
 ?>
-  <!-- << header section -->
-  
-  <!-- content section >> -->
-  <div id="content_sec">
-  
+<!-- << header section -->
+<!-- content section >> -->
+<div id="content_sec">
     <!-- << left content -->
-  <?php require_once("includes/left_content.php"); 
-  ?>
-  <!-- left content >> -->
+    <?php require_once("includes/left_content.php"); ?>
+    <!-- left content >> -->
 	
 	<!-- << inner content -->
     <div id="inner_content">
@@ -31,12 +33,11 @@
             <li class="in_aroow"><span>Help</span></li>
           </ul>
         </div>
-        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){ 
-				if(($expired == 0)){ 
-		?>
-			<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
+        <?php if(isset($_SESSION['user_login']) && $_SESSION['user_login'] =='yes'){
+                if(($expired == 0)){
+        ?>
+		<div class="in_Right_link"><a href="#"></a><a href="my_account.html">My Account</a></div>
 		<?php }} ?>
-
         <div class="clear"></div>
         <h1><span>Help</span></h1>       
         <div class="clear"></div>
@@ -68,7 +69,5 @@
 	<!-- << inner content>> -->
   </div>
   <!-- << content section -->
-  <!-- footer section >> -->
-<?php
-	require_once('includes/footer.php');
-?>
+  <!-- footer section -->
+  <?php require_once('includes/footer.php'); ?>

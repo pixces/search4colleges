@@ -20,11 +20,10 @@
 			$validity		= optional_param('validity', '', PARAM_RAW);
 			$id				= optional_param('id',PARAM_RAW);
 
-
-			$add_membership				= new object();	
-			$add_membership->school_id		= $id;
-			$add_membership->school_memberShip_typeid			= $membership_id;
-			$add_membership->registeredon		= time();
+			$add_membership				                = new object();
+			$add_membership->school_id		            = $id;
+			$add_membership->school_memberShip_typeid	= $membership_id;
+			$add_membership->registeredon		        = time();
 			
 			$expiry_date = time();
 			if(isset($validity))
@@ -36,7 +35,18 @@
 			$add_membership->renewedon		= time();
 			$add_membership->discount		= $discount;
 
-			$sql = "select max(history_count) as history from {$CFG->prefix}school_membership where school_id=".$id;
+            #update school as featured
+            //update school as featured
+            $update_school = new object();
+            $update_school->id = $id;
+            $update_school->featured = 'featured';
+
+            # TODO:
+            # Update membership logic is all messed up
+            # this logic should also be fixed
+            # no change happens on renewal of membership
+
+            $sql = "select max(history_count) as history from {$CFG->prefix}school_membership where school_id=".$id;
 			$data_membership =  get_record_sql($sql);
 
 			$sql_status = "select * from {$CFG->prefix}school_membership where school_id=".$_POST['id'];
@@ -67,20 +77,27 @@
 			$add_membership->total_amount 	= $total_amount;
 
 
+
 			if(!empty($add_membership)){
 
 				$membership_insert =  insert_record('school_membership',$add_membership);
-				if($membership_insert){ ?>
+                if($membership_insert){
+                    #update the school details to set it as featured
+                    if ($update_school) {
+                        update_record('schools', $update_school);
+                    } ?>
 					<script  type="text/javascript">
 					parent.window.location = '<?php echo "renew_membership_manage.php"; ?>';
 					parent.Mediabox.close();			
 				</script>
 				<?php }
 			}
+
+
 	}
 	if(isset($id))
 	{	
-		$student_data = get_records_sql("Select * from ".$CFG->prefix."schools sc inner join schools_additional sa on(sc.user_id = sa.school_id) where sc.user_id = $id");
+		$student_data = get_records_sql("Select * from ".$CFG->prefix."schools sc inner join schools_additional sa on(sc.id = sa.school_id) where sc.id = $id");
 
 		$student_membership_data = get_records_sql("Select * from ".$CFG->prefix."school_membership sm inner join school_member_ship_types smt on (sm.school_memberShip_typeid = smt.id) where sm.school_id = $id");
 		//print_object($student_membership_data);

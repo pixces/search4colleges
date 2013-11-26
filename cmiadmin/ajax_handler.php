@@ -70,6 +70,12 @@
 		}
 		echo $html;
 	}
+	if(isset($_GET['flag']) and $_GET['flag'] == "city_list")
+	{
+		$country_id = $_GET['id'] ;
+        $cities = get_records_sql('SELECT * FROM '.$CFG->prefix.'city WHERE status="active" and country_id="'.$country_id.'"');
+        echo $cities;
+	}
 	//check exists
 	if(isset($_POST['check_exist']))
 	{

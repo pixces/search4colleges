@@ -1,6 +1,11 @@
 <?php
 unset($CFG);
 
+
+//enabling debug
+$CFG->debug = 6143;
+$CFG->debugdisplay = false;
+
 $CFG->server_status = 'live';
 $CFG->dbtype = 'mysql';
 //$CFG->dbhost = 'localhost';

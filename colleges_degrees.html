@@ -1,11 +1,11 @@
-<?php 
-	
+<?php
 require_once('includes/checkExpire.php');
-	
+
 	if( $expired == 1){
 		header("Location: membership_buy.html");
 	}
 	require_once('includes/header.php'); 
+
 	$school_id	= optional_param('view','', PARAM_RAW);
 	$preview	= optional_param('preview','', PARAM_RAW);
 	$staff_permission 		 = '';
@@ -25,6 +25,9 @@ require_once('includes/checkExpire.php');
 		if(isset($sqldata->user_id))
 				$school_id = $sqldata->user_id;
 	}
+
+
+	//posted data section
 	if($_POST){
 		//print_object($_POST);
 
@@ -101,31 +104,32 @@ require_once('includes/checkExpire.php');
 			}
 		}
 	}
+	#posted data section ends
 
+	#everything is handled in the session
+	#lets check sessions and based on the user type
+	#display appropriately
 
-		if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'staff')
+	#for staff user
+	if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'staff')
+	{
+		$allowed = get_field('school_staff_user','allowed_sections','fe_staff_id',$_SESSION['s4c_user_id']);
+
+		if(!empty($allowed))
 		{
-			$allowed = get_field('school_staff_user','allowed_sections','fe_staff_id',$_SESSION['s4c_user_id']);
-
-			if(!empty($allowed))
+			$alloweds = explode(",",$allowed);
+			if(in_array($page_name,$alloweds))
 			{
-				$alloweds = explode(",",$allowed);
-				if(in_array($page_name,$alloweds))
-				{
-					$staff_permission = 'yes';
-				}
-				else
-				{
-					$staff_permission = 'no';
-				}
+				$staff_permission = 'yes';
+			} else {
+				$staff_permission = 'no';
 			}
-
 		}
+	}
 
-
-
-	if(isset($_SESSION['s4c_user_id']) && !isset($_GET['preview']) && ($staff_permission == 'yes' || $school_id == $_SESSION['s4c_user_id'])) {
-
+	#check for other user types
+	if(isset($_SESSION['s4c_user_id']) && !isset($_GET['preview']) && ($staff_permission == 'yes' || $school_id == $_SESSION['s4c_user_id']))
+	{
 			if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'staff'){
 
 			    $school_staff = get_field('school_staff_user','fe_school_id','fe_staff_id',$_SESSION['s4c_user_id']);
@@ -156,8 +160,6 @@ require_once('includes/checkExpire.php');
 						$degree_data[$degrees_data->degree_id] = $degrees_data->degree_id;
 					}
 				}
-
-
 			}
 			elseif(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'school'){
 				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
@@ -171,6 +173,7 @@ require_once('includes/checkExpire.php');
 				$student_degrees_data = get_records_sql('Select * from '.$CFG->prefix.'school_admission_details where school_id = '.$school_id);
 
 				$student_majors_data = get_records_sql('Select * from '.$CFG->prefix.'school_major where school_id = '.$school_id);
+
 				$major_data = array();
 
 				if(!empty($student_majors_data)){
@@ -194,9 +197,8 @@ require_once('includes/checkExpire.php');
 					}
 				}
 			}
-			
 			$user_info = check_login();
-		?>
+	?>
 
 <script type="text/javascript">
 function open_light_box(degree, school, checkboxValue){
@@ -217,9 +219,7 @@ function open_light_box(degree, school, checkboxValue){
 					$(linkid).fireEvent('click');
 				}
 			}
-		}).send();	
-		
-	//
+		}).send();
 }
 </script>
 		  <!-- content section >> -->
@@ -236,7 +236,7 @@ function open_light_box(degree, school, checkboxValue){
 			  <div class="inner_top">
 				<div class="inner_link">
 				  <ul>
-					<li><a href="index.html"><strong>Home</strong></a></li>  
+					<li><a href="<?php echo $CFG->siteroot;?>"><strong>Home</strong></a></li>
 					<li class="in_aroow"><a><strong>Colleges</strong></a></li>      						
 					<li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
 				  </ul>
@@ -245,7 +245,7 @@ function open_light_box(degree, school, checkboxValue){
 				if(($expired == 0)){ 
 		?>
 			<div class="in_Right_link"><a href="#"></a><a href="<?php echo $CFG->siteroot;?>/my_account.html">My Account</a></div>
-		<?php }} ?>
+		<?php } } ?>
 				<div class="clear"></div>
 				<h1><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></h1>
 				
@@ -379,12 +379,9 @@ function open_light_box(degree, school, checkboxValue){
 		
 	}
 	else{
-		//require_once("includes/left_content.php"); 
-		
-		if($school_id != ''){
-		
+		//require_once("includes/left_content.php"); 	
+		if($school_id != ''){		
 			$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$school_id.' and status = "active"');
-
 			$student_majors = get_records_sql('Select * from '.$CFG->prefix.'majors where status = "active" order by name');
 			$major_data = array();
 
@@ -392,7 +389,7 @@ function open_light_box(degree, school, checkboxValue){
 			$major_data = array();
 
 			$student_degrees_data = get_records_sql('Select * from '.$CFG->prefix.'school_admission_details where school_id = '.$school_id);
-			
+
 			if(!empty($student_majors_data)){
 				foreach($student_majors_data as $school_majors){
 					$major_data[$school_majors->major_id] = $school_majors->major_id;
@@ -415,7 +412,7 @@ function open_light_box(degree, school, checkboxValue){
       <div class="inner_top">
         <div class="inner_link">
           <ul>
-            <li><a href="index.html"><strong>Home</strong></a></li>   
+            <li><a href="<?php echo $CFG->siteroot;?>"><strong>Home</strong></a></li>
 			<?PHP
 			if(isset($_GET['preview']))
 			{
@@ -455,7 +452,7 @@ function open_light_box(degree, school, checkboxValue){
 				if(isset($student_data->user_id)) get_menu_college($student_data->user_id,"colleges_degrees",$url);
 			  ?>
 		<br />
-           <?php  if(!empty($major_data) && !empty($student_degrees_data)){ ?>
+           <?php  if(!empty($major_data) || !empty($student_degrees_data)){ ?>
 		<table width="75%" border="0" cellpadding="8" cellspacing="10">
 			<tr>
 			  <td valign="top" bgcolor="#F8F8F8" class="table_font5"><b>Majors :</b></td>
@@ -468,41 +465,29 @@ function open_light_box(degree, school, checkboxValue){
 					<?php 								
 						$majors_degrees = array();
 						if(!empty($major_data)){
-							
 							$student_majors = get_records_sql('Select * from '.$CFG->prefix.'majors where status = "active" AND parent_id != "0" order by name');
 							
 							$sql = "Select Distinct tuition_fees,duration,last_date_of_admission,date_of_entrance_exam,how_to_apply,brochures_and_prospectus from {$CFG->prefix}school_admission_details  where status = 'active' AND school_id = $school_id" ;
 							$degree_additional_data = get_records_sql($sql);
 							//print_object($student_majors);
 							if(!empty($student_majors)){
-
 								foreach($student_majors as $data){
-										if(in_array($data->id,$major_data)){
-											echo $data->name;
-											echo "<br />";
-										}
+									if(in_array($data->id,$major_data)){
+										echo $data->name;
+										echo "<br />";
+									}
 								}
-                                
-							}
-											
-							/*if(in_array($majors->id,$major_data)){
-								$student_majors_data = get_record_sql('Select name from '.$CFG->prefix.'majors where status = "active" and id='.$majors->parent_id);
-								if(!empty($student_majors_data)){
-									$majors_degrees[$student_majors_data->name] = $majors->name;
-								}
-								
-							} */										
-						}else
-                        {
+
+							}										
+						} else {
                             echo "No Majors Found.";
-                        }	
+                        }
 					?>						
 				</td>
 				<td valign="top" width="50%" class="table_font5">			
 					<!-- Majors -->				
 					<?php 
 						if(!empty($student_degrees_data)){
-							
 							foreach($student_degrees_data as $degrees){
 								echo  "<div class='degree_heading'>".get_data_frontend('school_degrees_offered','degree',$degrees->degree_id)."</div>";
 								echo  (!empty($degrees->tuition_fees))?"<div class='degree_details'><b>Tuition Fees : </b>".$degrees->tuition_fees."</div>":'';
@@ -513,8 +498,7 @@ function open_light_box(degree, school, checkboxValue){
 								echo  (!empty($degrees->brochures_and_prospectus))?"<div class='degree_details'><b>Brochures And Prospectus : </b> <a href='".$CFG->siteroot."/file.php/brochures_and_prospectus/".$degrees->brochures_and_prospectus."' rel='lightbox[news 85% 85%]' border='0'>".$degrees->brochures_and_prospectus."</a> </div>":'';
 								echo '<div class="degree_block"></div>';
 							}
-						}else
-                        {
+						} else {
                             echo " No Degrees Found.";
                         }
 
@@ -522,18 +506,13 @@ function open_light_box(degree, school, checkboxValue){
 				</td>
 			</tr>
 		</table>
-          <?php }else{ echo "<center><div align=\"center\" style=\"float:none!important;\"> No Majors and Degrees Found.</div></center>"; }?>
+          <?php } else {
+            echo "<center><div align=\"center\" style=\"float:none!important;\"> No Majors and Degrees Found.</div></center>";
+          } ?>
 	</div>
     <div class="clear"></div>
 	<!-- << inner content>> -->
   </div>
   <!-- << content section -->
-
-
-	<?php }
-
-		  ?>
-
-<?php 
-	require_once('includes/footer.php'); 
-?>
+<?php } ?>
+<?php require_once('includes/footer.php');  ?>

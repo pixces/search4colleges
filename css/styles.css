@@ -2700,6 +2700,17 @@ dl.accordion dd dl dd dl dd dl dd.accordion_content
 	margin:0;
 	padding:0;
 }
+
+.friend_cetogery_line{
+    margin: 0 15px;
+    padding:10px;
+    float:left;
+    min-height:120px;
+    /*border: 1px solid #D3D3D3;*/
+    /*border-radius: 5px 5px 5px 5px;*/
+    margin-bottom:27px;
+    clear: left;
+}
 .friend_name{
 color:#C42110;
 text-align:center;

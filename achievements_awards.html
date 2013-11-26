@@ -103,6 +103,26 @@
 		}).send();	
 	}
 
+    function deleteAchievements(id){
+        var conf = confirm("Are you sure you want to delete this achievement?");
+        if(conf){
+            var req = new Request({
+                method: 'post',
+                url: 'ajax_handler.php',
+                data: {'flag' : 'deleteAchievements',
+                       'id'   : id
+                },
+                onRequest: function() {},
+                onComplete: function(response) {
+                    //$('population_achievements').innerHTML = response;
+                    populateAchievements();
+                }
+            }).send();
+        } else {
+            console.info('sorry!');
+        }
+    }
+
 	populateAchievements();
 
 </script>

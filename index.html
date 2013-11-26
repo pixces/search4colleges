@@ -160,7 +160,7 @@
       <div class="box_c">
 	  <?php
 		$school='';
-		$sql="select * from `{$CFG->prefix}schools` where  status='active' and featured='featured'";
+		$sql="select * from `{$CFG->prefix}schools` where  status='active' and recommend='yes'";
 		$schools=get_records_sql($sql);
 
 		if($schools)

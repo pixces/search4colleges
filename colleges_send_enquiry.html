@@ -55,7 +55,7 @@
       <div class="inner_top">
         <div class="inner_link">
           <ul>
-            <li><a href="index.html"><strong>Home</strong></a></li>       
+            <li><a href="<?php echo $CFG->siteroot;?>"><strong>Home</strong></a></li>
 			<li class="in_aroow"><a href="colleges.html"><strong>Colleges</strong></a></li>      	     	        
             <li class="in_aroow"><span><?php if(isset($student_data->school_name)) echo $student_data->school_name; ?></span></li>
           </ul>
@@ -175,7 +175,7 @@ else{
       <div class="inner_top">
         <div class="inner_link">
           <ul>
-            <li><a href="index.html"><strong>Home</strong></a></li>          
+            <li><a href="<?php echo $CFG->siteroot;?>"><strong>Home</strong></a></li>
 			<?PHP
 			if(isset($_GET['preview']))
 			{
