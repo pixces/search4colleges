@@ -118,7 +118,7 @@ $oCalendar = new inc_calendar();
 	if (isset($_POST['flag']) && $_POST['flag']=='check_email'){
 		//$user_data = get_record("fe_users", "email", $_POST['email'],'status','active');
 		$user_data = get_record("fe_users", "email", $_POST['email']);
-		if(!empty($user_data))
+        if(!empty($user_data))
 		{
 			echo  "yes";
 		}
@@ -151,6 +151,7 @@ $oCalendar = new inc_calendar();
 	if (isset($_POST['flag']) && $_POST['flag']=='email_exists'){
 	//
 		$user_data = get_record("fe_users", "email", $_POST['emailid']);
+
 		if(!empty($user_data))
 		{
 			echo  "yes";

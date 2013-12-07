@@ -21,7 +21,7 @@
 
 	if($_POST){
 
-        $added_date				= time();
+		$added_date				= time();			
 		$department				= optional_param('department', PARAM_RAW);
 		$department_head		= optional_param('department_head', PARAM_RAW);		
 		$department_email		= optional_param('department_email', PARAM_RAW);		
@@ -66,6 +66,8 @@
 			$update_info->cultural_diversity	= $cultural_diversity;
 			$update_info->location_google_map 	= $location_google_map;
 			$update_info->id 					= $student_additional_data->id;
+
+			//print_object($update_info);
 
 			if(!empty($update_info)){
 				$update = update_record('schools_additional', $update_info);
