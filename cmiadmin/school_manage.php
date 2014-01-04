@@ -583,17 +583,42 @@ if (!$user_data) {
 
 } else {
 
-    $table->head = array($check, $id, $school_name, "<a href='JavaScript:void(0);'>Email</a>", 'Website Name', $address, "", "", "", "");
+    $table->head = array($check, $id, $school_name, "<a href='JavaScript:void(0);'>Email</a>", 'Website Name', $address, "", "", "");
     $table->align = array("center", "center", "center", "center", "center", "center", "center", "center");
     $table->width = "100%";
 
-    foreach ($user_data as $data) {
+    //icon list
+    $status = 'active';
+    /*
+     * icon_edit.png
+     * icon_delete.png
+     * icon_view.png
+     */
+
+     $icon['status']['active']= 'icon_active.png';
+     $icon['status']['inactive']= 'icon_inactive.png';
+     $icon['featured']['enable']= 'icon_featured_enable.png';
+     $icon['featured']['disable']= 'icon_featured_disable.png';
+     $icon['recommend']['enable']= 'icon_recommend_enable.png';
+     $icon['recommend']['disable']= 'icon_recommend_disable.png';
+     $icon['statistics']['enable']= 'icon_stats_enable.png';
+     $icon['statistics']['disable']= 'icon_stats_disable.png';
+     $icon['view']['enable'] = 'icon_view_enable.png';
+     $icon['view']['disable'] = 'icon_view_disable.png';
+     $icon['basic']['view'] = 'icon_view.png';
+     $icon['basic']['edit'] = 'icon_edit.png';
+     $icon['basic']['delete'] = 'icon_trash.png';
+
+     print_r($icon);
+
+     foreach ($user_data as $data) {
+
         $status = 'active';
-        $image = 'delete1.png';
+        $status_img = 'icon_active.png';
 
         if ($data->status == 'active') {
             $status = 'inactive';
-            $image = 'add1.png';
+            $status_img = 'add1.png';
         }
 
         $featured = 'Featured';
@@ -635,15 +660,31 @@ if (!$user_data) {
         } else {
             $featured = "no";
         }
-        $featured_link = get_buttons("$featured", "$page_name?id=$data->id&featured=$featured&$page_var&amp;page=$page", " theme/$theme/images/$featured_image");
 
-        $recommend_link = get_buttons("$recommend", "$page_name?id=$data->id&recommend=$recommend&$page_var&amp;page=$page", " theme/$theme/images/$recommend_image");
+        //view
+        $btn_view = get_buttons('View Details', "school_detail.php?id=" . $data->id . "", "theme/$theme/images/icon_view.png");
+        //edit
+        $btn_edit = get_buttons('Edit Details', "school_detail.php?id=" . $data->id . "&action=edit", "theme/$theme/images/icon_edit.png");
+        //thrash
+        $btn_delete = get_buttons('Delete', "#", "theme/$theme/images/icon_trash.png", "onclick=\"confirm_delete($data->id); return false;\"");
 
-        $statistics_link = get_buttons("$statistics", "$page_name?id=$data->id&statistics=$statValue&$page_var&amp;page=$page", " theme/$theme/images/$statistics_image");
+        //status
 
-        $viewhide = get_buttons('View/Hide to users', "$page_name?view_hide_school_id=$data->id&view_hide=$view_hide&amp;$page_var&amp;page=$page", " theme/$theme/images/$view_hide_image");
+        //view/hide
 
+        //featured
+
+        //recommended
+
+        //stats
+
+
+        $featured_link = get_buttons("$featured", "$page_name?id=$data->id&featured=$featured&$page_var&amp;page=$page", "theme/$theme/images/$featured_image");
+        $recommend_link = get_buttons("$recommend", "$page_name?id=$data->id&recommend=$recommend&$page_var&amp;page=$page", "theme/$theme/images/$recommend_image");
+        $statistics_link = get_buttons("$statistics", "$page_name?id=$data->id&statistics=$statValue&$page_var&amp;page=$page", "theme/$theme/images/$statistics_image");
+        $viewhide = get_buttons('View/Hide to users', "$page_name?view_hide_school_id=$data->id&view_hide=$view_hide&amp;$page_var&amp;page=$page", "theme/$theme/images/$view_hide_image");
         $deletebutton = get_buttons('Delete', "#", "theme/$theme/images/delete.png", "onclick=\"confirm_delete($data->id); return false;\"");
+
 
         $schools = get_record('fe_users', 'id', $data->user_id);
         $email = (isset($schools->email)) ? $schools->email : '';
@@ -653,10 +694,10 @@ if (!$user_data) {
             "$email",
             "$data->web_url",
             "$data->address",
-            "<a href='school_detail.php?id=" . $data->id . "'>View Detail</a>",
-            "<a href='school_detail.php?id=" . $data->id . "&action=edit'>Edit Detail</a>",
             "<a href='school_leads_detail.php?id=" . $data->user_id . "'>Leads<br />Detail</a>",
-            $viewhide . $featured_link . $statistics_link . $recommend_link . $disablebutton . $deletebutton
+            //"<a href='school_detail.php?id=" . $data->id . "'>View Detail</a>"."<a href='school_detail.php?id=" . $data->id . "&action=edit'>Edit Detail</a>".$btn_delete,
+            $btn_view.$btn_edit.$btn_delete,
+            $viewhide . $featured_link . $statistics_link . $recommend_link . $disablebutton
         );
     }
 

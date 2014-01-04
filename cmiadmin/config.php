@@ -1,7 +1,6 @@
 <?php
 unset($CFG);
 
-
 //enabling debug
 $CFG->debug = 6143;
 $CFG->debugdisplay = false;
