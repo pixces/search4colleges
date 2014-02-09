@@ -11,7 +11,7 @@
 $dbhost = 'localhost';
 $dbname = 'search4c';
 $dbuser = 'root';
-$dbpass = 'root';
+$dbpass = '';
 */
 
 $dbhost = 'localhost';
@@ -30,11 +30,13 @@ if ($conn){
 
 //threshold time
 $interval = time() - (24 * 60 * 60);    //all where date_added is on or before 24 hrs from now
+
+
 $approval_status = 'inprocess';
 $item_status = 'active';
 
 //get the id's of all unapproved image
-$sQl = "SELECT `id` FROM ".$master_table." WHERE `approved` = '".$approval_status."' AND `status` = '".$item_status."' AND `added_date` <= ".$interval;
+$sQl = "SELECT `id` FROM ".$master_table." WHERE `approved` = '".$approval_status."' AND `status` = '".$item_status."' AND `added_date` >= ".$interval;
 $galleryItems = mysql_query($sQl,$conn);
 
 $idList = array();
