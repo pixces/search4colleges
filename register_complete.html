@@ -37,8 +37,9 @@ if(isset($_POST) && !empty($_POST))
 			$add_info->date_of_birth	= $date_of_birth ;
 			$add_info->added_date 		= $added_date;
 
-                        $additional_info            = null;
-switch($reg_type){
+            $additional_info            = null;
+
+			switch($reg_type){
 				case 'student':		$table							= 'student';
 									$educational_interest			= optional_param('educational_interest', PARAM_RAW);
 									$add_info->educational_interest	= $educational_interest;
@@ -233,9 +234,9 @@ OP;
 			$mail->Body			= $msg;
 			$mail->AddAddress($to);
 			$mail->AddReplyTo($CFG->frommail, "Registration");
-			if(!$mail->Send())
+			if($mail->Send())
 			{
-                                
+							
 				if($table !=''){
 					$new = insert_record('fe_users', $add_user);				
 					if($new){
@@ -259,7 +260,6 @@ OP;
 			}
 			else
 			{
-                        
 				header("location:failure.html");
 				$msg=" Registration Failed. Try Again !!!";
 			}

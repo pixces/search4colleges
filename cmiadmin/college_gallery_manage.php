@@ -248,7 +248,6 @@
 											<?php
 											if (!empty($table)) 
 											{
-                                                                                                $page_name='college_gallery_manage.php';
 												print_table($table);								
 												print_paging_bar($master_count, $page, $perpage,"$page_name?$page_var&amp;");
 											}

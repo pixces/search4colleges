@@ -1403,7 +1403,7 @@ $sections = '';
 		
 		$user_id = $_SESSION['s4c_user_id'];
 		$studeny_info = get_records('fe_users','id',$user_id);
-		echo '<form name="professional_form" id="professional_form" method="post" onsubmit="saveProfessional();return false;">';
+		echo '<form name="professional_form" id="professional_form" method="post" onsubmit="checkProfessional();return false;">';
 		if($studeny_info){
 			//echo "  <div class='in_Right_link'><a href='javascript:void(0);' onclick='saveProfessional();' >Save</a></div>";
 			echo "<div class='in_Right_link'><input type='image' name='submit' src='images/save_button.jpg' /><a href='javascript:void(0);' onclick='populateProfessional();' ><img src='images/cancel_bottom.jpg'></a></div>";
@@ -1427,8 +1427,8 @@ $sections = '';
 				 
 				<div class="pro_exo_wrapper1">
                 <div class="professional_experience_box_small">
-                <strong>Company<span>*</span></strong>
-				<p><input name='organization' id='organization' value='<?php echo $record->organization; ?>'  class="validate['required']"/></p>					
+                <strong>Company</strong>
+				<p><input name='organization' id='organization' value='<?php echo $record->organization; ?>'  /></p>					
 				</div>
                 <div class="professional_experience_box_small_right">	
                 <strong>Title</strong>
@@ -1572,10 +1572,10 @@ $sections = '';
                 </div>
                 
                 
-<!--                <div class="professional_experience_box">
+                <div class="professional_experience_box">
                 <strong>Type of Work</strong>
 				<p><textarea name='work_nature' id='work_nature' ><?php echo $record->work_nature; ?></textarea></p>
-		</div>-->
+				</div>
                 <div class="professional_experience_box">	
                 <strong>Brief Description</strong>
 				<p><textarea name='short_description' id='short_description' ><?php echo $record->short_description; ?></textarea></p>
@@ -1592,7 +1592,7 @@ $sections = '';
 		
 		$id = $_SESSION['s4c_user_id'];
 		$organization = optional_param('organization','',PARAM_TEXT);
-               $designation = optional_param('designation','',PARAM_TEXT);
+		$designation = optional_param('designation','',PARAM_TEXT);
 		//$work_from = optional_param('work_from','',PARAM_TEXT);
 		$date_month_f			= optional_param('date_month_f','0',PARAM_INT);
 		$date_day_f			    = optional_param('date_day_f','0',PARAM_INT);
@@ -1609,7 +1609,7 @@ $sections = '';
 		$work_till	    		= $date_month_t . '/' . $date_day_t . '/' . $date_year_t;
 		$work_till        		= strtotime($work_till);
 		
-		//$work_nature = optional_param('work_nature','',PARAM_TEXT);
+		$work_nature = optional_param('work_nature','',PARAM_TEXT);
 		$short_description = optional_param('short_description','',PARAM_TEXT);
 		$post_date = date("Y-m-d",$work_till);
 		$update_record = new object();
@@ -1633,7 +1633,7 @@ $sections = '';
 		}
 		$update_record->work_nature = $work_nature;
 		$update_record->short_description = $short_description;
-                update_record('fe_users',$update_record);
+		update_record('fe_users',$update_record);
 	} 
 
 	
