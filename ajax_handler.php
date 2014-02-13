@@ -1387,8 +1387,7 @@ $sections = '';
 							<p>".$work_from."</p>
 							<strong>To</strong>
 							<p>".$work_till."</p>
-							<strong>Type of Work</strong>
-							<p>".$studeny_info->work_nature."</p>
+							
 							<strong>Brief Description</strong>
 							<p>".$studeny_info->short_description."</p>
 						</div>
@@ -2654,3 +2653,4 @@ OP;
 	
 
 ?>
+Y
