@@ -1427,8 +1427,8 @@ $sections = '';
 				 
 				<div class="pro_exo_wrapper1">
                 <div class="professional_experience_box_small">
-                <strong>Company</strong>
-				<p><input name='organization' id='organization' value='<?php echo $record->organization; ?>'  /></p>					
+                <strong>Company<span>*</span></strong>
+				<p><input name='organization' id='organization' value='<?php echo $record->organization; ?>'  class="validate['required']"/></p>					
 				</div>
                 <div class="professional_experience_box_small_right">	
                 <strong>Title</strong>
@@ -1572,10 +1572,10 @@ $sections = '';
                 </div>
                 
                 
-                <div class="professional_experience_box">
+<!--                <div class="professional_experience_box">
                 <strong>Type of Work</strong>
 				<p><textarea name='work_nature' id='work_nature' ><?php echo $record->work_nature; ?></textarea></p>
-				</div>
+				</div>-->
                 <div class="professional_experience_box">	
                 <strong>Brief Description</strong>
 				<p><textarea name='short_description' id='short_description' ><?php echo $record->short_description; ?></textarea></p>
@@ -1609,7 +1609,7 @@ $sections = '';
 		$work_till	    		= $date_month_t . '/' . $date_day_t . '/' . $date_year_t;
 		$work_till        		= strtotime($work_till);
 		
-		$work_nature = optional_param('work_nature','',PARAM_TEXT);
+		//$work_nature = optional_param('work_nature','',PARAM_TEXT);
 		$short_description = optional_param('short_description','',PARAM_TEXT);
 		$post_date = date("Y-m-d",$work_till);
 		$update_record = new object();

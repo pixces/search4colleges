@@ -11,13 +11,14 @@
 <script  type="text/javascript">
 	
 	function checkProfessional(){
-		if($('organization').value == '' || $('designation').value == '' || $('work_nature').value == '' || $('short_description').value == ''){
-			//	editProfessional();
-			//  return false; 
+		if($('organization').value == ''){
+				editProfessional();
+                                 return false; 
 		}
 		else{
+                        if($('.err').length > 0) $('.err').hide();
 			saveProfessional();
-			//  return true;  
+			  return true;  
 		}
 	}
 
@@ -29,6 +30,7 @@
 					 },
 				 onRequest: function() {},
 				 onComplete: function(response) { 
+                           
 					 $('populateProfessional').innerHTML = response;
 					 new DatePicker('.demo_vista1', { 
 						pickerClass: 'datepicker_vista',
@@ -48,6 +50,7 @@
 		}else{
 			$cur_emp_val="";
 		}	
+                
 		var req = new Request({
 			 method: 'post',
 			 url: 'ajax_handler.php',
@@ -61,12 +64,13 @@
 					"date_year_t":$('date_year_t').value,
 					//'work_from' : $('work_from').value,
 					'current_emp' : $cur_emp_val,
-					'work_nature' : $('work_nature').value,
+					//'work_nature' : $('work_nature').value,
 					'short_description' : $('short_description').value,
 					'flag' : 'saveProfessional'	
 				 },
 			 onRequest: function() {},
 			 onComplete: function(response) { 
+                                  
 				 $('populateProfessional').innerHTML = response;
 				 populateProfessional();
 			}
@@ -82,6 +86,7 @@
 					 },
 				 onRequest: function() {},
 				 onComplete: function(response) { 
+                             
 					 $('populateProfessional').innerHTML = response;
 				}
 			}).send();	
