@@ -2087,17 +2087,19 @@ OP;
 						}
 					}
 
-                    /*
-                     <div class='friend_cetogery_line'>
-						    <a rel='lightbox[img]' href='".$imageb."' title='".$name."'><img src='".$image."' /></a>
-							<a href='".$CFG->siteroot."/".$link."'>$name</a>
-							<a href='javascript:void(0);' onclick='delete_friends($record->id);'>
-							    <img src='images/delete_icon.png' style='width:16px; height:16px; margin: 4px 4px 0 20px; float: left; ' />
-							</a>&nbsp;&nbsp;
-							<a href='new_messages.html?id=$record->id&friend_id=$record->friend_id' rel =\"lightbox[msg_$record->id 550 300]\" >Send Message</a>
-						  </div>
-                     */
-					echo"
+                    
+                     echo "<div class='friend_cetogery_line frnd_cat_vertical'>
+                    <a rel='lightbox[img]' href='" . $imageb . "' title='" . $name . "' class='friends_cat_image'>
+                        <img src='".$image."' alt='".$name."'/>
+                    </a>
+                    <a href='" . $CFG->siteroot . "/" . $link . "' class='friend_cat_name'>$name</a>
+                    <a href='javascript:void(0);' onclick='delete_friends($record->id);'class='friend_cat_delete'>
+                        <img src='images/delete_icon.png'/>
+                    </a>&nbsp;&nbsp
+                    <a href='new_messages.html?id=$record->id&friend_id=$record->friend_id' rel =\"lightbox[msg_$record->id 550 300]\" class='friend_cat_sendmsg'>Send Message</a>
+		</div>";
+                     
+					/*echo"
 						 <div class='friend_cetogery_line'><div style='text-align: center;'> <a rel='lightbox[img]' href='".$imageb."' title='".$name."'><img src='".$image."' /></div></a>
 							<div class='friend_name'> <a href='".$CFG->siteroot."/".$link."'>$name</a> </div>
 							<div class='clear'>
@@ -2107,7 +2109,7 @@ OP;
 							  </div>
 							</div>
 						  </div>
-						  ";
+						  ";*/
 					$i++;
 				}
 			}
@@ -2653,4 +2655,3 @@ OP;
 	
 
 ?>
-Y
