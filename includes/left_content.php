@@ -30,6 +30,12 @@ if(isset($_SESSION['user_type']) && $_SESSION['user_type'] !='')
 				$expired = 1;
 			}
 		}
+                
+                /* Fetch Statistics view status */
+                $statistics_status = get_record_sql("SELECT value as statistics_view_status FROM {$CFG->prefix}config c WHERE c.name='school_admin_statistics_view'");
+                
+
+
 	}
 	
 	$user_info = check_login();
@@ -181,6 +187,7 @@ if(isset($_SESSION['user_type']) && $_SESSION['user_type'] !='')
 
                 //get details of the school
                 $student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+//print_object($student_data);
 
                 if($_SESSION['user_type'] == 'school'){
 				?>
@@ -194,7 +201,7 @@ if(isset($_SESSION['user_type']) && $_SESSION['user_type'] !='')
 						<li><a href="<?php echo $CFG->siteroot;?>/college_leads.html?view=<?php echo $_SESSION['s4c_user_id']; ?>" <?php echo $college_leads_sel; ?> >Leads</a></li>
 						<li><a href="<?php echo $CFG->siteroot;?>/college_membership.html?view=<?php echo $_SESSION['s4c_user_id']; ?>" <?php echo $college_membership_sel; ?> >Membership Details</a></li>
 						<li><a href="<?php echo $CFG->siteroot;?>/college_affiliated_banks.html?view=<?php echo $_SESSION['s4c_user_id']; ?>" <?php echo $college_affiliated_banks_sel; ?> >List affiliated banks</a></li>
-						<?php if ($student_data->statistics) { ?>
+						<?php if (($student_data->statistics) &&($statistics_status->statistics_view_status)) { ?>
                         <li><a href="<?php echo $CFG->siteroot;?>/college_statistics.html?view=<?php echo $_SESSION['s4c_user_id']; ?>" <?php echo $statistics_sel; ?> >Statistics</a></li>
                         <?php } ?>
 						<li><a href="<?php echo $CFG->siteroot;?>/college_users.html?view=<?php echo $_SESSION['s4c_user_id']; ?>" <?php echo $college_users_sel; ?> >Manage Users</a></li>
@@ -228,7 +235,7 @@ if(isset($_SESSION['user_type']) && $_SESSION['user_type'] !='')
 			<li><a href="<?php echo $CFG->siteroot;?>/about_me.html" <?php echo $about_me_sel; ?> >About Me</a></li>
 			<li><a href="<?php echo $CFG->siteroot;?>/achievements_awards.html" <?php echo $achievements_awards_sel; ?> >Achievements & Awards</a></li>
 			<li><a href="<?php echo $CFG->siteroot;?>/professional_experience.html" <?php echo $professional_experience_sel; ?> >Professional Experience</a></li>
-		
+                        <li><a href="<?php echo $CFG->siteroot;?>/college_affiliated_banks.html?view=<?php echo $_SESSION['s4c_user_id']; ?>" <?php echo $college_affiliated_banks_sel; ?> >List affiliated banks</a></li>
 		<?php 
 		} 
 		?>

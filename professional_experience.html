@@ -16,9 +16,10 @@
                                  return false; 
 		}
 		else{
-                        if($('.err').length > 0) $('.err').hide();
+                        //if($('.err').length > 0) $('.err').hide();
 			saveProfessional();
-			  return true;  
+                        if($('.err').length > 0) $('.err').hide()
+			return true;  
 		}
 	}
 

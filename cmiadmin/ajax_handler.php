@@ -228,5 +228,27 @@
 			
 	}
 	
+         if (isset($_POST['flag']) && $_POST['flag']=='toogleStatistics'){
 
+		$statistics_status = get_record_sql("SELECT *  FROM {$CFG->prefix}config c WHERE c.name='school_admin_statistics_view'");
+                if(!empty($statistics_status)){
+                    $config = new object();
+				$config->id = $statistics_status->id;
+				$config->value= ($statistics_status->value)? 0 : 1;
+                                if(update_record('config',$config)){
+                                   $text=($config->value)?'Click to disable statistics':'Click to enable statistics'; 
+                                   $reponse_array=array('update_error_code'=>0,'status'=>$config->value,'text'=>$text);
+                                  echo json_encode($reponse_array); 
+                                   
+                                }
+                                else{
+                                   $reponse_array=array('update_error_code'=>1);
+                                    echo json_encode($reponse_array);
+                                }
+                }else{
+                    $reponse_array=array('update_error_code'=>-1);
+                     echo json_encode($reponse_array);
+                }
+		
+	}
 ?>

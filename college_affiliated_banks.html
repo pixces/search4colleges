@@ -77,11 +77,12 @@
 	}
 	if(isset($_SESSION['s4c_user_id']) && $school_id != '' && !isset($_GET['preview']) && $school_id == $_SESSION['s4c_user_id']){
 
-			if(isset($_SESSION['user_type']) && $_SESSION['user_type'] == 'school'){
+			if(isset($_SESSION['user_type']) && ($_SESSION['user_type'] == 'school'||$_SESSION['user_type'] == 'student')){
 				$student_data = get_record_sql('Select * from '.$CFG->prefix.'schools where user_id = '.$_SESSION['s4c_user_id'].' and status = "active"');
+                                $status='active';
+                                $affilated_data = get_records_sql('Select * from '.$CFG->prefix.'financial_provider where status="'.$status.'" order by title ');
 
-				$affilated_data = get_records_sql('Select * from '.$CFG->prefix.'financial_provider order by title ');
-
+                                
 				$affilated_data_schhol = get_records_sql('Select * from '.$CFG->prefix.'school_affiliation_with_banks where  user_id = '.$_SESSION['s4c_user_id']);
 
 				
@@ -221,6 +222,7 @@
 				<?php 
 				foreach($affilated_data as $data)
 				{
+                               
 					$checked = '';
 					if(in_array($data->id,$schhol_afile_data)){
 						$checked  = "checked='checked'";
@@ -266,6 +268,7 @@
 			$sql = 'Select * from '.$CFG->prefix.'school_affiliation_with_banks  sab  inner join financial_provider fp on (sab.affilation_id = fp.id) where  sab.user_id = '.$_SESSION['s4c_user_id'];
 			
 			$affilated_data_schhol = get_records_sql($sql);
+                        
 		}
 		?>
 		  <!-- << header section -->
@@ -303,6 +306,7 @@
 			 ?>
       <h4>Affiliated Banks</h4>
 	<?php 
+                
 		if(!empty($affilated_data_schhol)){ ?>
 
 						
